@@ -1,0 +1,16 @@
+---
+// Component Imports
+import CaseStudies from "@/components/case-studies";
+import PageHero from "@/components/global/hero";
+import Contact from "@/components/home/contact";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout title="Amin Babu | Full Stack Web Developer & Tech Enthusiast">
+  <PageHero
+    title="Case Studies"
+    description="In-depth analysis of a real-world project, showcasing challenges, solutions, and results in web development and technology."
+  />
+  <CaseStudies client:load />
+  <Contact client:load />
+</Layout>

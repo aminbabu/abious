@@ -1,0 +1,38 @@
+---
+// Component Imports
+import CaseStudyContent from "@/components/case-studies/content";
+import FeaturedImage from "@/components/case-studies/featured-image";
+import RelatedCaseStudies from "@/components/case-studies/related-case-studies";
+import PageHero from "@/components/global/hero";
+import Contact from "@/components/home/contact";
+import Layout from "@/layouts/Layout.astro";
+import { getCollection } from "astro:content";
+
+// Generate a new path for every collection entry
+export const getStaticPaths = async () => {
+  const caseStudies = await getCollection("case-study");
+
+  return caseStudies.map((caseStudy) => ({
+    params: { id: caseStudy.id },
+    props: { caseStudy },
+  }));
+};
+
+// Component Props
+const { caseStudy } = Astro.props;
+---
+
+<Layout title={caseStudy.data.title}>
+  <PageHero
+    title={caseStudy.data.title}
+    description={caseStudy.data.description}
+  />
+  <FeaturedImage caseStudy={caseStudy} />
+  <CaseStudyContent caseStudy={caseStudy} />
+  <RelatedCaseStudies
+    id={caseStudy.id}
+    type={caseStudy.data.type}
+    client:load
+  />
+  <Contact client:load />
+</Layout>
