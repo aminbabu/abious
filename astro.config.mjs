@@ -9,6 +9,6 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  site: "https://aminbabu.com",
+  site: "https://aminbabu.vercel.app",
   integrations: [react()],
 });
