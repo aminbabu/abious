@@ -22,7 +22,9 @@ export const getStaticPaths = async () => {
 const { caseStudy } = Astro.props;
 ---
 
-<Layout title={caseStudy.data.title}>
+<Layout
+  title={`${caseStudy.data.title} | Amin Babu - Full Stack Web Developer & Tech Enthusiast`}
+>
   <PageHero
     title={caseStudy.data.title}
     description={caseStudy.data.description}

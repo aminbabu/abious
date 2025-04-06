@@ -135,13 +135,11 @@ const { title } = Astro.props;
     <ClientRouter />
   </head>
 
-  <body>
-    <div class={cn("flex min-h-screen flex-col font-sans antialiased")}>
-      <Header client:load />
-      <main class="flex-1">
-        <slot />
-      </main>
-      <Footer />
-    </div>
+  <body class={cn("flex min-h-screen flex-col font-sans antialiased")}>
+    <Header client:load />
+    <main>
+      <slot />
+    </main>
+    <Footer />
   </body>
 </html>

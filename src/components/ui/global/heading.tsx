@@ -1,26 +1,26 @@
-import { Slot } from '@radix-ui/react-slot';
-import { cva, type VariantProps } from 'class-variance-authority';
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { cn } from '@/lib/utils';
-import type { ComponentProps } from 'react';
+import { cn } from "@/lib/utils";
+import type { ComponentProps } from "react";
 
-const headingVariants = cva('relative font-medium', {
+const headingVariants = cva("relative font-medium capitalize", {
   variants: {
     variant: {
-      default: 'text-primary',
-      secondary: 'text-secondary',
-      muted: 'text-muted',
-      destructive: 'text-destructive',
+      default: "text-primary",
+      secondary: "text-secondary",
+      muted: "text-muted",
+      destructive: "text-destructive",
     },
     size: {
-      default: 'text-3xl sm:text-4xl lg:text-5xl xl:text-6xl',
-      sm: 'text-2xl sm:text-3xl lg:text-4xl xl:text-5xl',
-      lg: 'text-4xl sm:text-5xl lg:text-6xl xl:text-7xl',
+      default: "text-3xl sm:text-4xl lg:text-5xl xl:text-6xl",
+      sm: "text-2xl sm:text-3xl lg:text-4xl xl:text-5xl",
+      lg: "text-4xl sm:text-5xl lg:text-6xl xl:text-7xl",
     },
   },
   defaultVariants: {
-    variant: 'default',
-    size: 'default',
+    variant: "default",
+    size: "default",
   },
 });
 
@@ -30,11 +30,11 @@ function Heading({
   size,
   asChild = false,
   ...props
-}: ComponentProps<'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'> &
+}: ComponentProps<"h1" | "h2" | "h3" | "h4" | "h5" | "h6"> &
   VariantProps<typeof headingVariants> & {
     asChild?: boolean;
   }) {
-  const Comp = asChild ? Slot : 'h2';
+  const Comp = asChild ? Slot : "h2";
 
   return (
     <Comp

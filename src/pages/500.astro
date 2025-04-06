@@ -1,0 +1,16 @@
+---
+// Component Imports
+import InternalServerError from "@/components/500/index";
+import PageHero from "@/components/global/hero";
+import Layout from "@/layouts/Layout.astro";
+---
+
+<Layout
+  title="500 - Server Error | Amin Babu - Full Stack Web Developer & Tech Enthusiast"
+>
+  <PageHero
+    title="500 - Server Error"
+    description="The page you are looking for does not exist."
+  />/
+  <InternalServerError />
+</Layout>
