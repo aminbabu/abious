@@ -219,6 +219,18 @@ const skillCategories = [
         id: 7,
         name: "Web Performance Optimization",
       },
+      {
+        id: 8,
+        name: "ChatGPT",
+      },
+      {
+        id: 9,
+        name: "Grok",
+      },
+      {
+        id: 10,
+        name: "Postman",
+      },
     ],
   },
 ];
