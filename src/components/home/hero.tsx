@@ -123,8 +123,9 @@ const Hero = () => {
       <DecoratorUI className="mb-16 before:-bottom-3 before:border-t-0 lg:mb-20">
         <Paragraph size="lg" className="max-w-3xl">
           Expert in crafting responsive web and mobile applications using
-          JavaScript, Next.js, NestJS, MERN stack, WordPress, Webflow, and more,
-          delivering seamless user experiences.
+          JavaScript, Next.js, NestJS, MERN stack, PHP, Laravel, WordPress,
+          Webflow, and more — delivering seamless and high-performance user
+          experiences across platforms.
         </Paragraph>
       </DecoratorUI>
       <DecoratorUI className="mb-16 flex items-center gap-3 lg:mb-20">
