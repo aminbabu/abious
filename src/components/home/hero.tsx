@@ -138,7 +138,9 @@ const Hero = () => {
           variant="outline"
           className="cursor-pointer rounded-full"
         >
-          <a href="/resume">Resume</a>
+          <a href="/resume/Resume - Amin Babu.pdf" target="_blank">
+            Resume
+          </a>
         </Button>
       </DecoratorUI>
       <DecoratorUI className="bg-background pointer-events-none -rotate-3 before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed md:-mx-5">
