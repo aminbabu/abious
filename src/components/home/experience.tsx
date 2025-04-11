@@ -26,7 +26,7 @@ const experiences = [
     positions: [
       {
         id: 1,
-        title: "Full-Stack",
+        title: "Web Developer",
         startDate: "2023-07-01",
         endDate: "2024-11-30",
         type: "Full-time",
