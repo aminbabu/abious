@@ -1,21 +1,19 @@
 ---
-
 title: "Exponential CMS"
 description: "A powerful enterprise content management system built on an extended eZ Publish foundation."
 createdAt: "2026-06-28"
 banner: "/images/case-studies/exponential-cms.webp"
 type: Enterprise CMS
+liveURL: https://exponentialcms.com
 stack:
-
-* PHP
-* eZ Publish
-* Symfony Components
-* Twig
-* JavaScript
-* SCSS
-* Tailwind CSS
-* REST APIs
-
+  - PHP
+  - eZ Publish
+  - Symfony Components
+  - Twig
+  - JavaScript
+  - SCSS
+  - Tailwind CSS
+  - REST APIs
 ---
 
 ## Project Overview
