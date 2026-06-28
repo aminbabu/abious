@@ -4,7 +4,7 @@ description: "A powerful enterprise content management system built on an extend
 createdAt: "2026-06-28"
 banner: "/images/case-studies/exponential-cms.webp"
 type: Enterprise CMS
-liveURL: https://exponentialcms.com
+liveURL: https://exponential.earth
 stack:
   - PHP
   - eZ Publish
