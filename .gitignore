@@ -1,4 +1,5 @@
 # build output
+*.tsbuildinfo
 dist/
 .output/
 .astro/
