@@ -35,21 +35,21 @@ async function fetchTestimonials(): Promise<ITestimonial[]> {
         id: "graham-brookins",
         data: {
           name: "Graham Brookins",
-          role: "Client & Founder",
-          company: "Brookins Consulting",
-          avatar: "/images/testimonials/graham.png",
+          role: "Founder & CEO",
+          company: "7X",
+          avatar: "/images/testimonials/graham-brookins.jpeg",
         },
-        body: "Amin delivered incredible engineering quality under tight deadlines. His ability to understand our business vision and translate it into high-performance web applications was exceptional.",
+        body: "Amin blends design and development, creating user-centric solutions that balance aesthetics and functionality. His innovative approach ensures seamless experiences, exceeding expectations with technical precision and creative excellence to deliver lasting value in every project.",
       },
       {
         id: "mohammad-kais-rayhan",
         data: {
           name: "Mohammad Kais Rayhan",
-          role: "Head of Engineering",
-          company: "Notionhive",
-          avatar: "/images/testimonials/kais.png",
+          role: "UI/UX Designer",
+          company: "Notionhive Bangladesh",
+          avatar: "/images/testimonials/mohammad-kais-rayhan.jpeg",
         },
-        body: "Working alongside Amin is effortless. He brings strong architectural discipline, pristine front-end execution, and an uncompromising eye for user experience.",
+        body: "Working with Amin Babu was extremely smooth. Me as a UI UX designer dealing with developers is a challenging thing but then there comes Amin Babu who can easily catch the depth of imagination and flow how a designer can think. Really an amazing journey with him.",
       },
     ];
   }

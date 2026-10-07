@@ -14,7 +14,7 @@ export default function Section(props: SectionProps) {
       <Container>
         <div
           class={cn(
-            "py-12 md:border-x md:border-dashed md:border-border md:px-3 lg:py-16",
+            "md:border-x-border py-12 md:border-x md:border-dashed md:px-3 lg:py-16",
             props.class
           )}
         >

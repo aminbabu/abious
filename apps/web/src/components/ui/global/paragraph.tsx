@@ -6,8 +6,9 @@ const paragraphVariants = cva("font-normal", {
   variants: {
     variant: {
       default: "text-primary",
-      secondary: "text-secondary",
-      muted: "text-muted",
+      primary: "text-primary",
+      secondary: "text-secondary-foreground",
+      muted: "text-muted-foreground",
       destructive: "text-destructive",
     },
     size: {
