@@ -9,6 +9,9 @@ export default createHandler(() => (
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />
+          <script
+            innerHTML={`(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark");document.body&&document.body.classList.add("dark");}}catch(e){}})();`}
+          />
           {assets}
         </head>
         <body>

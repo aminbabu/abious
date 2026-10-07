@@ -8,19 +8,19 @@ interface ThemeContextProps {
 const ThemeContext = createContext<ThemeContextProps>();
 
 export function ThemeProvider(props: { children: JSX.Element }) {
-  const [theme, setTheme] = createSignal<string>("light");
+  const getInitialTheme = () => {
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark" || savedTheme === "light") return savedTheme;
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+    }
+    return "light";
+  };
+
+  const [theme, setTheme] = createSignal<string>(getInitialTheme());
 
   onMount(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
-      applyTheme(savedTheme);
-    } else {
-      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initial = isDark ? "dark" : "light";
-      setTheme(initial);
-      applyTheme(initial);
-    }
+    applyTheme(theme());
   });
 
   const applyTheme = (t: string) => {
