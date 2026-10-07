@@ -1,6 +1,5 @@
 @import "@fontsource-variable/geist-mono";
 @import "@fontsource/geist-sans";
-@import "remixicon/fonts/remixicon.css";
 @import "@splidejs/splide/dist/css/splide.min.css";
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -138,6 +137,14 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@utility border-y-border {
+  border-block-color: var(--border);
+}
+
+@utility border-x-border {
+  border-inline-color: var(--border);
 }
 
 @layer components {
