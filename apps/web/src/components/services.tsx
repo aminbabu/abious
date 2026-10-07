@@ -1,3 +1,9 @@
+import {
+  RiBusinessWindowLine,
+  RiBusinessLinksLine,
+  RiEditorSlashCommands,
+  RiDevelopmentBugLine,
+} from "solid-icons/ri";
 import DecoratorUI from "~/components/decorator-ui";
 import CalCom from "~/components/global/calcom";
 import Section from "~/components/section";
@@ -17,28 +23,28 @@ const services = [
     title: "Web Development",
     description:
       "Building high-performance, scalable websites and web applications using modern frameworks like Next.js, React, and Vue.",
-    icon: "ri-window-line",
+    icon: RiBusinessWindowLine,
   },
   {
     id: 2,
     title: "API & Backend Development",
     description:
       "Crafting secure, scalable, and efficient APIs and backend solutions using NestJS, Node.js, PostgreSQL, MySQL, Firebase, Supabase, and Laravel.",
-    icon: "ri-links-line",
+    icon: RiBusinessLinksLine,
   },
   {
     id: 3,
     title: "WordPress & Webflow Solutions",
     description:
       "Custom WordPress themes, plugins, and Webflow-powered websites tailored for seamless performance and design.",
-    icon: "ri-slash-commands-2",
+    icon: RiEditorSlashCommands,
   },
   {
     id: 4,
     title: "Debugging & Support",
     description:
       "Identifying and resolving issues to ensure optimal performance, security, and a flawless user experience.",
-    icon: "ri-bug-line",
+    icon: RiDevelopmentBugLine,
   },
 ];
 
@@ -65,7 +71,7 @@ export default function Services() {
           {services.map((work) => (
             <Card class="col-span-12 bg-background md:col-span-6 lg:col-span-3">
               <CardHeader>
-                <i class={`${work.icon} text-4xl leading-none`} />
+                <work.icon class="size-9 text-primary" />
               </CardHeader>
               <CardContent class="space-y-2">
                 <CardTitle>{work.title}</CardTitle>

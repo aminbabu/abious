@@ -1,4 +1,10 @@
 import { createSignal, Show } from "solid-js";
+import {
+  RiLogosGithubLine,
+  RiLogosLinkedinLine,
+  RiEditorTextWrap,
+  RiSystemCloseLine,
+} from "solid-icons/ri";
 import CalCom from "~/components/global/calcom";
 import Container from "~/components/container";
 import ThemeSwitcher from "~/components/theme-switcher";
@@ -37,13 +43,13 @@ const socialItems = [
     id: 1,
     title: "Github",
     href: "https://github.com/aminbabu",
-    icon: "ri-github-line",
+    icon: RiLogosGithubLine,
   },
   {
     id: 2,
     title: "Linkedin",
     href: "https://www.linkedin.com/in/aminbabu",
-    icon: "ri-linkedin-line",
+    icon: RiLogosLinkedinLine,
   },
 ];
 
@@ -115,21 +121,22 @@ export default function Header() {
             class="cursor-pointer md:hidden text-foreground p-1"
             aria-label="Open menu"
           >
-            <i class="ri-text-wrap text-xl" />
+            <RiEditorTextWrap class="text-xl" />
           </button>
 
           {/* Desktop Right Items */}
           <ul class="ml-auto flex items-center gap-x-1">
             {socialItems.map((item) => (
               <li key={item.id} class="hidden md:block">
-                <Button variant="ghost" size="icon">
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <i class={`${item.icon} text-lg`} />
-                  </a>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={item.title}
+                >
+                  <item.icon class="size-5" />
                 </Button>
               </li>
             ))}
@@ -158,7 +165,7 @@ export default function Header() {
                 class="text-muted-foreground hover:text-foreground"
                 aria-label="Close menu"
               >
-                <i class="ri-close-line text-2xl" />
+                <RiSystemCloseLine class="text-2xl" />
               </button>
             </div>
             <ul class="flex flex-col gap-y-3 py-4">
@@ -176,14 +183,15 @@ export default function Header() {
             </ul>
             <div class="flex items-center gap-x-3 pt-4 border-t border-dashed border-border">
               {socialItems.map((item) => (
-                <Button variant="ghost" size="icon">
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <i class={`${item.icon} text-lg`} />
-                  </a>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={item.title}
+                >
+                  <item.icon class="size-5" />
                 </Button>
               ))}
             </div>

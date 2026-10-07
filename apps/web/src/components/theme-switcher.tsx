@@ -1,3 +1,4 @@
+import { RiWeatherMoonLine, RiWeatherSunLine } from "solid-icons/ri";
 import { Button } from "~/components/ui/button";
 import { useTheme } from "~/context/theme";
 
@@ -13,9 +14,9 @@ export default function ThemeSwitcher() {
       aria-label="Toggle theme"
     >
       {theme() === "dark" ? (
-        <i class="ri-moon-line text-lg" />
+        <RiWeatherMoonLine class="size-5" />
       ) : (
-        <i class="ri-sun-line text-lg" />
+        <RiWeatherSunLine class="size-5" />
       )}
     </Button>
   );

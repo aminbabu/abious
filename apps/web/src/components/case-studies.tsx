@@ -1,4 +1,5 @@
 import { createResource, Show } from "solid-js";
+import { RiArrowsArrowRightLine } from "solid-icons/ri";
 import DecoratorUI from "~/components/decorator-ui";
 import CaseStudiesList from "~/components/global/case-studies-list";
 import Section from "~/components/section";
@@ -19,7 +20,7 @@ async function fetchCaseStudies(): Promise<ICaseStudy[]> {
         data: {
           title: "Exponential CMS",
           description: "Headless Content Management System designed for speed and flexibility.",
-          banner: "/images/case-studies/exponential-cms.png",
+          banner: "/images/case-studies/exponential-cms.webp",
           liveURL: "https://exponential-cms.aminbabu.com",
         },
       },
@@ -71,8 +72,9 @@ export default function CaseStudies(props: { title?: string }) {
       />
       <Show when={data()?.length}>
         <DecoratorUI class="mt-16 text-center">
-          <Button asChild size="lg" class="rounded-full">
-            <a href="/case-studies">View All Case Studies</a>
+          <Button href="/case-studies" size="lg" class="h-10 rounded-full px-6 text-sm font-medium">
+            View All Case Studies
+            <RiArrowsArrowRightLine class="ml-2 size-4" />
           </Button>
         </DecoratorUI>
       </Show>

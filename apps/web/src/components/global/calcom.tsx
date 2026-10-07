@@ -1,4 +1,5 @@
 import { onMount } from "solid-js";
+import { RiBusinessCalendarLine } from "solid-icons/ri";
 import { Button } from "~/components/ui/button";
 import { useTheme } from "~/context/theme";
 import { cn } from "~/lib/utils";
@@ -8,6 +9,7 @@ export default function CalCom(props: {
   size?: "default" | "sm" | "lg" | "icon";
   type?: "default" | "popup";
   class?: string;
+  showIcon?: boolean;
 }) {
   const { theme } = useTheme();
 
@@ -68,6 +70,7 @@ export default function CalCom(props: {
       size={props.size ?? "default"}
       class={cn("cursor-pointer rounded-full", props.class)}
     >
+      {(props.showIcon ?? true) && <RiBusinessCalendarLine class="mr-2 size-4" />}
       {props.title ?? "Book a Call!"}
     </Button>
   );

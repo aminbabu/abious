@@ -1,3 +1,4 @@
+import { RiBusinessMailSendLine, RiDevicePhoneLine } from "solid-icons/ri";
 import DecoratorUI from "~/components/decorator-ui";
 import CalCom from "~/components/global/calcom";
 import Section from "~/components/section";
@@ -12,10 +13,8 @@ export default function Contact() {
         ./contact
       </Paragraph>
       <DecoratorUI>
-        <Heading asChild size="lg">
-          <h1 class="mb-3 max-w-sm sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl">
-            Let&apos;s Build Something Great Together!
-          </h1>
+        <Heading size="lg" class="mb-3 max-w-sm sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl">
+          Let&apos;s Build Something Great Together!
         </Heading>
       </DecoratorUI>
       <DecoratorUI class="mb-16 before:-bottom-3 before:border-t-0 lg:mb-20">
@@ -26,16 +25,22 @@ export default function Contact() {
         </Paragraph>
       </DecoratorUI>
       <DecoratorUI class="mb-16 flex items-center gap-3 lg:mb-20">
-        <Button asChild size="lg" class="cursor-pointer rounded-full">
-          <a href="mailto:amin.babu.bd@gmail.com">Shoot us an email</a>
+        <Button
+          size="lg"
+          href="mailto:amin.babu.bd@gmail.com"
+          class="h-10 cursor-pointer rounded-full px-6 font-medium"
+        >
+          <RiBusinessMailSendLine class="mr-2 size-4" />
+          Shoot us an email
         </Button>
         <Button
-          asChild
           size="lg"
           variant="outline"
-          class="cursor-pointer rounded-full"
+          href="tel:+8801621990178"
+          class="h-10 cursor-pointer rounded-full px-6 font-medium"
         >
-          <a href="tel:+8801621990178">Call Us</a>
+          <RiDevicePhoneLine class="mr-2 size-4" />
+          Call Us
         </Button>
       </DecoratorUI>
       <DecoratorUI class="bg-secondary -mx-3 -mt-5 p-3 min-[819px]:pb-0 min-[819px]:pt-7 bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] bg-[size:10px_10px] bg-fixed">

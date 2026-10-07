@@ -1,3 +1,4 @@
+import { RiArrowsArrowRightLine, RiSystemExternalLinkLine } from "solid-icons/ri";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -43,14 +44,20 @@ export default function CaseStudy(props: { caseStudy: ICaseStudy }) {
         </CardDescription>
       </CardContent>
       <CardFooter class="mt-auto flex items-center gap-x-3">
-        <Button asChild class="rounded-full">
-          <a href={`/case-studies/${item()?.id}`}>View Details</a>
+        <Button href={`/case-studies/${item()?.id}`} class="rounded-full">
+          View Details
+          <RiArrowsArrowRightLine class="ml-1.5 size-4" />
         </Button>
         {item()?.data?.liveURL && (
-          <Button asChild variant="outline" class="rounded-full">
-            <a href={item()?.data?.liveURL} target="_blank" rel="noopener noreferrer">
-              View Project
-            </a>
+          <Button
+            variant="outline"
+            href={item()?.data?.liveURL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rounded-full"
+          >
+            View Project
+            <RiSystemExternalLinkLine class="ml-1.5 size-4" />
           </Button>
         )}
       </CardFooter>
