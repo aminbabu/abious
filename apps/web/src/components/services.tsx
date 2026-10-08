@@ -1,8 +1,8 @@
 import {
-  RiBusinessWindowLine,
   RiBusinessLinksLine,
-  RiEditorSlashCommands,
+  RiBusinessWindowLine,
   RiDevelopmentBugLine,
+  RiEditorSlashCommands,
 } from "solid-icons/ri";
 import DecoratorUI from "~/components/decorator-ui";
 import CalCom from "~/components/global/calcom";
@@ -66,7 +66,7 @@ export default function Services() {
           performance and innovation in every project.
         </Paragraph>
       </DecoratorUI>
-      <div class="relative before:absolute before:-inset-3 before:-z-10 before:bg-secondary">
+      <div class="relative z-0 before:absolute before:-inset-3 before:-z-10 before:bg-secondary">
         <DecoratorUI class="grid grid-cols-12 gap-y-3 before:-inset-y-3 md:gap-x-3">
           {services.map((work) => (
             <Card class="col-span-12 bg-background md:col-span-6 lg:col-span-3 transition-all duration-300 hover:border-foreground/30 hover:shadow-md">
@@ -74,8 +74,12 @@ export default function Services() {
                 <work.icon class="size-9 text-primary transition-transform duration-300 group-hover:scale-110" />
               </CardHeader>
               <CardContent class="space-y-2">
-                <CardTitle class="text-foreground text-lg">{work.title}</CardTitle>
-                <CardDescription class="text-muted-foreground leading-normal">{work.description}</CardDescription>
+                <CardTitle class="text-foreground text-lg">
+                  {work.title}
+                </CardTitle>
+                <CardDescription class="text-muted-foreground leading-normal">
+                  {work.description}
+                </CardDescription>
               </CardContent>
             </Card>
           ))}

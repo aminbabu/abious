@@ -11,7 +11,7 @@ const languages = [
 
 export default function Footer() {
   return (
-    <footer class="overflow-hidden relative z-0">
+    <footer class="overflow-hidden">
       <Container>
         <DecoratorUI class="flex flex-col items-center justify-between gap-2 gap-x-6 py-5 before:border-b-0 before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed sm:flex-row md:px-3">
           <p class="text-sm text-muted-foreground">

@@ -10,7 +10,7 @@ interface SectionProps {
 
 export default function Section(props: SectionProps) {
   return (
-    <section id={props.id} class="overflow-hidden relative z-0">
+    <section id={props.id} class="overflow-hidden">
       <Container>
         <div
           class={cn(
