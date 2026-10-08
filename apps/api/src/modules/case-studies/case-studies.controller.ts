@@ -21,4 +21,14 @@ export class CaseStudiesController {
     }
     return item;
   }
+
+  @Get(':id/:type/related')
+  @AllowAnonymous()
+  async findRelated(
+    @Param('id') id: string,
+    @Param('type') type: string,
+  ) {
+    return this.caseStudiesService.findRelated(id, type);
+  }
 }
+

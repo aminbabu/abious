@@ -16,11 +16,13 @@
     "@solidjs/start": "^2.0.0",
     "@splidejs/splide": "^4.1.4",
     "@splidejs/splide-extension-auto-scroll": "^0.5.3",
+    "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
     "better-auth": "^1.7.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.23",
+    "marked": "^18.1.0",
     "nitro": "^3.0.260610-beta",
     "solid-icons": "^1.2.0",
     "solid-js": "^1.9.14",
@@ -32,5 +34,7 @@
   "engines": {
     "node": ">=24"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/marked": "^6.0.0"
+  }
 }

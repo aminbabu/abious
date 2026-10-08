@@ -3,6 +3,7 @@
 @import "@splidejs/splide/dist/css/splide.min.css";
 @import "tailwindcss";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 /* Custom variants */
 @custom-variant dark (&:is(.dark *));

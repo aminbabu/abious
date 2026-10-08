@@ -66,4 +66,23 @@ export class CaseStudiesService {
     const all = await this.findAll();
     return all.find((item) => item.id === id || item.slug === id) ?? null;
   }
+
+  async findRelated(id: string, type?: string): Promise<CaseStudy[]> {
+    const all = await this.findAll();
+    const otherItems = all.filter((item) => item.id !== id && item.slug !== id);
+    const normalizedType = type?.toLowerCase().trim();
+
+    if (!normalizedType) {
+      return otherItems.slice(0, 6);
+    }
+
+    const sameType = otherItems.filter(
+      (item) => item.data.type?.toLowerCase().trim() === normalizedType,
+    );
+    const diffType = otherItems.filter(
+      (item) => item.data.type?.toLowerCase().trim() !== normalizedType,
+    );
+
+    return [...sameType, ...diffType].slice(0, 6);
+  }
 }
