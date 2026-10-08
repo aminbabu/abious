@@ -5,8 +5,8 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { auth } from './auth.js';
 import { CaseStudiesModule } from './modules/case-studies/case-studies.module.js';
-import { TestimonialsModule } from './modules/testimonials/testimonials.module.js';
 import { ContactModule } from './modules/contact/contact.module.js';
+import { TestimonialsModule } from './modules/testimonials/testimonials.module.js';
 
 @Module({
   imports: [
