@@ -1,3 +1,6 @@
+import { Splide } from "@splidejs/splide";
+import { AutoScroll } from "@splidejs/splide-extension-auto-scroll";
+import { onCleanup, onMount } from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
 import Section from "~/components/section";
 import { Heading } from "~/components/ui/global/heading";
@@ -8,6 +11,21 @@ import dayjs from "dayjs";
 const experiences = [
   {
     id: 1,
+    positions: [
+      {
+        id: 1,
+        title: "Junior Engineer",
+        startDate: "2025-11-03",
+        endDate: "present",
+        type: "Full-time",
+      },
+    ],
+    company: "JB Connect Ltd",
+    location: "Banani, Dhaka",
+    logo: "/images/experience/jbc.svg",
+  },
+  {
+    id: 2,
     positions: [
       {
         id: 1,
@@ -22,7 +40,7 @@ const experiences = [
     logo: "/images/experience/7x.png",
   },
   {
-    id: 2,
+    id: 3,
     positions: [
       {
         id: 1,
@@ -37,7 +55,7 @@ const experiences = [
     logo: "/images/experience/notionhive.png",
   },
   {
-    id: 3,
+    id: 4,
     positions: [
       {
         id: 1,
@@ -54,9 +72,51 @@ const experiences = [
 ];
 
 export default function Experience() {
+  let splideEl: HTMLDivElement | undefined;
+  let splideInstance: Splide | null = null;
+
+  const initSplide = () => {
+    if (splideEl && !splideInstance && experiences.length) {
+      splideInstance = new Splide(splideEl, {
+        type: "loop",
+        perPage: 1,
+        gap: "1.5rem",
+        arrows: false,
+        pagination: false,
+        padding: {
+          right: "15%",
+        },
+        autoScroll: { speed: 0.125 },
+        mediaQuery: "min",
+        breakpoints: {
+          768: {
+            perPage: 2,
+            gap: "2rem",
+          },
+          1024: {
+            perPage: 3,
+            gap: "2rem",
+          },
+        },
+      });
+      splideInstance.mount({ AutoScroll });
+    }
+  };
+
+  onMount(() => {
+    setTimeout(initSplide, 100);
+  });
+
+  onCleanup(() => {
+    if (splideInstance) {
+      splideInstance.destroy();
+      splideInstance = null;
+    }
+  });
+
   return (
     <Section id="experience">
-      <Paragraph class="mb-3 font-mono font-medium md:text-right">
+      <Paragraph class="mb-3 font-mono text-xs sm:text-sm font-semibold tracking-wider text-muted-foreground/80 md:text-right">
         ./experience
       </Paragraph>
       <DecoratorUI class="mb-16 lg:mb-20">
@@ -64,62 +124,80 @@ export default function Experience() {
           Every Pixel Speaks
         </Heading>
       </DecoratorUI>
-      <DecoratorUI class="before:-inset-y-3">
-        <ul class="before:bg-secondary relative -mt-2 grid grid-cols-6 gap-y-10 py-3 before:absolute before:-inset-3 before:-z-10 sm:gap-x-6">
-          {experiences.map((work) => (
-            <li class="col-span-6 flex gap-x-3 sm:col-span-3 lg:col-span-2">
-              <figure class="border-border bg-background aspect-square size-10 shrink-0 overflow-hidden rounded-full border shadow-sm">
-                <img
-                  src={work.logo}
-                  alt={work.company}
-                  width="56"
-                  height="56"
-                  class="h-full w-full object-cover object-center"
-                />
-              </figure>
-              <div>
-                <h3 class="font-bold">{work.company}</h3>
-                <p class="text-sm font-medium opacity-50">
-                  {work.location}
-                </p>
-                <ul class="mt-4 space-y-4">
-                  {work.positions.map((position, index) => (
-                    <li
-                      class={cn(
-                        "before:border-foreground/25 relative before:pointer-events-none before:absolute before:bottom-full before:right-full before:-z-10 before:h-10 before:w-6 before:-translate-x-2 before:translate-y-3 before:rounded-bl-xl before:border before:border-r-0 before:border-t-0 before:border-dashed",
-                        {
-                          "before:border-foreground":
-                            position.endDate === "present",
-                          "before:h-24": index === 1,
-                        }
-                      )}
-                    >
-                      <p class="text-sm font-medium">{position.title}</p>
-                      <p class="text-sm opacity-80">
-                        {dayjs(position.startDate).format("MMM DD, YYYY")} -{" "}
-                        {position.endDate === "present"
-                          ? "Present"
-                          : dayjs(position.endDate).format("MMM DD, YYYY")}{" "}
-                        (
-                        <span class="font-semibold">
-                          {position.endDate === "present"
-                            ? dayjs().diff(dayjs(position.startDate), "month")
-                            : dayjs(position.endDate).diff(
-                                dayjs(position.startDate),
-                                "month"
-                              )}{" "}
-                          months)
-                        </span>
+
+      <div
+        ref={(el) => {
+          splideEl = el;
+          initSplide();
+        }}
+        class="splide -mt-3"
+        aria-label="Experience"
+      >
+        <DecoratorUI class="py-px before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed">
+          <div class="-mx-3 bg-secondary px-6 py-6 md:px-8 md:py-8">
+            <div class="splide__track">
+              <ul class="splide__list">
+                {experiences.map((work) => (
+                  <li class="splide__slide flex gap-x-3 py-2">
+                    <figure class="border-border bg-background aspect-square size-10 shrink-0 overflow-hidden rounded-full border shadow-sm">
+                      <img
+                        src={work.logo}
+                        alt={work.company}
+                        width="56"
+                        height="56"
+                        class="h-full w-full object-cover object-center"
+                      />
+                    </figure>
+                    <div class="min-w-0 flex-1">
+                      <h3 class="font-bold text-foreground">{work.company}</h3>
+                      <p class="text-xs sm:text-sm font-medium text-muted-foreground">
+                        {work.location}
                       </p>
-                      <p class="text-sm font-semibold">{position.type}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </DecoratorUI>
+                      <ul class="mt-4 space-y-4">
+                        {work.positions.map((position, index) => (
+                          <li
+                            class={cn(
+                              "before:border-foreground/25 relative before:pointer-events-none before:absolute before:bottom-full before:right-full before:-z-10 before:h-10 before:w-6 before:-translate-x-2 before:translate-y-3 before:rounded-bl-xl before:border before:border-r-0 before:border-t-0 before:border-dashed",
+                              {
+                                "before:border-foreground":
+                                  position.endDate === "present",
+                                "before:h-24": index === 1,
+                              }
+                            )}
+                          >
+                            <p class="text-sm font-semibold text-foreground">
+                              {position.title}
+                            </p>
+                            <p class="text-xs sm:text-sm text-muted-foreground">
+                              {dayjs(position.startDate).format("MMM DD, YYYY")} -{" "}
+                              {position.endDate === "present"
+                                ? "Present"
+                                : dayjs(position.endDate).format("MMM DD, YYYY")}{" "}
+                              (
+                              <span class="font-medium text-foreground/80">
+                                {position.endDate === "present"
+                                  ? dayjs().diff(dayjs(position.startDate), "month")
+                                  : dayjs(position.endDate).diff(
+                                      dayjs(position.startDate),
+                                      "month"
+                                    )}{" "}
+                                months)
+                              </span>
+                            </p>
+                            <p class="text-xs font-semibold text-foreground/70 uppercase tracking-wider mt-0.5">
+                              {position.type}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </DecoratorUI>
+      </div>
     </Section>
   );
 }
