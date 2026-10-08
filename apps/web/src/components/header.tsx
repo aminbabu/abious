@@ -58,8 +58,8 @@ export default function Header() {
 
   return (
     <header class="border-border bg-background/10 fixed inset-x-0 top-0 z-50 border-b border-dashed backdrop-blur-3xl">
-      <Container class="container">
-        <div class="md:border-x-border flex items-center justify-between gap-x-4 py-3 md:border-x md:border-dashed md:px-4 lg:gap-x-6">
+      <Container>
+        <div class="border-border flex items-center justify-between gap-x-4 py-3 md:border-x md:border-dashed md:px-3 lg:gap-x-6">
           {/* Brand */}
           <a
             href="/"
@@ -107,7 +107,7 @@ export default function Header() {
               <li key={item.id}>
                 <a
                   href={item.href}
-                  class="hover:text-foreground/75 text-sm transition-colors duration-300"
+                  class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors duration-200"
                 >
                   {item.title}
                 </a>

@@ -96,11 +96,11 @@ export default function Testimonials() {
 
   return (
     <Section id="testimonials">
-      <Paragraph class="mb-3 font-mono font-medium md:text-right">
+      <Paragraph class="mb-3 font-mono text-xs sm:text-sm font-semibold tracking-wider text-muted-foreground/80 md:text-right">
         ./testimonials
       </Paragraph>
       <DecoratorUI class="mb-16 lg:mb-20">
-        <Heading class="mb-2 max-w-sm sm:max-w-2xl lg:max-w-3xl">
+        <Heading class="mb-3 max-w-sm sm:max-w-2xl lg:max-w-3xl">
           Words That Matter, Trust That Counts
         </Heading>
       </DecoratorUI>
@@ -150,12 +150,12 @@ export default function Testimonials() {
                           <Card class="h-full">
                             <CardContent class="flex h-full flex-col gap-6">
                               <CardDescription>
-                                <p class="text-lg leading-relaxed text-foreground/90">
-                                  {testimonial.body}
+                                <p class="text-base sm:text-lg leading-relaxed text-foreground/85 font-normal">
+                                  &ldquo;{testimonial.body}&rdquo;
                                 </p>
                               </CardDescription>
                               <div class="mt-auto flex items-center gap-4">
-                                <figure class="border-border block aspect-square size-16 overflow-hidden rounded-full border shadow">
+                                <figure class="border-border block aspect-square size-14 shrink-0 overflow-hidden rounded-full border shadow-sm">
                                   <img
                                     src={testimonial.data.avatar}
                                     alt={testimonial.data.name}
@@ -165,15 +165,15 @@ export default function Testimonials() {
                                   />
                                 </figure>
                                 <div>
-                                  <CardTitle class="text-lg font-semibold">
+                                  <CardTitle class="text-base sm:text-lg font-semibold text-foreground">
                                     {testimonial.data.name}
                                   </CardTitle>
-                                  <CardDescription class="text-muted-foreground text-sm">
+                                  <p class="text-muted-foreground text-xs sm:text-sm">
                                     {testimonial.data.role}
-                                  </CardDescription>
-                                  <CardDescription class="text-muted-foreground text-sm">
+                                  </p>
+                                  <p class="text-muted-foreground/75 text-xs">
                                     {testimonial.data.company}
-                                  </CardDescription>
+                                  </p>
                                 </div>
                               </div>
                             </CardContent>

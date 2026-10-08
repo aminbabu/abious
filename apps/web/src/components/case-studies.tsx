@@ -50,16 +50,16 @@ export default function CaseStudies(props: { title?: string }) {
 
   return (
     <Section id="caseStudies">
-      <Paragraph class="mb-3 font-mono font-medium md:text-right">
+      <Paragraph class="mb-3 font-mono text-xs sm:text-sm font-semibold tracking-wider text-muted-foreground/80 md:text-right">
         ./{title()}
       </Paragraph>
       <DecoratorUI>
-        <Heading class="mb-2 max-w-sm sm:max-w-2xl lg:max-w-3xl">
+        <Heading class="mb-3 max-w-sm sm:max-w-2xl lg:max-w-3xl">
           Where Creativity Meets Precision
         </Heading>
       </DecoratorUI>
       <DecoratorUI class="mb-16 before:-bottom-2 before:border-t-0 lg:mb-20">
-        <Paragraph class="max-w-2xl">
+        <Paragraph class="max-w-2xl text-muted-foreground text-base sm:text-lg">
           Explore my latest projects, blending cutting-edge tech with creative
           design for exceptional user experiences and real results.
         </Paragraph>

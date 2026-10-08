@@ -147,6 +147,21 @@
   border-inline-color: var(--border);
 }
 
+@utility text-trim {
+  text-box-trim: both;
+  text-box-edge: cap alphabetic;
+}
+
+@utility text-trim-start {
+  text-box-trim: trim-start;
+  text-box-edge: cap alphabetic;
+}
+
+@utility text-trim-end {
+  text-box-trim: trim-end;
+  text-box-edge: cap alphabetic;
+}
+
 @layer components {
   .splide__pagination--static {
     @apply !relative !inset-0 !mt-8 before:border-y-border before:absolute before:-bottom-0 before:-left-[100vw] before:-top-0 before:-z-10 before:w-[200vw] before:border-y before:border-dashed;

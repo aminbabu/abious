@@ -2,10 +2,10 @@ import { JSX, splitProps } from "solid-js";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "~/lib/utils";
 
-const paragraphVariants = cva("font-normal", {
+const paragraphVariants = cva("font-normal leading-relaxed", {
   variants: {
     variant: {
-      default: "text-primary",
+      default: "text-muted-foreground",
       primary: "text-primary",
       secondary: "text-secondary-foreground",
       muted: "text-muted-foreground",
@@ -15,7 +15,7 @@ const paragraphVariants = cva("font-normal", {
       default: "text-base",
       xs: "text-xs",
       sm: "text-sm",
-      lg: "text-lg",
+      lg: "text-lg md:text-xl",
     },
   },
   defaultVariants: {

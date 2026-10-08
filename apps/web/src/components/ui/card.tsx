@@ -38,7 +38,7 @@ function CardTitle(props: JSX.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
       data-slot="card-title"
-      class={cn("leading-none font-semibold", local.class)}
+      class={cn("leading-none font-semibold text-trim", local.class)}
       {...others}
     >
       {local.children}

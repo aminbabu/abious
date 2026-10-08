@@ -10,8 +10,8 @@ export default function DecoratorUI(props: DecoratorUIProps) {
   return (
     <div
       class={cn(
-        "before:border-y-border relative before:absolute before:inset-y-0 before:-left-[100vw] before:-z-10 before:w-[200vw] before:border-y before:border-dashed",
-        props.class
+        "relative before:absolute before:inset-y-0 before:left-[-100vw] before:-z-10 before:w-[200vw] before:border-y before:border-dashed before:border-border",
+        props.class,
       )}
     >
       {props.children}
