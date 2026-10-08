@@ -1,12 +1,12 @@
 import { Splide } from "@splidejs/splide";
 import { AutoScroll } from "@splidejs/splide-extension-auto-scroll";
+import dayjs from "dayjs";
 import { onCleanup, onMount } from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
 import Section from "~/components/section";
 import { Heading } from "~/components/ui/global/heading";
 import { Paragraph } from "~/components/ui/global/paragraph";
 import { cn } from "~/lib/utils";
-import dayjs from "dayjs";
 
 const experiences = [
   {
@@ -133,7 +133,7 @@ export default function Experience() {
         class="splide -mt-3"
         aria-label="Experience"
       >
-        <DecoratorUI class="py-px before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed">
+        <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
           <div class="-mx-3 bg-secondary px-6 py-6 md:px-8 md:py-8">
             <div class="splide__track">
               <ul class="splide__list">
@@ -162,24 +162,30 @@ export default function Experience() {
                                 "before:border-foreground":
                                   position.endDate === "present",
                                 "before:h-24": index === 1,
-                              }
+                              },
                             )}
                           >
                             <p class="text-sm font-semibold text-foreground">
                               {position.title}
                             </p>
                             <p class="text-xs sm:text-sm text-muted-foreground">
-                              {dayjs(position.startDate).format("MMM DD, YYYY")} -{" "}
+                              {dayjs(position.startDate).format("MMM DD, YYYY")}{" "}
+                              -{" "}
                               {position.endDate === "present"
                                 ? "Present"
-                                : dayjs(position.endDate).format("MMM DD, YYYY")}{" "}
+                                : dayjs(position.endDate).format(
+                                    "MMM DD, YYYY",
+                                  )}{" "}
                               (
                               <span class="font-medium text-foreground/80">
                                 {position.endDate === "present"
-                                  ? dayjs().diff(dayjs(position.startDate), "month")
+                                  ? dayjs().diff(
+                                      dayjs(position.startDate),
+                                      "month",
+                                    )
                                   : dayjs(position.endDate).diff(
                                       dayjs(position.startDate),
-                                      "month"
+                                      "month",
                                     )}{" "}
                                 months)
                               </span>
