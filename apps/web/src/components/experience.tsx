@@ -134,7 +134,7 @@ export default function Experience() {
         aria-label="Experience"
       >
         <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
-          <div class="-mx-3 bg-secondary px-6 py-6 md:px-8 md:py-8">
+          <div class="-mx-3 bg-secondary p-3">
             <div class="splide__track">
               <ul class="splide__list">
                 {experiences.map((work) => (
