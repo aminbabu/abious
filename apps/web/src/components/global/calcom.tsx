@@ -1,4 +1,4 @@
-import { onMount } from "solid-js";
+import { createEffect, onMount } from "solid-js";
 import { RiBusinessCalendarLine } from "solid-icons/ri";
 import { Button } from "~/components/ui/button";
 import { useTheme } from "~/context/theme";
@@ -12,6 +12,7 @@ export default function CalCom(props: {
   showIcon?: boolean;
 }) {
   const { theme } = useTheme();
+  let inlineCalEl: HTMLDivElement | undefined;
 
   onMount(() => {
     (function (C: any, A: string, L: string) {
@@ -39,7 +40,7 @@ export default function CalCom(props: {
             if (typeof namespace === "string") {
               cal.ns[namespace] = cal.ns[namespace] || api;
               p(cal.ns[namespace], ar);
-              p(cal, ["initLoaded"]);
+              p(cal, ["initNamespace", namespace]);
             } else p(cal, ar);
             return;
           }
@@ -49,7 +50,11 @@ export default function CalCom(props: {
 
     const w = window as any;
     if (w.Cal) {
-      w.Cal("init", "30min", { origin: "https://cal.com" });
+      if (!w.Cal.__initialized_30min) {
+        w.Cal.__initialized_30min = true;
+        w.Cal("init", "30min", { origin: "https://cal.com" });
+      }
+
       w.Cal.ns["30min"]("ui", {
         cssVarsPerTheme: {
           light: { "cal-brand": "#171717" },
@@ -59,19 +64,49 @@ export default function CalCom(props: {
         hideEventTypeDetails: false,
         layout: "month_view",
       });
+
+      if (props.type !== "popup" && inlineCalEl) {
+        w.Cal.ns["30min"]("inline", {
+          elementOrSelector: inlineCalEl,
+          calLink: "aminbabu/30min",
+          config: {
+            layout: "month_view",
+            theme: theme(),
+          },
+        });
+      }
     }
   });
 
+  createEffect(() => {
+    const currentTheme = theme();
+    const w = window as any;
+    if (w.Cal?.ns?.["30min"]) {
+      w.Cal.ns["30min"]("ui", {
+        theme: currentTheme,
+      });
+    }
+  });
+
+  if (props.type === "popup") {
+    return (
+      <Button
+        data-cal-namespace="30min"
+        data-cal-link="aminbabu/30min"
+        data-cal-config='{"layout":"month_view"}'
+        size={props.size ?? "default"}
+        class={cn("cursor-pointer rounded-full", props.class)}
+      >
+        {(props.showIcon ?? true) && <RiBusinessCalendarLine class="mr-2 size-4" />}
+        {props.title ?? "Book a Call!"}
+      </Button>
+    );
+  }
+
   return (
-    <Button
-      data-cal-namespace="30min"
-      data-cal-link="aminbabu/30min"
-      data-cal-config='{"layout":"month_view"}'
-      size={props.size ?? "default"}
-      class={cn("cursor-pointer rounded-full", props.class)}
-    >
-      {(props.showIcon ?? true) && <RiBusinessCalendarLine class="mr-2 size-4" />}
-      {props.title ?? "Book a Call!"}
-    </Button>
+    <div
+      ref={inlineCalEl}
+      class={cn("h-full min-h-[460px] w-full", props.class)}
+    />
   );
 }

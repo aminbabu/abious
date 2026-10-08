@@ -9,16 +9,16 @@ import { Paragraph } from "~/components/ui/global/paragraph";
 export default function Contact() {
   return (
     <Section id="contact">
-      <Paragraph class="mb-3 font-mono font-medium md:text-right">
+      <Paragraph class="mb-3 font-mono text-xs sm:text-sm font-semibold tracking-wider text-muted-foreground/80 md:text-right">
         ./contact
       </Paragraph>
       <DecoratorUI>
-        <Heading size="lg" class="mb-3 max-w-sm sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl">
+        <Heading size="lg" class="mb-4 max-w-sm sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl">
           Let&apos;s Build Something Great Together!
         </Heading>
       </DecoratorUI>
       <DecoratorUI class="mb-16 before:-bottom-3 before:border-t-0 lg:mb-20">
-        <Paragraph size="lg" class="max-w-3xl">
+        <Paragraph size="lg" class="max-w-3xl text-muted-foreground font-normal leading-relaxed text-base sm:text-lg lg:text-xl">
           Have a project in mind or just want to say hello? Feel free to reach
           out! Whether it&apos;s a new collaboration or a quick chat, I&apos;m
           always open to connecting.
@@ -43,8 +43,10 @@ export default function Contact() {
           Call Us
         </Button>
       </DecoratorUI>
-      <DecoratorUI class="bg-secondary -mx-3 -mt-5 p-3 min-[819px]:pb-0 min-[819px]:pt-7 bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] bg-[size:10px_10px] bg-fixed">
-        <CalCom />
+      <DecoratorUI class="-mt-3 py-px before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed">
+        <div class="-mx-3 bg-secondary p-3 min-[819px]:pb-0 min-[819px]:pt-7">
+          <CalCom />
+        </div>
       </DecoratorUI>
     </Section>
   );
