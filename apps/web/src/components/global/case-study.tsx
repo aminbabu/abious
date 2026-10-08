@@ -38,8 +38,8 @@ export default function CaseStudy(props: { caseStudy: ICaseStudy }) {
         </figure>
       </CardHeader>
       <CardContent class="space-y-2">
-        <CardTitle>{item()?.data?.title}</CardTitle>
-        <CardDescription class="line-clamp-2">
+        <CardTitle class="text-foreground text-lg group-hover:text-primary transition-colors">{item()?.data?.title}</CardTitle>
+        <CardDescription class="line-clamp-2 text-muted-foreground leading-normal">
           {item()?.data?.description}
         </CardDescription>
       </CardContent>
