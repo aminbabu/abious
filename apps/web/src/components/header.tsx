@@ -64,10 +64,18 @@ export default function Header() {
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") setSheetOpen(false);
       };
+      const handleResize = () => {
+        // Auto close when resized to >= 1024px (lg breakpoint)
+        if (window.innerWidth >= 1024) {
+          setSheetOpen(false);
+        }
+      };
       window.addEventListener("keydown", handleKeyDown);
+      window.addEventListener("resize", handleResize);
       onCleanup(() => {
         document.body.style.overflow = "";
         window.removeEventListener("keydown", handleKeyDown);
+        window.removeEventListener("resize", handleResize);
       });
     } else {
       document.body.style.overflow = "";
@@ -120,8 +128,8 @@ export default function Header() {
             </svg>
           </a>
 
-          {/* Desktop Navigation Links */}
-          <ul class="mr-auto hidden items-center gap-x-3.5 md:flex lg:gap-x-5">
+          {/* Desktop Navigation Links - hidden under 1024px (< lg) */}
+          <ul class="mr-auto hidden items-center gap-x-4 lg:flex xl:gap-x-6">
             {navigationItems.map((item) => (
               <li key={item.id}>
                 <a
@@ -137,7 +145,7 @@ export default function Header() {
           {/* Right Action Items (Social, Theme, Cal, Mobile Trigger) */}
           <ul class="ml-auto flex items-center gap-x-1 sm:gap-x-1.5">
             {socialItems.map((item) => (
-              <li key={item.id} class="hidden md:block">
+              <li key={item.id} class="hidden lg:block">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -156,8 +164,8 @@ export default function Header() {
             <li>
               <CalCom type="popup" />
             </li>
-            {/* Mobile Menu Trigger button */}
-            <li class="md:hidden">
+            {/* Mobile Menu Trigger button - visible under 1024px (< lg) */}
+            <li class="lg:hidden">
               <Button
                 variant="ghost"
                 size="icon"
@@ -171,40 +179,46 @@ export default function Header() {
           </ul>
         </div>
 
-        {/* Mobile Slide-Up Bottom Sheet with Overlay */}
+        {/* Mobile Slide-Up Bottom Drawer with Overlay (acts like shadcn drawer) */}
         <Show when={sheetOpen()}>
-          <div class="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
+          <div class="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation Drawer">
             {/* Backdrop Overlay */}
             <div
               class="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
               onClick={() => setSheetOpen(false)}
             />
 
-            {/* Bottom Sheet Drawer */}
-            <div class="fixed inset-x-0 bottom-0 z-50 flex flex-col gap-4 border-t border-dashed border-border bg-background p-6 shadow-2xl transition-all duration-300 ease-out animate-in slide-in-from-bottom">
-              {/* Sheet Header */}
-              <div class="flex items-center justify-between pb-2 border-b border-dashed border-border/80">
-                <a
-                  href="/"
-                  onClick={() => setSheetOpen(false)}
-                  class="text-primary group relative px-1.5 font-mono text-sm self-start font-medium inline-block select-none"
-                  aria-label="Amin Babu Home"
-                >
-                  <span class="border-primary/60 group-hover:bg-border absolute inset-0 -z-10 border border-dashed bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] bg-[size:10px_10px] bg-fixed transition-colors duration-300"></span>
-                  ./ab
-                  <svg width="5" height="5" viewBox="0 0 5 5" class="fill-primary absolute -left-0.5 -top-0.5 pointer-events-none">
-                    <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
-                  </svg>
-                  <svg width="5" height="5" viewBox="0 0 5 5" class="fill-primary absolute -right-0.5 -top-0.5 pointer-events-none">
-                    <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
-                  </svg>
-                  <svg width="5" height="5" viewBox="0 0 5 5" class="fill-primary absolute -bottom-0.5 -left-0.5 pointer-events-none">
-                    <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
-                  </svg>
-                  <svg width="5" height="5" viewBox="0 0 5 5" class="fill-primary absolute -bottom-0.5 -right-0.5 pointer-events-none">
-                    <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
-                  </svg>
-                </a>
+            {/* Bottom Sheet Drawer - styled like shadcn drawer */}
+            <div class="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-[10px] border-t border-dashed border-border bg-background p-6 shadow-2xl transition-all duration-300 ease-out animate-in slide-in-from-bottom">
+              {/* Drawer Handle Pill */}
+              <div class="mx-auto -mt-2 mb-4 h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/30" />
+
+              {/* Drawer Header */}
+              <div class="flex items-center justify-between pb-3 border-b border-dashed border-border/80">
+                <div class="flex flex-col gap-1">
+                  <a
+                    href="/"
+                    onClick={() => setSheetOpen(false)}
+                    class="text-primary group relative px-1.5 font-mono text-sm self-start font-medium inline-block select-none"
+                    aria-label="Amin Babu Home"
+                  >
+                    <span class="border-primary/60 group-hover:bg-border absolute inset-0 -z-10 border border-dashed bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] bg-[size:10px_10px] bg-fixed transition-colors duration-300"></span>
+                    ./ab
+                    <svg width="5" height="5" viewBox="0 0 5 5" class="fill-primary absolute -left-0.5 -top-0.5 pointer-events-none">
+                      <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
+                    </svg>
+                    <svg width="5" height="5" viewBox="0 0 5 5" class="fill-primary absolute -right-0.5 -top-0.5 pointer-events-none">
+                      <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
+                    </svg>
+                    <svg width="5" height="5" viewBox="0 0 5 5" class="fill-primary absolute -bottom-0.5 -left-0.5 pointer-events-none">
+                      <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
+                    </svg>
+                    <svg width="5" height="5" viewBox="0 0 5 5" class="fill-primary absolute -bottom-0.5 -right-0.5 pointer-events-none">
+                      <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
+                    </svg>
+                  </a>
+                  <span class="text-xs text-muted-foreground">Navigation & Connect</span>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -217,8 +231,8 @@ export default function Header() {
               </div>
 
               {/* Navigation Items */}
-              <nav aria-label="Mobile Navigation Links">
-                <ul class="flex flex-col gap-y-1.5 py-2">
+              <nav aria-label="Mobile Navigation Links" class="overflow-y-auto py-2">
+                <ul class="flex flex-col gap-y-1.5">
                   {navigationItems.map((item) => (
                     <li key={item.id}>
                       <a
@@ -233,23 +247,25 @@ export default function Header() {
                 </ul>
               </nav>
 
-              {/* Mobile Social Actions */}
-              <div class="flex items-center justify-between pt-3 border-t border-dashed border-border/80">
-                <span class="text-xs font-mono text-muted-foreground uppercase tracking-wider">Connect</span>
-                <div class="flex items-center gap-x-2">
-                  {socialItems.map((item) => (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={item.title}
-                      class="size-8 rounded-full"
-                    >
-                      <item.icon class="size-4" />
-                    </Button>
-                  ))}
+              {/* Drawer Footer with Connect & CTA */}
+              <div class="flex flex-col gap-3 pt-3 border-t border-dashed border-border/80">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-mono text-muted-foreground uppercase tracking-wider">Socials</span>
+                  <div class="flex items-center gap-x-2">
+                    {socialItems.map((item) => (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={item.title}
+                        class="size-8 rounded-full"
+                      >
+                        <item.icon class="size-4" />
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
