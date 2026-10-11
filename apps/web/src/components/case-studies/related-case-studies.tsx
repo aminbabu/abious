@@ -1,4 +1,4 @@
-import { createResource, onMount, onCleanup, Show, For } from "solid-js";
+import { createResource, onMount, onCleanup, Show, For, createEffect } from "solid-js";
 import { Splide } from "@splidejs/splide";
 import DecoratorUI from "~/components/decorator-ui";
 import CaseStudy, { type ICaseStudy } from "~/components/global/case-study";
@@ -6,30 +6,49 @@ import Section from "~/components/section";
 import { Heading } from "~/components/ui/global/heading";
 import { Paragraph } from "~/components/ui/global/paragraph";
 import CaseStudiesLoader from "~/components/ui/loaders/case-studies";
-
-async function fetchRelatedCaseStudies(id: string, type?: string): Promise<ICaseStudy[]> {
-  try {
-    const encodedType = encodeURIComponent(type || "");
-    const res = await fetch(`https://api.abious.ddev.site/api/case-studies/${id}/${encodedType}/related`);
-    if (!res.ok) throw new Error("Failed to fetch related case studies");
-    return await res.json();
-  } catch (e) {
-    return [];
-  }
-}
+import { api } from "~/lib/api";
 
 export default function RelatedCaseStudies(props: { id: string; type?: string }) {
   const [data] = createResource(
     () => ({ id: props.id, type: props.type }),
-    (params) => fetchRelatedCaseStudies(params.id, params.type)
+    async (params) => {
+      try {
+        const res = await api.caseStudies.related(params.id, params.type);
+        return res as unknown as ICaseStudy[];
+      } catch {
+        return [];
+      }
+    }
   );
+
 
   let splideEl: HTMLDivElement | undefined;
   let splideInstance: Splide | null = null;
 
-  const initSplide = () => {
-    if (splideEl && !splideInstance && data() && data()!.length > 0) {
-      splideInstance = new Splide(splideEl, {
+  const destroySplide = () => {
+    if (splideInstance) {
+      try {
+        splideInstance.destroy();
+      } catch {
+        // ignore
+      }
+      splideInstance = null;
+    }
+  };
+
+  const mountSplideOnElement = (el: HTMLDivElement | undefined) => {
+    splideEl = el;
+    if (!el) {
+      destroySplide();
+      return;
+    }
+
+    const track = el.querySelector(".splide__track");
+    const list = el.querySelector(".splide__list");
+    if (!track || !list) return;
+
+    if (!splideInstance) {
+      splideInstance = new Splide(el, {
         type: "slide",
         perPage: 1,
         gap: "0.75rem",
@@ -49,16 +68,11 @@ export default function RelatedCaseStudies(props: { id: string; type?: string })
     }
   };
 
-  onMount(() => {
-    setTimeout(initSplide, 100);
+  onCleanup(() => {
+    destroySplide();
   });
 
-  onCleanup(() => {
-    if (splideInstance) {
-      splideInstance.destroy();
-      splideInstance = null;
-    }
-  });
+
 
   return (
     <Section>
@@ -102,13 +116,11 @@ export default function RelatedCaseStudies(props: { id: string; type?: string })
             }
           >
             <div
-              ref={(el) => {
-                splideEl = el;
-                initSplide();
-              }}
+              ref={mountSplideOnElement}
               class="splide -mt-5"
               aria-label="Related Case Studies"
             >
+
               <DecoratorUI class="before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed py-px">
                 <div class="-mx-3 bg-secondary px-3">
                   <div class="splide__track">

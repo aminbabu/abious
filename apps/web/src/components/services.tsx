@@ -1,8 +1,12 @@
+import { createResource, Show } from "solid-js";
 import {
   RiBusinessLinksLine,
   RiBusinessWindowLine,
   RiDevelopmentBugLine,
   RiEditorSlashCommands,
+  RiDeviceServerLine,
+  RiDesignPencilLine,
+  RiDevelopmentCodeSSlashLine,
 } from "solid-icons/ri";
 import DecoratorUI from "~/components/decorator-ui";
 import CalCom from "~/components/global/calcom";
@@ -16,39 +20,26 @@ import {
 } from "~/components/ui/card";
 import { Heading } from "~/components/ui/global/heading";
 import { Paragraph } from "~/components/ui/global/paragraph";
+import ServicesLoader from "~/components/ui/loaders/services";
+import { api, type IServiceItem } from "~/lib/api";
 
-const services = [
-  {
-    id: 1,
-    title: "Web Development",
-    description:
-      "Building high-performance, scalable websites and web applications using modern frameworks like Next.js, React, and Vue.",
-    icon: RiBusinessWindowLine,
-  },
-  {
-    id: 2,
-    title: "API & Backend Development",
-    description:
-      "Crafting secure, scalable, and efficient APIs and backend solutions using NestJS, Node.js, PostgreSQL, MySQL, Firebase, Supabase, and Laravel.",
-    icon: RiBusinessLinksLine,
-  },
-  {
-    id: 3,
-    title: "WordPress & Webflow Solutions",
-    description:
-      "Custom WordPress themes, plugins, and Webflow-powered websites tailored for seamless performance and design.",
-    icon: RiEditorSlashCommands,
-  },
-  {
-    id: 4,
-    title: "Debugging & Support",
-    description:
-      "Identifying and resolving issues to ensure optimal performance, security, and a flawless user experience.",
-    icon: RiDevelopmentBugLine,
-  },
-];
+const iconMap: Record<string, any> = {
+  RiBusinessWindowLine,
+  RiBusinessLinksLine,
+  RiEditorSlashCommands,
+  RiDevelopmentBugLine,
+  RiDeviceServerLine,
+  RiDesignPencilLine,
+  RiDevelopmentCodeSSlashLine,
+};
+
+function getServiceIcon(iconName: string) {
+  return iconMap[iconName] || RiBusinessWindowLine;
+}
 
 export default function Services() {
+  const [data] = createResource<IServiceItem[]>(() => api.services.list());
+
   return (
     <Section id="services">
       <Paragraph class="mb-3 font-mono text-xs sm:text-sm font-semibold tracking-wider text-muted-foreground/80 md:text-right">
@@ -66,28 +57,52 @@ export default function Services() {
           performance and innovation in every project.
         </Paragraph>
       </DecoratorUI>
+
       <div class="relative z-0 before:absolute before:-inset-3 before:-z-10 before:bg-secondary">
-        <DecoratorUI class="grid grid-cols-12 gap-y-3 before:-inset-y-3 md:gap-x-3">
-          {services.map((work) => (
-            <Card class="col-span-12 bg-background md:col-span-6 lg:col-span-3 transition-all duration-300 hover:border-foreground/30 hover:shadow-md">
-              <CardHeader>
-                <work.icon class="size-9 text-primary transition-transform duration-300 group-hover:scale-110" />
-              </CardHeader>
-              <CardContent class="space-y-2">
-                <CardTitle class="text-foreground text-lg">
-                  {work.title}
-                </CardTitle>
-                <CardDescription class="text-muted-foreground leading-normal">
-                  {work.description}
-                </CardDescription>
-              </CardContent>
-            </Card>
-          ))}
-        </DecoratorUI>
+        <Show
+          when={!data.loading}
+          fallback={
+            <DecoratorUI class="before:-inset-y-3">
+              <ServicesLoader count={4} />
+            </DecoratorUI>
+          }
+        >
+          <Show
+            when={!data.error && data()?.length}
+            fallback={
+              <DecoratorUI class="py-6 text-center text-muted-foreground before:-inset-y-3">
+                <p>{data.error ? "Failed to load services." : "No services available."}</p>
+              </DecoratorUI>
+            }
+          >
+            <DecoratorUI class="grid grid-cols-12 gap-y-3 before:-inset-y-3 md:gap-x-3">
+              {data()?.map((work) => {
+                const IconComponent = getServiceIcon(work.icon);
+                return (
+                  <Card class="col-span-12 bg-background md:col-span-6 lg:col-span-3 transition-all duration-300 hover:border-foreground/30 hover:shadow-md">
+                    <CardHeader>
+                      <IconComponent class="size-9 text-primary transition-transform duration-300 group-hover:scale-110" />
+                    </CardHeader>
+                    <CardContent class="space-y-2">
+                      <CardTitle class="text-foreground text-lg">
+                        {work.title}
+                      </CardTitle>
+                      <CardDescription class="text-muted-foreground leading-normal">
+                        {work.description}
+                      </CardDescription>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </DecoratorUI>
+          </Show>
+        </Show>
       </div>
+
       <DecoratorUI class="mt-16 text-center">
         <CalCom title="Let's Talk" size="lg" type="popup" />
       </DecoratorUI>
     </Section>
   );
 }
+

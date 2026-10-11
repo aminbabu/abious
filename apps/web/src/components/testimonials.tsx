@@ -1,4 +1,4 @@
-import { createResource, onMount, onCleanup, Show } from "solid-js";
+import { createResource, onMount, onCleanup, Show, createEffect } from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
 import Section from "~/components/section";
 import {
@@ -12,57 +12,40 @@ import { Paragraph } from "~/components/ui/global/paragraph";
 import TestimonialsLoader from "~/components/ui/loaders/testimonials";
 import { Splide } from "@splidejs/splide";
 import { AutoScroll } from "@splidejs/splide-extension-auto-scroll";
+import { api, type ITestimonialItem } from "~/lib/api";
 
-export interface ITestimonial {
-  id: string;
-  data: {
-    name: string;
-    role: string;
-    company: string;
-    avatar: string;
-  };
-  body: string;
-}
-
-async function fetchTestimonials(): Promise<ITestimonial[]> {
-  try {
-    const res = await fetch("https://api.abious.ddev.site/api/testimonials");
-    if (!res.ok) throw new Error("Failed to fetch testimonials");
-    return await res.json();
-  } catch (e) {
-    return [
-      {
-        id: "graham-brookins",
-        data: {
-          name: "Graham Brookins",
-          role: "Founder & CEO",
-          company: "7X",
-          avatar: "/images/testimonials/graham-brookins.jpeg",
-        },
-        body: "Amin blends design and development, creating user-centric solutions that balance aesthetics and functionality. His innovative approach ensures seamless experiences, exceeding expectations with technical precision and creative excellence to deliver lasting value in every project.",
-      },
-      {
-        id: "mohammad-kais-rayhan",
-        data: {
-          name: "Mohammad Kais Rayhan",
-          role: "UI/UX Designer",
-          company: "Notionhive Bangladesh",
-          avatar: "/images/testimonials/mohammad-kais-rayhan.jpeg",
-        },
-        body: "Working with Amin Babu was extremely smooth. Me as a UI UX designer dealing with developers is a challenging thing but then there comes Amin Babu who can easily catch the depth of imagination and flow how a designer can think. Really an amazing journey with him.",
-      },
-    ];
-  }
-}
+export type ITestimonial = ITestimonialItem;
 
 export default function Testimonials() {
-  const [data] = createResource(fetchTestimonials);
+  const [data] = createResource<ITestimonialItem[]>(() => api.testimonials.list());
   let splideEl: HTMLDivElement | undefined;
   let splideInstance: Splide | null = null;
 
-  const initSplide = () => {
-    if (splideEl && !splideInstance && data()?.length) {
-      splideInstance = new Splide(splideEl, {
+  const destroySplide = () => {
+    if (splideInstance) {
+      try {
+        splideInstance.destroy();
+      } catch {
+        // ignore
+      }
+      splideInstance = null;
+    }
+  };
+
+  const mountSplideOnElement = (el: HTMLDivElement | undefined) => {
+    splideEl = el;
+    if (!el) {
+      destroySplide();
+      return;
+    }
+
+    // Ensure the track and list elements exist in DOM before mounting
+    const track = el.querySelector(".splide__track");
+    const list = el.querySelector(".splide__list");
+    if (!track || !list) return;
+
+    if (!splideInstance) {
+      splideInstance = new Splide(el, {
         type: "loop",
         perPage: 1,
         gap: "0.75rem",
@@ -83,16 +66,10 @@ export default function Testimonials() {
     }
   };
 
-  onMount(() => {
-    setTimeout(initSplide, 100);
+  onCleanup(() => {
+    destroySplide();
   });
 
-  onCleanup(() => {
-    if (splideInstance) {
-      splideInstance.destroy();
-      splideInstance = null;
-    }
-  });
 
   return (
     <Section id="testimonials">
@@ -134,53 +111,59 @@ export default function Testimonials() {
             }
           >
             <div
-              ref={(el) => {
-                splideEl = el;
-                initSplide();
-              }}
+              ref={mountSplideOnElement}
               class="splide -mt-3"
               aria-label="Testimonials"
             >
+
               <DecoratorUI class="py-px before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed">
                 <div class="-mx-3 bg-secondary px-3">
                   <div class="splide__track">
                     <ul class="splide__list">
-                      {data()?.map((testimonial) => (
-                        <li class="splide__slide py-3">
-                          <Card class="h-full">
-                            <CardContent class="flex h-full flex-col gap-6">
-                              <CardDescription>
-                                <p class="text-base sm:text-lg leading-relaxed text-foreground/85 font-normal">
-                                  &ldquo;{testimonial.body}&rdquo;
-                                </p>
-                              </CardDescription>
-                              <div class="mt-auto flex items-center gap-4">
-                                <figure class="border-border block aspect-square size-14 shrink-0 overflow-hidden rounded-full border shadow-sm">
-                                  <img
-                                    src={testimonial.data.avatar}
-                                    alt={testimonial.data.name}
-                                    width="100"
-                                    height="100"
-                                    class="h-full w-full object-cover object-center"
-                                  />
-                                </figure>
-                                <div>
-                                  <CardTitle class="text-base sm:text-lg font-semibold text-foreground">
-                                    {testimonial.data.name}
-                                  </CardTitle>
-                                  <p class="text-muted-foreground text-xs sm:text-sm">
-                                    {testimonial.data.role}
+                      {data()?.map((testimonial) => {
+                        const name = testimonial.name || testimonial.data?.name || "";
+                        const role = testimonial.role || testimonial.data?.role || "";
+                        const company = testimonial.company || testimonial.data?.company || "";
+                        const avatar = testimonial.avatar || testimonial.data?.avatar || "/images/testimonials/default.png";
+
+                        return (
+                          <li class="splide__slide py-3">
+                            <Card class="h-full">
+                              <CardContent class="flex h-full flex-col gap-6">
+                                <CardDescription>
+                                  <p class="text-base sm:text-lg leading-relaxed text-foreground/85 font-normal">
+                                    &ldquo;{testimonial.body?.trim()}&rdquo;
                                   </p>
-                                  <p class="text-muted-foreground/75 text-xs">
-                                    {testimonial.data.company}
-                                  </p>
+                                </CardDescription>
+                                <div class="mt-auto flex items-center gap-4">
+                                  <figure class="border-border block aspect-square size-14 shrink-0 overflow-hidden rounded-full border shadow-sm">
+                                    <img
+                                      src={avatar}
+                                      alt={name}
+                                      width="100"
+                                      height="100"
+                                      class="h-full w-full object-cover object-center"
+                                    />
+                                  </figure>
+                                  <div>
+                                    <CardTitle class="text-base sm:text-lg font-semibold text-foreground">
+                                      {name}
+                                    </CardTitle>
+                                    <p class="text-muted-foreground text-xs sm:text-sm">
+                                      {role}
+                                    </p>
+                                    <p class="text-muted-foreground/75 text-xs">
+                                      {company}
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </li>
-                      ))}
+                              </CardContent>
+                            </Card>
+                          </li>
+                        );
+                      })}
                     </ul>
+
                   </div>
                 </div>
               </DecoratorUI>

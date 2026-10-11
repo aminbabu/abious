@@ -53,17 +53,16 @@ export default function CalCom(props: {
       if (!w.Cal.__initialized_30min) {
         w.Cal.__initialized_30min = true;
         w.Cal("init", "30min", { origin: "https://cal.com" });
+        w.Cal.ns["30min"]("ui", {
+          cssVarsPerTheme: {
+            light: { "cal-brand": "#171717" },
+            dark: { "cal-brand": "#fafafa" },
+          },
+          theme: theme(),
+          hideEventTypeDetails: false,
+          layout: "month_view",
+        });
       }
-
-      w.Cal.ns["30min"]("ui", {
-        cssVarsPerTheme: {
-          light: { "cal-brand": "#171717" },
-          dark: { "cal-brand": "#fafafa" },
-        },
-        theme: theme(),
-        hideEventTypeDetails: false,
-        layout: "month_view",
-      });
 
       if (props.type !== "popup" && inlineCalEl) {
         w.Cal.ns["30min"]("inline", {
@@ -81,12 +80,14 @@ export default function CalCom(props: {
   createEffect(() => {
     const currentTheme = theme();
     const w = window as any;
-    if (w.Cal?.ns?.["30min"]) {
+    if (w.Cal?.ns?.["30min"] && w.Cal.__currentTheme !== currentTheme) {
+      w.Cal.__currentTheme = currentTheme;
       w.Cal.ns["30min"]("ui", {
         theme: currentTheme,
       });
     }
   });
+
 
   if (props.type === "popup") {
     return (

@@ -7,46 +7,12 @@ import { Button } from "~/components/ui/button";
 import { Heading } from "~/components/ui/global/heading";
 import { Paragraph } from "~/components/ui/global/paragraph";
 import type { ICaseStudy } from "~/components/global/case-study";
-
-async function fetchCaseStudies(): Promise<ICaseStudy[]> {
-  try {
-    const res = await fetch("https://api.abious.ddev.site/api/case-studies");
-    if (!res.ok) throw new Error("Failed to fetch case studies");
-    return await res.json();
-  } catch (e) {
-    return [
-      {
-        id: "exponential-cms",
-        data: {
-          title: "Exponential CMS",
-          description: "Headless Content Management System designed for speed and flexibility.",
-          banner: "/images/case-studies/exponential-cms.webp",
-          liveURL: "https://exponential-cms.aminbabu.com",
-        },
-      },
-      {
-        id: "seven-rings-cement",
-        data: {
-          title: "Seven Rings Cement",
-          description: "High-performance marketing platform built for an enterprise cement manufacturer.",
-          banner: "/images/case-studies/seven-rings-cement.png",
-        },
-      },
-      {
-        id: "universalyst",
-        data: {
-          title: "Universalyst",
-          description: "A platform empowering artists to showcase, buy, sell, and advertise artwork.",
-          banner: "/images/case-studies/universalyst.png",
-        },
-      },
-    ];
-  }
-}
+import { api } from "~/lib/api";
 
 export default function CaseStudies(props: { title?: string }) {
-  const [data] = createResource(fetchCaseStudies);
+  const [data] = createResource<ICaseStudy[]>(() => api.caseStudies.list() as Promise<ICaseStudy[]>);
   const title = () => props.title ?? "recent case studies";
+
 
   return (
     <Section id="caseStudies">
