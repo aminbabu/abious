@@ -100,61 +100,36 @@ apps/api/.env.example            (Committed template with placeholder keys)
 
 ## 4. Phase-by-Phase Roadmap
 
-### Phase 1: Authentication & Content API Verification (Current Focus)
+### Phase 1: Modular Backend Architecture & Infrastructure (Current Focus)
 - [x] Create dedicated git branch `migrate/solidstart-nestjs`.
 - [x] Setup DDEV container with `ddev-pnpm` (`pnpm v12`).
 - [x] Configure pnpm workspace monorepo (`apps/web`, `apps/api`).
 - [x] Scaffold latest NestJS v12 with ESM.
 - [x] Scaffold latest SolidStart v2 (`@solidjs/start@^2.0.0`) with Vite & TypeScript.
 - [x] Set up `.env.*` structure (`.env`, `.env.development`, `.env.development.local`, `.env.example`).
-- [ ] Connect Better Auth to DDEV database (MariaDB / PostgreSQL / SQLite).
-- [ ] Create initial fine-grained API modules in `apps/api`:
-  - `CaseStudiesModule`: Serves portfolio case studies.
-  - `TestimonialsModule`: Serves testimonials.
-  - `ContactModule`: Validates and receives contact inquiries.
+- [x] Connect Better Auth to DDEV PostgreSQL 16 database.
+- [ ] Refactor `apps/api/src/main.ts` to be ultra-lean and centralize all configuration in `apps/api/src/app.module.ts` (Selective body-parser middleware, `APP_PIPE`, `APP_FILTER`, `APP_GUARD`, `APP_INTERCEPTOR`).
+- [ ] Implement self-contained, publishable packages under `apps/api/src/packages/`:
+  - `packages/auth`: Better Auth engine, OAuth, RBAC roles (`admin`, `editor`, `user`), session decorators, guards, entities, migrations.
+  - `packages/logger`: Structured JSON logging, correlation IDs, request latency tracing, logging interceptor.
+  - `packages/audit`: Immutable change tracking and audit logs, `@Auditable()` decorator, entity, migrations, repository, service.
+  - `packages/report`: Analytics, inquiry volume telemetry, platform summary metrics, exportable reports.
+  - `packages/settings`: Dynamic site configuration (key-value + typed settings), public and admin controllers, repository, migrations.
+  - `packages/cms`: Core CMS entities (Services, Experience, Testimonials), repositories, migrations, public and admin CRUD endpoints.
+  - `packages/blogs`: Production blog engine (posts, categories, tags, markdown parser, read-time calculation, RSS feed, migrations).
+  - `packages/case-studies`: Case studies portfolio engine (projects, stacks, metrics, markdown write-ups, related project recommendation algorithm).
+  - `packages/contact`: Inquiry handler, spam throttling, PostgreSQL persistence, email delivery via Nodemailer to DDEV Mailpit.
 
 ---
 
-### Phase 2: Frontend Migration to SolidStart v2 (`apps/web`)
-- [ ] Install styling & UI dependencies (TailwindCSS v4, Lucide icons, fonts).
-- [ ] Port shared layouts (`Header`, `Footer`, `ThemeSwitcher`).
-- [ ] Port home page sections to SolidJS reactive components:
-  - `Hero`
-  - `Services`
-  - `Experience`
-  - `CaseStudies` (fetching data from `apps/api`)
-  - `Testimonials` (fetching data from `apps/api`)
-  - `Contact` (submitting to `apps/api/contact`)
-- [ ] Add Better Auth client SDK (`better-auth/solid`) for frontend session management & login buttons.
+### Phase 2: Verification, Migrations & Package Independence
+- [ ] Execute package SQL migrations against PostgreSQL 16 in DDEV.
+- [ ] Unit & integration tests for all packages via Vitest.
+- [ ] Validate publishable package metadata (`package.json`, export barrels `index.ts`).
 
 ---
 
-### Phase 3: Future Blog System
-- [ ] **Backend (`apps/api`)**:
-  - `BlogModule`: Manage posts, categories, tags, slugs, drafts, and publication dates.
-  - Markdown / MDX parsing service with code syntax highlighting and read-time calculation.
-- [ ] **Frontend (`apps/web`)**:
-  - `/blog`: Blog listing page with search, tag filters, and pagination.
-  - `/blog/[slug]`: Post detail page with reading progress bar, table of contents, and SEO tags.
-
----
-
-### Phase 4: Future Dynamic Site Settings
-- [ ] **Backend (`apps/api`)**:
-  - `SettingsModule`: Key-value JSON storage for site metadata, social URLs, bio, contact email, and resume link.
-  - Public endpoint: `GET /api/settings/public` (cached in-memory).
-  - Admin endpoint: `PATCH /api/settings` (guarded by Better Auth admin role).
-- [ ] **Frontend (`apps/web`)**:
-  - Global `SiteSettingsContext` in `apps/web/src/app.tsx` for zero-redeploy configuration updates.
-
----
-
-### Phase 5: Future CMS / Admin Portal
-- [ ] **Backend RBAC**:
-  - Add admin role support in Better Auth (`admin`, `editor`).
-  - Guards for `/api/admin/*` endpoints.
-- [ ] **Frontend UI (`/admin`)**:
-  - Authenticated admin dashboard layout.
-  - Visual Case Studies & Blog Post editor with live markdown preview.
-  - Inquiry inbox to review messages submitted through the contact form.
-  - Site Settings editor UI.
+### Phase 3: Future Frontend Dynamic Migration (`apps/web`)
+- [ ] Centralize API client in `apps/web/src/lib/api.ts` pointing to NestJS API.
+- [ ] Hydrate all frontend sections (Hero, Services, Experience, Case Studies, Testimonials, Contact Form) dynamically from the modular API packages.
+- [ ] Connect SolidStart admin dashboard (`/admin`) using Better Auth Solid client.
