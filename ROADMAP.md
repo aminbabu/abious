@@ -108,8 +108,8 @@ apps/api/.env.example            (Committed template with placeholder keys)
 - [x] Scaffold latest SolidStart v2 (`@solidjs/start@^2.0.0`) with Vite & TypeScript.
 - [x] Set up `.env.*` structure (`.env`, `.env.development`, `.env.development.local`, `.env.example`).
 - [x] Connect Better Auth to DDEV PostgreSQL 16 database.
-- [ ] Refactor `apps/api/src/main.ts` to be ultra-lean and centralize all configuration in `apps/api/src/app.module.ts` (Selective body-parser middleware, `APP_PIPE`, `APP_FILTER`, `APP_GUARD`, `APP_INTERCEPTOR`).
-- [ ] Implement self-contained, publishable packages under `apps/api/src/packages/`:
+- [x] Refactor `apps/api/src/main.ts` to be ultra-lean and centralize all configuration in `apps/api/src/app.module.ts` (Selective body-parser middleware, `APP_PIPE`, `APP_FILTER`, `APP_GUARD`, `APP_INTERCEPTOR`).
+- [x] Implement self-contained, publishable packages under `apps/api/src/packages/`:
   - `packages/auth`: Better Auth engine, OAuth, RBAC roles (`admin`, `editor`, `user`), session decorators, guards, entities, migrations.
   - `packages/logger`: Structured JSON logging, correlation IDs, request latency tracing, logging interceptor.
   - `packages/audit`: Immutable change tracking and audit logs, `@Auditable()` decorator, entity, migrations, repository, service.
@@ -123,9 +123,9 @@ apps/api/.env.example            (Committed template with placeholder keys)
 ---
 
 ### Phase 2: Verification, Migrations & Package Independence
-- [ ] Execute package SQL migrations against PostgreSQL 16 in DDEV.
-- [ ] Unit & integration tests for all packages via Vitest.
-- [ ] Validate publishable package metadata (`package.json`, export barrels `index.ts`).
+- [x] Execute package SQL migrations against PostgreSQL 16 in DDEV.
+- [x] Unit & integration tests for all packages via Vitest.
+- [x] Validate publishable package metadata (`package.json`, export barrels `index.ts`).
 
 ---
 

@@ -1,0 +1,12 @@
+{
+  "name": "@abious/logger",
+  "version": "0.1.0",
+  "description": "Structured logging, correlation IDs, and request tracing package for NestJS",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "type": "module",
+  "peerDependencies": {
+    "@nestjs/common": "^12.0.0",
+    "@nestjs/core": "^12.0.0"
+  }
+}

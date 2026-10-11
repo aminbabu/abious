@@ -1,19 +1,5 @@
 import { betterAuth } from 'better-auth';
-import { Pool } from 'pg';
-import { resolve } from 'node:path';
-import dotenv from 'dotenv';
-
-// Load env files in precedence order: .env.development.local > .env.development > .env
-dotenv.config({ path: resolve(process.cwd(), '.env.development.local') });
-dotenv.config({ path: resolve(process.cwd(), '.env.development') });
-dotenv.config({ path: resolve(process.cwd(), '.env') });
-
-const connectionString =
-  process.env.DATABASE_URL || 'postgresql://db:db@db:5432/db?sslmode=disable';
-
-const pool = new Pool({
-  connectionString,
-});
+import { pool } from './db/index.js';
 
 export const auth = betterAuth({
   secret:

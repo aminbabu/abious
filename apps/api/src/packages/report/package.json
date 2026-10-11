@@ -1,0 +1,12 @@
+{
+  "name": "@abious/report",
+  "version": "0.1.0",
+  "description": "System analytics, inquiry telemetry, and overview reporting for NestJS",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "type": "module",
+  "peerDependencies": {
+    "@nestjs/common": "^12.0.0",
+    "@nestjs/core": "^12.0.0"
+  }
+}
