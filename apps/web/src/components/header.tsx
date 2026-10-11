@@ -1,9 +1,9 @@
 import { createSignal, Show, onCleanup, createEffect } from "solid-js";
+import { Portal } from "solid-js/web";
 import {
   RiLogosGithubLine,
   RiLogosLinkedinLine,
   RiEditorTextWrap,
-  RiSystemCloseLine,
 } from "solid-icons/ri";
 import CalCom from "~/components/global/calcom";
 import Container from "~/components/container";
@@ -60,33 +60,35 @@ export default function Header() {
   createEffect(() => {
     if (typeof window === "undefined") return;
     if (sheetOpen()) {
+      const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
+
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") setSheetOpen(false);
       };
       const handleResize = () => {
-        // Auto close when resized to >= 1024px (lg breakpoint)
+        // Auto close when resized to desktop (>= 1024px)
         if (window.innerWidth >= 1024) {
           setSheetOpen(false);
         }
       };
+
       window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("resize", handleResize);
+
       onCleanup(() => {
-        document.body.style.overflow = "";
+        document.body.style.overflow = originalOverflow;
         window.removeEventListener("keydown", handleKeyDown);
         window.removeEventListener("resize", handleResize);
       });
-    } else {
-      document.body.style.overflow = "";
     }
   });
 
   return (
     <header class="border-border bg-background/80 fixed inset-x-0 top-0 z-50 border-b border-dashed backdrop-blur-3xl transition-colors">
       <Container>
-        <div class="border-border flex items-center justify-between gap-x-3 py-3 md:border-x md:border-dashed md:px-3 lg:gap-x-6">
-          {/* Brand - visible on both mobile and desktop */}
+        <div class="border-border flex items-center justify-between gap-x-2 sm:gap-x-4 py-3 md:border-x md:border-dashed md:px-3 lg:gap-x-6">
+          {/* Brand Logo - visible across all screens */}
           <a
             href="/"
             class="text-primary group relative px-1.5 font-mono text-sm font-medium inline-block select-none shrink-0"
@@ -142,7 +144,7 @@ export default function Header() {
             ))}
           </ul>
 
-          {/* Right Action Items (Social, Theme, Cal, Mobile Trigger) */}
+          {/* Right Action Items */}
           <ul class="ml-auto flex items-center gap-x-1 sm:gap-x-1.5">
             {socialItems.map((item) => (
               <li key={item.id} class="hidden lg:block">
@@ -162,7 +164,10 @@ export default function Header() {
               <ThemeSwitcher />
             </li>
             <li>
-              <CalCom type="popup" />
+              <CalCom
+                type="popup"
+                class="hidden sm:inline-flex"
+              />
             </li>
             {/* Mobile Menu Trigger button - visible under 1024px (< lg) */}
             <li class="lg:hidden">
@@ -171,17 +176,19 @@ export default function Header() {
                 size="icon"
                 onClick={() => setSheetOpen(true)}
                 aria-label="Open navigation menu"
-                class="cursor-pointer"
+                class="cursor-pointer size-9"
               >
                 <RiEditorTextWrap class="size-5 text-foreground" />
               </Button>
             </li>
           </ul>
         </div>
+      </Container>
 
-        {/* Mobile Slide-Up Bottom Drawer with Overlay (acts like shadcn drawer) */}
-        <Show when={sheetOpen()}>
-          <div class="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation Drawer">
+      {/* Mobile Slide-Up Bottom Drawer rendered into Portal at body level */}
+      <Show when={sheetOpen()}>
+        <Portal>
+          <div class="fixed inset-0 z-100 lg:hidden" role="dialog" aria-modal="true" aria-label="Navigation Drawer">
             {/* Backdrop Overlay */}
             <div
               class="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
@@ -189,13 +196,13 @@ export default function Header() {
             />
 
             {/* Bottom Sheet Drawer - styled like shadcn drawer */}
-            <div class="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-[10px] border-t border-dashed border-border bg-background p-6 shadow-2xl transition-all duration-300 ease-out animate-in slide-in-from-bottom">
-              {/* Drawer Handle Pill */}
-              <div class="mx-auto -mt-2 mb-4 h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/30" />
+            <div class="fixed inset-x-0 bottom-0 z-101 flex max-h-[85vh] flex-col rounded-t-2xl border-t border-dashed border-border bg-background p-6 shadow-2xl transition-all duration-300 ease-out animate-in slide-in-from-bottom">
+              {/* Drawer Drag Handle Pill */}
+              <div class="mx-auto -mt-2 mb-4 h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/30 cursor-pointer" onClick={() => setSheetOpen(false)} />
 
               {/* Drawer Header */}
               <div class="flex items-center justify-between pb-3 border-b border-dashed border-border/80">
-                <div class="flex flex-col gap-1">
+                <div class="flex flex-col gap-0.5">
                   <a
                     href="/"
                     onClick={() => setSheetOpen(false)}
@@ -219,26 +226,29 @@ export default function Header() {
                   </a>
                   <span class="text-xs text-muted-foreground">Navigation & Connect</span>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
+                {/* Standard close button */}
+                <button
+                  type="button"
                   onClick={() => setSheetOpen(false)}
                   aria-label="Close navigation menu"
-                  class="size-8 rounded-full"
+                  class="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
                 >
-                  <RiSystemCloseLine class="size-5" />
-                </Button>
+                  <svg viewBox="0 0 24 24" class="size-4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
               </div>
 
               {/* Navigation Items */}
               <nav aria-label="Mobile Navigation Links" class="overflow-y-auto py-2">
-                <ul class="flex flex-col gap-y-1.5">
+                <ul class="flex flex-col gap-y-1">
                   {navigationItems.map((item) => (
                     <li key={item.id}>
                       <a
                         href={item.href}
                         onClick={() => setSheetOpen(false)}
-                        class="flex items-center rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-all duration-200"
+                        class="flex items-center rounded-lg px-3 py-2.5 text-base font-medium text-foreground hover:bg-secondary transition-colors"
                       >
                         {item.title}
                       </a>
@@ -247,8 +257,14 @@ export default function Header() {
                 </ul>
               </nav>
 
-              {/* Drawer Footer with Connect & CTA */}
+              {/* Drawer Footer with Book a Call and Socials on Mobile */}
               <div class="flex flex-col gap-3 pt-3 border-t border-dashed border-border/80">
+                <div class="sm:hidden">
+                  <CalCom
+                    type="popup"
+                    class="w-full justify-center"
+                  />
+                </div>
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-mono text-muted-foreground uppercase tracking-wider">Socials</span>
                   <div class="flex items-center gap-x-2">
@@ -270,8 +286,8 @@ export default function Header() {
               </div>
             </div>
           </div>
-        </Show>
-      </Container>
+        </Portal>
+      </Show>
     </header>
   );
 }
