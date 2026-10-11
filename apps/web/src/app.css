@@ -132,6 +132,9 @@
   * {
     @apply border-border outline-ring/50;
   }
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+  }
   html {
     @apply scroll-smooth scroll-pt-7 md:scroll-pt-6 lg:scroll-pt-3;
   }

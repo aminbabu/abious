@@ -1,19 +1,28 @@
 import { Title } from "@solidjs/meta";
 import { HttpStatusCode } from "@solidjs/start";
+import NotFoundState from "~/components/global/not-found-state";
+import Contact from "~/components/contact";
 
 export default function NotFound() {
   return (
     <main>
-      <Title>Not Found</Title>
+      <Title>Page Not Found | Amin Babu</Title>
       <HttpStatusCode code={404} />
-      <h1>Page Not Found</h1>
-      <p>
-        Visit{" "}
-        <a href="https://start.solidjs.com" target="_blank">
-          start.solidjs.com
-        </a>{" "}
-        to learn how to build SolidStart apps.
-      </p>
+      <NotFoundState
+        badge="./status/404"
+        code="404"
+        title="Page Not Found"
+        description="The page you are looking for doesn't exist, has been moved, or the link might be broken."
+        primaryAction={{
+          label: "Browse Case Studies",
+          href: "/case-studies",
+        }}
+        secondaryAction={{
+          label: "Return Home",
+          href: "/",
+        }}
+      />
+      <Contact />
     </main>
   );
 }

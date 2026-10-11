@@ -8,6 +8,7 @@ import RelatedCaseStudies from "~/components/case-studies/related-case-studies";
 import Contact from "~/components/contact";
 import DecoratorUI from "~/components/decorator-ui";
 import Section from "~/components/section";
+import NotFoundState from "~/components/global/not-found-state";
 
 async function fetchCaseStudy(id: string): Promise<ICaseStudyDetail | null> {
   try {
@@ -41,15 +42,25 @@ export default function SingleCaseStudyPage() {
         <Show
           when={caseStudy()}
           fallback={
-            <Section class="pt-28 lg:pt-32">
+            <>
               <Title>Case Study Not Found | Amin Babu</Title>
-              <DecoratorUI>
-                <h1 class="text-3xl font-bold">Case Study Not Found</h1>
-              </DecoratorUI>
-              <DecoratorUI class="mt-4">
-                <p class="text-muted-foreground">The requested case study could not be found.</p>
-              </DecoratorUI>
-            </Section>
+              <NotFoundState
+                badge="./case-studies/404"
+                code="404"
+                title="Case Study Not Found"
+                description={`We couldn't find a case study with slug "${params.id}". It might have been renamed, archived, or is temporarily unavailable.`}
+                primaryAction={{
+                  label: "Browse All Case Studies",
+                  href: "/case-studies",
+                }}
+                secondaryAction={{
+                  label: "Return Home",
+                  href: "/",
+                }}
+              />
+              <RelatedCaseStudies id="" />
+              <Contact />
+            </>
           }
         >
           {(item) => (
