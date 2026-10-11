@@ -9,23 +9,25 @@ import Contact from "~/components/contact";
 import DecoratorUI from "~/components/decorator-ui";
 import Section from "~/components/section";
 import NotFoundState from "~/components/global/not-found-state";
-
-async function fetchCaseStudy(id: string): Promise<ICaseStudyDetail | null> {
-  try {
-    const res = await fetch(`https://api.abious.ddev.site/api/case-studies/${id}`);
-    if (!res.ok) throw new Error("Failed to fetch case study");
-    return await res.json();
-  } catch (e) {
-    return null;
-  }
-}
+import { api } from "~/lib/api";
 
 export default function SingleCaseStudyPage() {
   const params = useParams();
-  const [caseStudy] = createResource(() => params.id, fetchCaseStudy);
+  const [caseStudy] = createResource<ICaseStudyDetail | null, string>(
+    () => params.id,
+    async (id) => {
+      try {
+        const item = await api.caseStudies.get(id);
+        return item as unknown as ICaseStudyDetail | null;
+      } catch {
+        return null;
+      }
+    }
+  );
+
 
   return (
-    <main>
+    <>
       <Show
         when={!caseStudy.loading}
         fallback={
@@ -78,6 +80,6 @@ export default function SingleCaseStudyPage() {
           )}
         </Show>
       </Show>
-    </main>
+    </>
   );
 }

@@ -174,7 +174,7 @@ export default function Header() {
                   <a
                     href={item.href}
                     onClick={() => setSheetOpen(false)}
-                    class="hover:text-foreground/75 text-sm transition-colors duration-300"
+                    class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors duration-200"
                   >
                     {item.title}
                   </a>

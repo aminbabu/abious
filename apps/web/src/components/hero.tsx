@@ -10,7 +10,7 @@ import skillPaths from "./hero-icons.json";
 export default function Hero() {
   return (
     <Section class="pt-20 lg:pt-20">
-      <Paragraph class="mb-3 font-mono font-medium md:text-right">
+      <Paragraph class="mb-3 font-mono text-xs sm:text-sm font-semibold tracking-wider text-muted-foreground/80 md:text-right">
         ./aminbabu
       </Paragraph>
       <DecoratorUI>

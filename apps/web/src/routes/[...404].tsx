@@ -5,7 +5,7 @@ import Contact from "~/components/contact";
 
 export default function NotFound() {
   return (
-    <main>
+    <>
       <Title>Page Not Found | Amin Babu</Title>
       <HttpStatusCode code={404} />
       <NotFoundState
@@ -23,6 +23,6 @@ export default function NotFound() {
         }}
       />
       <Contact />
-    </main>
+    </>
   );
 }
