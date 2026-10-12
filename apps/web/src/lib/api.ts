@@ -55,6 +55,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
   const response = await fetch(url, {
     ...options,
+    credentials: "include",
     headers: {
       ...defaultHeaders,
       ...options.headers,
@@ -173,19 +174,126 @@ export interface IContactResponse {
   id?: string;
 }
 
+export interface IBlogPostItem {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  content: string;
+  coverImage?: string;
+  categoryId?: string;
+  tags?: string[];
+  isDraft?: boolean;
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface IAuditLogItem {
+  id: string;
+  userId?: string;
+  action: string;
+  resource: string;
+  resourceId?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  details?: Record<string, any>;
+  createdAt: string;
+}
+
+export interface IReportOverview {
+  totalBlogs?: number;
+  totalCaseStudies?: number;
+  totalServices?: number;
+  totalInquiries?: number;
+  recentAuditLogs?: IAuditLogItem[];
+  [key: string]: any;
+}
+
 // Modular API Client
 export const api = {
+  auth: {
+    getSession: (): Promise<{ authenticated: boolean; session: any }> =>
+      request<{ authenticated: boolean; session: any }>("/api/auth/session"),
+    getProfile: (): Promise<any> => request<any>("/api/auth/me"),
+    updateRole: (userId: string, role: string): Promise<any> =>
+      request<any>("/api/auth/role", {
+        method: "PATCH",
+        body: JSON.stringify({ userId, role }),
+      }),
+  },
   settings: {
     getPublic: (): Promise<ISiteSettings> => request<ISiteSettings>("/api/settings/public"),
+    getAll: (): Promise<Record<string, any>> => request<Record<string, any>>("/api/settings"),
+    update: (key: string, value: Record<string, any>): Promise<any> =>
+      request<any>("/api/settings", {
+        method: "PATCH",
+        body: JSON.stringify({ key, value }),
+      }),
+  },
+  blogs: {
+    list: (): Promise<IBlogPostItem[]> => request<IBlogPostItem[]>("/api/blogs"),
+    getBySlug: (slug: string): Promise<IBlogPostItem | null> =>
+      request<IBlogPostItem | null>(`/api/blogs/${encodeURIComponent(slug)}`),
+    getAllAdmin: (): Promise<IBlogPostItem[]> => request<IBlogPostItem[]>("/api/blogs/all"),
+    create: (data: Partial<IBlogPostItem>): Promise<IBlogPostItem> =>
+      request<IBlogPostItem>("/api/blogs", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (id: string, data: Partial<IBlogPostItem>): Promise<IBlogPostItem> =>
+      request<IBlogPostItem>(`/api/blogs/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string): Promise<{ success: boolean }> =>
+      request<{ success: boolean }>(`/api/blogs/${id}`, { method: "DELETE" }),
   },
   services: {
     list: (): Promise<IServiceItem[]> => request<IServiceItem[]>("/api/services"),
+    getAllAdmin: (): Promise<IServiceItem[]> => request<IServiceItem[]>("/api/services/all"),
+    create: (data: Partial<IServiceItem>): Promise<IServiceItem> =>
+      request<IServiceItem>("/api/services", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (id: string, data: Partial<IServiceItem>): Promise<IServiceItem> =>
+      request<IServiceItem>(`/api/services/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string): Promise<{ success: boolean }> =>
+      request<{ success: boolean }>(`/api/services/${id}`, { method: "DELETE" }),
   },
   experience: {
     list: (): Promise<IExperienceItem[]> => request<IExperienceItem[]>("/api/experience"),
+    create: (data: Partial<IExperienceItem>): Promise<IExperienceItem> =>
+      request<IExperienceItem>("/api/experience", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (id: string | number, data: Partial<IExperienceItem>): Promise<IExperienceItem> =>
+      request<IExperienceItem>(`/api/experience/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string | number): Promise<{ success: boolean }> =>
+      request<{ success: boolean }>(`/api/experience/${id}`, { method: "DELETE" }),
   },
   testimonials: {
     list: (): Promise<ITestimonialItem[]> => request<ITestimonialItem[]>("/api/testimonials"),
+    create: (data: Partial<ITestimonialItem>): Promise<ITestimonialItem> =>
+      request<ITestimonialItem>("/api/testimonials", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (id: string, data: Partial<ITestimonialItem>): Promise<ITestimonialItem> =>
+      request<ITestimonialItem>(`/api/testimonials/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string): Promise<{ success: boolean }> =>
+      request<{ success: boolean }>(`/api/testimonials/${id}`, { method: "DELETE" }),
   },
   caseStudies: {
     list: (): Promise<ICaseStudyItem[]> => request<ICaseStudyItem[]>("/api/case-studies"),
@@ -193,6 +301,30 @@ export const api = {
     related: (id: string, type?: string): Promise<ICaseStudyItem[]> => {
       const typeParam = type ? `/${encodeURIComponent(type)}` : "";
       return request<ICaseStudyItem[]>(`/api/case-studies/${id}${typeParam}/related`);
+    },
+    create: (data: any): Promise<any> =>
+      request<any>("/api/case-studies", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (id: string, data: any): Promise<any> =>
+      request<any>(`/api/case-studies/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string): Promise<{ success: boolean }> =>
+      request<{ success: boolean }>(`/api/case-studies/${id}`, { method: "DELETE" }),
+  },
+  reports: {
+    getOverview: (filter?: any): Promise<IReportOverview> => {
+      const query = filter ? `?${new URLSearchParams(filter).toString()}` : "";
+      return request<IReportOverview>(`/api/admin/reports/overview${query}`);
+    },
+  },
+  auditLogs: {
+    list: (query?: any): Promise<IAuditLogItem[]> => {
+      const queryString = query ? `?${new URLSearchParams(query).toString()}` : "";
+      return request<IAuditLogItem[]>(`/api/admin/audit-logs${queryString}`);
     },
   },
   contact: {
@@ -203,3 +335,4 @@ export const api = {
       }),
   },
 };
+

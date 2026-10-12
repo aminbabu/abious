@@ -1,10 +1,16 @@
 import { createSignal, Show } from "solid-js";
+import * as v from "valibot";
+import { createForm, Form, Field } from "@formisch/solid";
 import {
   RiBusinessMailSendLine,
   RiDevicePhoneLine,
   RiSystemCheckDoubleLine,
   RiSystemAlertLine,
   RiSystemLoader4Line,
+  RiUserFacesUserLine,
+  RiBusinessMailLine,
+  RiDocumentArticleLine,
+  RiCommunicationChat1Line,
 } from "solid-icons/ri";
 import DecoratorUI from "~/components/decorator-ui";
 import CalCom from "~/components/global/calcom";
@@ -13,46 +19,53 @@ import { Button } from "~/components/ui/button";
 import { Heading } from "~/components/ui/global/heading";
 import { Paragraph } from "~/components/ui/global/paragraph";
 import { Card, CardContent } from "~/components/ui/card";
-import { api, type IContactPayload } from "~/lib/api";
+import { api } from "~/lib/api";
+
+const ContactSchema = v.object({
+  name: v.pipe(
+    v.string("Name is required"),
+    v.nonEmpty("Please enter your name"),
+    v.minLength(2, "Name must be at least 2 characters")
+  ),
+  email: v.pipe(
+    v.string("Email address is required"),
+    v.nonEmpty("Please enter your email"),
+    v.email("Please provide a valid email address")
+  ),
+  subject: v.pipe(
+    v.string("Subject is required"),
+    v.nonEmpty("Please enter your subject"),
+    v.minLength(3, "Subject must be at least 3 characters")
+  ),
+  message: v.pipe(
+    v.string("Message is required"),
+    v.nonEmpty("Please enter your message"),
+    v.minLength(10, "Message should be at least 10 characters")
+  ),
+});
 
 export default function Contact() {
-  const [formData, setFormData] = createSignal<IContactPayload>({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
   const [status, setStatus] = createSignal<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = createSignal("");
   const [successMessage, setSuccessMessage] = createSignal("");
 
-  const updateField = (field: keyof IContactPayload, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const form = createForm({
+    schema: ContactSchema,
+  });
 
-  const handleSubmit = async (e: Event) => {
-    e.preventDefault();
-    const data = formData();
-
-    if (!data.name.trim() || !data.email.trim() || !data.message.trim()) {
-      setErrorMessage("Please fill in your name, email, and message.");
-      setStatus("error");
-      return;
-    }
-
+  const handleSubmit = async (values: v.InferOutput<typeof ContactSchema>) => {
     setStatus("submitting");
     setErrorMessage("");
 
     try {
       const res = await api.contact.submit({
-        name: data.name.trim(),
-        email: data.email.trim(),
-        subject: data.subject?.trim() || undefined,
-        message: data.message.trim(),
+        name: values.name.trim(),
+        email: values.email.trim(),
+        subject: values.subject.trim(),
+        message: values.message.trim(),
       });
       setSuccessMessage(res.message || "Message sent successfully!");
       setStatus("success");
-      setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (err: any) {
       setErrorMessage(err.message || "Something went wrong. Please try again.");
       setStatus("error");
@@ -78,105 +91,151 @@ export default function Contact() {
       {/* Interactive Form & Direct Connect */}
       <div class="mb-16 grid grid-cols-12 gap-y-6 lg:gap-x-8">
         <div class="col-span-12 lg:col-span-7">
-          <Card class="bg-card border-border/80 shadow-md">
+          <Card class="bg-card/60 border-dashed backdrop-blur-xs shadow-md">
             <CardContent class="p-6 sm:p-8">
-              <h3 class="mb-2 text-xl font-bold tracking-tight text-foreground">Send a Message</h3>
+              <h3 class="mb-2 text-xl font-bold font-mono tracking-tight text-foreground">Send a Message</h3>
               <p class="mb-6 text-sm text-muted-foreground">Fill in the details and I'll reply promptly.</p>
 
               <Show when={status() === "success"}>
-                <div class="mb-6 flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-emerald-400">
+                <div class="mb-6 flex items-start gap-3 rounded-lg border border-dashed border-emerald-500/40 bg-emerald-500/10 p-4 text-emerald-400">
                   <RiSystemCheckDoubleLine class="size-5 shrink-0 mt-0.5 text-emerald-500" />
                   <div>
-                    <h4 class="font-semibold text-sm">Message Sent</h4>
+                    <h4 class="font-semibold text-sm font-mono">Message Sent</h4>
                     <p class="text-xs sm:text-sm mt-0.5 opacity-90">{successMessage()}</p>
                   </div>
                 </div>
               </Show>
 
               <Show when={status() === "error"}>
-                <div class="mb-6 flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
+                <div class="mb-6 flex items-start gap-3 rounded-lg border border-dashed border-destructive/40 bg-destructive/10 p-4 text-destructive">
                   <RiSystemAlertLine class="size-5 shrink-0 mt-0.5" />
                   <div>
-                    <h4 class="font-semibold text-sm">Error Sending Message</h4>
+                    <h4 class="font-semibold text-sm font-mono">Error Sending Message</h4>
                     <p class="text-xs sm:text-sm mt-0.5 opacity-90">{errorMessage()}</p>
                   </div>
                 </div>
               </Show>
 
-              <form onSubmit={handleSubmit} class="space-y-4">
+              <Form of={form} onSubmit={handleSubmit} class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div class="space-y-1.5">
-                    <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="name">
-                      Name *
-                    </label>
-                    <input
-                      id="name"
-                      type="text"
-                      required
-                      value={formData().name}
-                      onInput={(e) => updateField("name", e.currentTarget.value)}
-                      placeholder="Jane Doe"
-                      disabled={status() === "submitting"}
-                      class="w-full rounded-md border border-input bg-background/50 px-3.5 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50"
-                    />
-                  </div>
-                  <div class="space-y-1.5">
-                    <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="email">
-                      Email *
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      required
-                      value={formData().email}
-                      onInput={(e) => updateField("email", e.currentTarget.value)}
-                      placeholder="jane@example.com"
-                      disabled={status() === "submitting"}
-                      class="w-full rounded-md border border-input bg-background/50 px-3.5 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50"
-                    />
-                  </div>
+                  <Field of={form} path={["name"]}>
+                    {(field) => (
+                      <div class="space-y-1.5">
+                        <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="name">
+                          Name *
+                        </label>
+                        <div class="relative flex items-center">
+                          <RiUserFacesUserLine class="absolute left-3 size-4 text-muted-foreground pointer-events-none" />
+                          <input
+                            {...field.props}
+                            id="name"
+                            type="text"
+                            value={field.input ?? ""}
+                            placeholder="Jane Doe"
+                            disabled={status() === "submitting"}
+                            class={`w-full rounded-md border bg-background/50 pl-9.5 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50 ${
+                              field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
+                            }`}
+                          />
+                        </div>
+                        {field.errors && (
+                          <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                        )}
+                      </div>
+                    )}
+                  </Field>
+
+                  <Field of={form} path={["email"]}>
+                    {(field) => (
+                      <div class="space-y-1.5">
+                        <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="email">
+                          Email *
+                        </label>
+                        <div class="relative flex items-center">
+                          <RiBusinessMailLine class="absolute left-3 size-4 text-muted-foreground pointer-events-none" />
+                          <input
+                            {...field.props}
+                            id="email"
+                            type="email"
+                            value={field.input ?? ""}
+                            placeholder="jane@example.com"
+                            disabled={status() === "submitting"}
+                            class={`w-full rounded-md border bg-background/50 pl-9.5 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50 ${
+                              field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
+                            }`}
+                          />
+                        </div>
+                        {field.errors && (
+                          <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                        )}
+                      </div>
+                    )}
+                  </Field>
                 </div>
 
-                <div class="space-y-1.5">
-                  <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="subject">
-                    Subject
-                  </label>
-                  <input
-                    id="subject"
-                    type="text"
-                    value={formData().subject}
-                    onInput={(e) => updateField("subject", e.currentTarget.value)}
-                    placeholder="Project Inquiry / Consultation"
-                    disabled={status() === "submitting"}
-                    class="w-full rounded-md border border-input bg-background/50 px-3.5 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50"
-                  />
-                </div>
+                <Field of={form} path={["subject"]}>
+                  {(field) => (
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="subject">
+                        Subject *
+                      </label>
+                      <div class="relative flex items-center">
+                        <RiDocumentArticleLine class="absolute left-3 size-4 text-muted-foreground pointer-events-none" />
+                        <input
+                          {...field.props}
+                          id="subject"
+                          type="text"
+                          value={field.input ?? ""}
+                          placeholder="Project Inquiry / Consultation"
+                          disabled={status() === "submitting"}
+                          class={`w-full rounded-md border bg-background/50 pl-9.5 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50 ${
+                            field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
+                          }`}
+                        />
+                      </div>
+                      {field.errors && (
+                        <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                      )}
+                    </div>
+                  )}
+                </Field>
 
-                <div class="space-y-1.5">
-                  <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="message">
-                    Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    required
-                    rows={4}
-                    value={formData().message}
-                    onInput={(e) => updateField("message", e.currentTarget.value)}
-                    placeholder="Tell me about your project, timeline, and goals..."
-                    disabled={status() === "submitting"}
-                    class="w-full rounded-md border border-input bg-background/50 px-3.5 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50 resize-y"
-                  />
-                </div>
+                <Field of={form} path={["message"]}>
+                  {(field) => (
+                    <div class="space-y-1.5">
+                      <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="message">
+                        Message *
+                      </label>
+                      <div class="relative">
+                        <RiCommunicationChat1Line class="absolute left-3 top-3 size-4 text-muted-foreground pointer-events-none" />
+                        <textarea
+                          {...field.props}
+                          id="message"
+                          rows={4}
+                          value={field.input ?? ""}
+                          placeholder="Tell me about your project, timeline, and goals..."
+                          disabled={status() === "submitting"}
+                          class={`w-full rounded-md border bg-background/50 pl-9.5 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50 resize-y ${
+                            field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
+                          }`}
+                        />
+                      </div>
+                      {field.errors && (
+                        <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                      )}
+                    </div>
+                  )}
+                </Field>
 
                 <div class="pt-2">
                   <Button
                     type="submit"
                     size="lg"
-                    disabled={status() === "submitting"}
-                    class="w-full sm:w-auto h-11 px-8 rounded-full font-medium"
+                    disabled={status() === "submitting" || form.isSubmitting}
+                    class="w-full sm:w-auto h-11 px-8 rounded-full font-mono font-medium cursor-pointer"
                   >
                     <Show
-                      when={status() === "submitting"}
+                      when={status() === "submitting" || form.isSubmitting}
                       fallback={
                         <>
                           <RiBusinessMailSendLine class="mr-2 size-4" />
@@ -189,7 +248,7 @@ export default function Contact() {
                     </Show>
                   </Button>
                 </div>
-              </form>
+              </Form>
             </CardContent>
           </Card>
         </div>

@@ -102,6 +102,10 @@ export class ExperienceService {
     return this.experienceRepository.create(dto);
   }
 
+  async updateExperience(id: string, dto: CreateExperienceDto) {
+    return this.experienceRepository.update(id, dto);
+  }
+
   async deleteExperience(id: string) {
     return this.experienceRepository.delete(id);
   }

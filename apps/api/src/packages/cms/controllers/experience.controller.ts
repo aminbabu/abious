@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Delete,
   Param,
   Body,
@@ -28,6 +29,13 @@ export class ExperienceController {
   @Roles('admin')
   async create(@Body() body: CreateExperienceDto) {
     return this.experienceService.createExperience(body);
+  }
+
+  @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  async update(@Param('id') id: string, @Body() body: CreateExperienceDto) {
+    return this.experienceService.updateExperience(id, body);
   }
 
   @Delete(':id')

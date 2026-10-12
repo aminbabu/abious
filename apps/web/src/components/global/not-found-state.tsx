@@ -68,7 +68,7 @@ export default function NotFoundState(props: NotFoundStateProps) {
       badge: "./offerings",
     },
     {
-      title: "Experience & Career",
+      title: "Experiences & Career",
       description: "Work timeline, technical leadership, and past contributions.",
       href: "/experience",
       icon: RiDesignPencilLine,

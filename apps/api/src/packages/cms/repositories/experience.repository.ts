@@ -69,6 +69,48 @@ export class ExperienceRepository {
     };
   }
 
+  async update(id: string, dto: CreateExperienceDto): Promise<FullExperience | null> {
+    const updatedExp = await this.db
+      .update(experiences)
+      .set({
+        company: dto.company,
+        location: dto.location,
+        logo: dto.logo,
+        sortOrder: dto.sortOrder ?? 0,
+      })
+      .where(eq(experiences.id, id))
+      .returning();
+
+    if (updatedExp.length === 0) return null;
+    const exp = updatedExp[0];
+
+    // Replace positions
+    await this.db
+      .delete(experiencePositions)
+      .where(eq(experiencePositions.experienceId, id));
+
+    const createdPositions: ExperiencePosition[] = [];
+    for (const pos of dto.positions) {
+      const insertedPos = await this.db
+        .insert(experiencePositions)
+        .values({
+          experienceId: exp.id,
+          title: pos.title,
+          startDate: pos.startDate,
+          endDate: pos.endDate || null,
+          type: pos.type,
+          sortOrder: pos.sortOrder ?? 0,
+        })
+        .returning();
+      createdPositions.push(insertedPos[0]);
+    }
+
+    return {
+      ...exp,
+      positions: createdPositions,
+    };
+  }
+
   async delete(id: string): Promise<boolean> {
     const deleted = await this.db
       .delete(experiences)

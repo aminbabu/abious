@@ -1,14 +1,23 @@
-import { createSignal, Show, onCleanup, createEffect } from "solid-js";
+import { createSignal, Show, onCleanup, createEffect, onMount } from "solid-js";
 import { Portal } from "solid-js/web";
 import {
   RiLogosGithubLine,
   RiLogosLinkedinLine,
   RiEditorTextWrap,
+  RiUserFacesUserLine,
+  RiSystemDashboardLine,
+  RiSystemLoginBoxLine,
+  RiSystemLogoutBoxRLine,
+  RiArrowsArrowDownSLine,
+  RiSystemShieldCheckLine,
+  RiSystemSettings3Line,
+  RiDesignEditLine,
 } from "solid-icons/ri";
 import CalCom from "~/components/global/calcom";
 import Container from "~/components/container";
 import ThemeSwitcher from "~/components/theme-switcher";
 import { Button } from "~/components/ui/button";
+import { authClient } from "~/lib/auth-client";
 
 const navigationItems = [
   {
@@ -23,16 +32,21 @@ const navigationItems = [
   },
   {
     id: 3,
-    title: "Experience",
-    href: "/#experience",
+    title: "Blogs",
+    href: "/blogs",
   },
   {
     id: 4,
+    title: "Experiences",
+    href: "/#experience",
+  },
+  {
+    id: 5,
     title: "Testimonials",
     href: "/#testimonials",
   },
   {
-    id: 5,
+    id: 6,
     title: "Contact",
     href: "/#contact",
   },
@@ -55,6 +69,40 @@ const socialItems = [
 
 export default function Header() {
   const [sheetOpen, setSheetOpen] = createSignal(false);
+  const [userMenuOpen, setUserMenuOpen] = createSignal(false);
+  const [user, setUser] = createSignal<{ name?: string; email?: string } | null>(null);
+  const [authChecked, setAuthChecked] = createSignal(false);
+
+  const userInitials = () => {
+    const u = user();
+    if (!u) return "?";
+    if (u.name) return u.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+    if (u.email) return u.email[0].toUpperCase();
+    return "A";
+  };
+
+  onMount(async () => {
+    try {
+      const session = await authClient.getSession();
+      if (session?.data?.user) {
+        setUser(session.data.user);
+      }
+    } catch {
+      // User is a guest
+    } finally {
+      setAuthChecked(true);
+    }
+  });
+
+  const handleSignOut = async () => {
+    try {
+      await authClient.signOut();
+      setUser(null);
+      window.location.href = "/";
+    } catch {
+      window.location.href = "/";
+    }
+  };
 
   // Lock body scroll and handle Escape key when mobile menu is open
   createEffect(() => {
@@ -169,6 +217,117 @@ export default function Header() {
                 class="hidden sm:inline-flex"
               />
             </li>
+
+            {/* Auth Action Controls (Desktop & Tablet) */}
+            <Show when={authChecked()}>
+              <Show
+                when={user()}
+                fallback={
+                  <li class="hidden sm:block">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      href="/auth/login"
+                      class="rounded-full text-xs font-mono font-medium h-9 px-3 gap-1.5 cursor-pointer border-dashed hover:border-primary/60"
+                    >
+                      <RiSystemLoginBoxLine class="size-3.5" />
+                      <span>Admin</span>
+                    </Button>
+                  </li>
+                }
+              >
+                {(u) => (
+                  <li class="relative hidden sm:block">
+                    <button
+                      type="button"
+                      onClick={() => setUserMenuOpen(!userMenuOpen())}
+                      class="flex items-center gap-2 rounded-full border border-dashed border-border bg-card/80 hover:bg-secondary/60 hover:border-primary/60 px-2 py-1 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/50"
+                      aria-expanded={userMenuOpen()}
+                      aria-haspopup="true"
+                    >
+                      <div class="size-7 rounded-full bg-primary/15 flex items-center justify-center text-[10px] font-mono font-bold text-primary shrink-0 ring-1 ring-primary/30">
+                        {userInitials()}
+                      </div>
+                      <span class="max-w-[100px] truncate text-xs font-mono font-medium text-foreground">
+                        {u().name || "Account"}
+                      </span>
+                      <RiArrowsArrowDownSLine
+                        class={`size-3.5 text-muted-foreground transition-transform duration-200 ${
+                          userMenuOpen() ? "rotate-180 text-primary" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    <Show when={userMenuOpen()}>
+                      <div
+                        class="fixed inset-0 z-40"
+                        onClick={() => setUserMenuOpen(false)}
+                      />
+                      <div class="absolute right-0 top-full mt-2 z-50 w-64 rounded-xl border border-dashed border-border bg-card/95 p-2 shadow-xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95">
+                        {/* User Identity Header */}
+                        <div class="border-b border-dashed border-border/70 px-2.5 pb-2.5 pt-1">
+                          <p class="text-xs font-mono font-semibold text-foreground truncate">
+                            {u().name || "Admin"}
+                          </p>
+                          <p class="text-[11px] font-mono text-muted-foreground truncate">
+                            {u().email || ""}
+                          </p>
+                          <div class="mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary font-mono text-[10px] font-medium">
+                            <RiSystemShieldCheckLine class="size-3" />
+                            <span>Authenticated Admin</span>
+                          </div>
+                        </div>
+
+                        {/* Navigation Links */}
+                        <div class="py-1.5 space-y-0.5 font-mono text-xs">
+                          <a
+                            href="/dashboard/overview"
+                            onClick={() => setUserMenuOpen(false)}
+                            class="flex items-center gap-2 rounded-lg px-2.5 py-2 text-foreground hover:bg-secondary hover:text-primary transition-colors"
+                          >
+                            <RiSystemDashboardLine class="size-3.5 text-primary" />
+                            <span>Dashboard Overview</span>
+                          </a>
+                          <a
+                            href="/dashboard/blogs"
+                            onClick={() => setUserMenuOpen(false)}
+                            class="flex items-center gap-2 rounded-lg px-2.5 py-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                          >
+                            <RiDesignEditLine class="size-3.5" />
+                            <span>Manage Content</span>
+                          </a>
+                          <a
+                            href="/dashboard/settings"
+                            onClick={() => setUserMenuOpen(false)}
+                            class="flex items-center gap-2 rounded-lg px-2.5 py-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                          >
+                            <RiSystemSettings3Line class="size-3.5" />
+                            <span>CMS Settings</span>
+                          </a>
+                        </div>
+
+                        {/* Sign Out Action */}
+                        <div class="border-t border-dashed border-border/70 pt-1 font-mono text-xs">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              handleSignOut();
+                            }}
+                            class="w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-destructive hover:bg-destructive/10 transition-colors cursor-pointer text-left"
+                          >
+                            <RiSystemLogoutBoxRLine class="size-3.5 shrink-0" />
+                            <span>Sign Out</span>
+                          </button>
+                        </div>
+                      </div>
+                    </Show>
+                  </li>
+                )}
+              </Show>
+            </Show>
+
             {/* Mobile Menu Trigger button - visible under 1024px (< lg) */}
             <li class="lg:hidden">
               <Button
@@ -255,6 +414,60 @@ export default function Header() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Mobile Auth Management Card */}
+                <div class="mt-3 p-3 rounded-xl border border-dashed border-border bg-secondary/40">
+                  <Show
+                    when={user()}
+                    fallback={
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <RiUserFacesUserLine class="size-4 text-muted-foreground" />
+                          <span class="text-xs font-mono text-muted-foreground">Portal Access</span>
+                        </div>
+                        <a
+                          href="/auth/login"
+                          onClick={() => setSheetOpen(false)}
+                          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-primary/50 text-xs font-mono font-medium text-primary hover:bg-primary/10 transition-colors"
+                        >
+                          <RiSystemLoginBoxLine class="size-3.5" />
+                          <span>Admin Login</span>
+                        </a>
+                      </div>
+                    }
+                  >
+                    {(u) => (
+                      <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                          <span class="text-[11px] font-mono text-muted-foreground uppercase">Logged in as</span>
+                          <span class="text-xs font-mono font-medium text-primary truncate max-w-[150px]">
+                            {u().email || u().name}
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-2 pt-1">
+                          <a
+                            href="/dashboard/overview"
+                            onClick={() => setSheetOpen(false)}
+                            class="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-mono text-xs font-medium shadow-xs"
+                          >
+                            <RiSystemDashboardLine class="size-3.5" />
+                            <span>Dashboard</span>
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSheetOpen(false);
+                              handleSignOut();
+                            }}
+                            class="px-2.5 py-1.5 rounded-lg border border-dashed border-destructive/50 text-destructive font-mono text-xs hover:bg-destructive/10 transition-colors cursor-pointer"
+                          >
+                            <RiSystemLogoutBoxRLine class="size-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </Show>
+                </div>
               </nav>
 
               {/* Drawer Footer with Book a Call and Socials on Mobile */}

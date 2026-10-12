@@ -34,13 +34,14 @@ export default function App() {
 
           <ThemeProvider>
             <div class="flex min-h-screen flex-col font-sans antialiased bg-background text-foreground">
-              <Header />
+              {/* Only render Public Header & Footer on public/landing/auth routes, never in /dashboard */}
+              {!props.location.pathname.startsWith("/dashboard") && <Header />}
               <main class="flex-1">
                 <Suspense fallback={<div class="flex h-32 items-center justify-center font-mono text-sm text-muted-foreground">Loading...</div>}>
                   {props.children}
                 </Suspense>
               </main>
-              <Footer />
+              {!props.location.pathname.startsWith("/dashboard") && <Footer />}
             </div>
           </ThemeProvider>
         </MetaProvider>

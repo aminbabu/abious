@@ -74,7 +74,7 @@ export default function Experience() {
   return (
     <Section id="experience">
       <Paragraph class="mb-3 font-mono text-xs sm:text-sm font-semibold tracking-wider text-muted-foreground/80 md:text-right">
-        ./experience
+        ./experiences
       </Paragraph>
       <DecoratorUI class="mb-16 lg:mb-20">
         <Heading class="mb-2 max-w-sm sm:max-w-2xl lg:max-w-3xl">
@@ -97,7 +97,7 @@ export default function Experience() {
           fallback={
             <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
               <div class="-mx-3 bg-secondary p-6 text-center text-muted-foreground">
-                <p>{data.error ? "Failed to load experience." : "No experience entries found."}</p>
+                <p>{data.error ? "Failed to load experiences." : "No experience entries found."}</p>
               </div>
             </DecoratorUI>
           }
@@ -105,7 +105,7 @@ export default function Experience() {
           <div
             ref={mountSplideOnElement}
             class="splide -mt-3"
-            aria-label="Experience"
+            aria-label="Experiences"
           >
 
             <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
