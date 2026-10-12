@@ -23,19 +23,12 @@ import { Paragraph } from "~/components/ui/global/paragraph";
 import ServicesLoader from "~/components/ui/loaders/services";
 import { api, type IServiceItem } from "~/lib/api";
 
-const iconMap: Record<string, any> = {
-  RiBusinessWindowLine,
-  RiBusinessLinksLine,
-  RiEditorSlashCommands,
-  RiDevelopmentBugLine,
-  RiDeviceServerLine,
-  RiDesignPencilLine,
-  RiDevelopmentCodeSSlashLine,
-};
+import { SERVICE_ICONS_MAP } from "~/components/dashboard/icon-picker";
 
 function getServiceIcon(iconName: string) {
-  return iconMap[iconName] || RiBusinessWindowLine;
+  return SERVICE_ICONS_MAP[iconName] || RiBusinessWindowLine;
 }
+
 
 export default function Services() {
   const [data] = createResource<IServiceItem[]>(() => api.services.list());

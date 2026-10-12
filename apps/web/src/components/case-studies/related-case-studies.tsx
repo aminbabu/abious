@@ -36,37 +36,37 @@ export default function RelatedCaseStudies(props: { id: string; type?: string })
     }
   };
 
-  const mountSplideOnElement = (el: HTMLDivElement | undefined) => {
-    splideEl = el;
-    if (!el) {
+  createEffect(() => {
+    const items = data();
+    if (!splideEl || !items?.length) {
       destroySplide();
       return;
     }
 
-    const track = el.querySelector(".splide__track");
-    const list = el.querySelector(".splide__list");
+    destroySplide();
+
+    const track = splideEl.querySelector(".splide__track");
+    const list = splideEl.querySelector(".splide__list");
     if (!track || !list) return;
 
-    if (!splideInstance) {
-      splideInstance = new Splide(el, {
-        type: "slide",
-        perPage: 1,
-        gap: "0.75rem",
-        arrows: false,
-        pagination: true,
-        mediaQuery: "min",
-        breakpoints: {
-          768: {
-            perPage: 2,
-          },
-          1024: {
-            perPage: 3,
-          },
+    splideInstance = new Splide(splideEl, {
+      type: "slide",
+      perPage: 1,
+      gap: "0.75rem",
+      arrows: false,
+      pagination: true,
+      mediaQuery: "min",
+      breakpoints: {
+        768: {
+          perPage: 2,
         },
-      });
-      splideInstance.mount();
-    }
-  };
+        1024: {
+          perPage: 3,
+        },
+      },
+    });
+    splideInstance.mount();
+  });
 
   onCleanup(() => {
     destroySplide();
@@ -116,7 +116,7 @@ export default function RelatedCaseStudies(props: { id: string; type?: string })
             }
           >
             <div
-              ref={mountSplideOnElement}
+              ref={splideEl}
               class="splide -mt-5"
               aria-label="Related Case Studies"
             >

@@ -27,44 +27,43 @@ export default function Experience() {
     }
   };
 
-  const mountSplideOnElement = (el: HTMLDivElement | undefined) => {
-    splideEl = el;
-    if (!el) {
+  createEffect(() => {
+    const items = data();
+    if (!splideEl || !items?.length) {
       destroySplide();
       return;
     }
 
-    // Ensure the track and list elements exist in DOM before mounting
-    const track = el.querySelector(".splide__track");
-    const list = el.querySelector(".splide__list");
+    destroySplide();
+
+    const track = splideEl.querySelector(".splide__track");
+    const list = splideEl.querySelector(".splide__list");
     if (!track || !list) return;
 
-    if (!splideInstance) {
-      splideInstance = new Splide(el, {
-        type: "loop",
-        perPage: 1,
-        gap: "1.5rem",
-        arrows: false,
-        pagination: false,
-        padding: {
-          right: "15%",
+    splideInstance = new Splide(splideEl, {
+      type: "loop",
+      perPage: 1,
+      gap: "1.5rem",
+      arrows: false,
+      pagination: false,
+      padding: {
+        right: "15%",
+      },
+      autoScroll: { speed: 0.125 },
+      mediaQuery: "min",
+      breakpoints: {
+        768: {
+          perPage: 2,
+          gap: "2rem",
         },
-        autoScroll: { speed: 0.125 },
-        mediaQuery: "min",
-        breakpoints: {
-          768: {
-            perPage: 2,
-            gap: "2rem",
-          },
-          1024: {
-            perPage: 3,
-            gap: "2rem",
-          },
+        1024: {
+          perPage: 3,
+          gap: "2rem",
         },
-      });
-      splideInstance.mount({ AutoScroll });
-    }
-  };
+      },
+    });
+    splideInstance.mount({ AutoScroll });
+  });
 
   onCleanup(() => {
     destroySplide();
@@ -103,7 +102,7 @@ export default function Experience() {
           }
         >
           <div
-            ref={mountSplideOnElement}
+            ref={splideEl}
             class="splide -mt-3"
             aria-label="Experiences"
           >
