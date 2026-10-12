@@ -25,6 +25,9 @@ import { BlogsModule } from './packages/blogs/index.js';
 import { CaseStudiesModule } from './packages/case-studies/index.js';
 import { ContactModule } from './packages/contact/index.js';
 
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 // Global Pipeline Providers
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor.js';
@@ -50,6 +53,10 @@ import { CorsMiddleware } from './common/middlewares/cors.middleware.js';
     BlogsModule.forRoot(),
     CaseStudiesModule.forRoot(),
     ContactModule.forRoot(),
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
+    }),
   ],
   controllers: [AppController],
   providers: [

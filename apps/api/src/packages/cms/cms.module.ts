@@ -8,12 +8,14 @@ import { TestimonialsService } from './services/testimonials.service.js';
 import { ServicesController } from './controllers/services.controller.js';
 import { ExperienceController } from './controllers/experience.controller.js';
 import { TestimonialsController } from './controllers/testimonials.controller.js';
+import { UploadController } from './controllers/upload.controller.js';
 
 @Module({
   controllers: [
     ServicesController,
     ExperienceController,
     TestimonialsController,
+    UploadController,
   ],
   providers: [
     ServicesRepository,
@@ -40,6 +42,7 @@ export class CmsModule {
         ServicesController,
         ExperienceController,
         TestimonialsController,
+        UploadController,
       ],
       providers: [
         ServicesRepository,
