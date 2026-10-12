@@ -1,31 +1,28 @@
-import { JSX, createSignal, Show, onMount, For, onCleanup } from "solid-js";
 import { A, useLocation } from "@solidjs/router";
 import {
-  RiSystemDashboardLine,
-  RiDocumentArticleLine,
+  RiArrowsArrowRightSLine,
+  RiBuildingsBuildingLine,
   RiBusinessBriefcaseLine,
   RiBusinessCustomerServiceLine,
-  RiBuildingsBuildingLine,
   RiCommunicationChatQuoteLine,
-  RiSystemSettings3Line,
-  RiDocumentFileHistoryLine,
-  RiSystemLogoutBoxRLine,
-  RiSystemMenuLine,
-  RiSystemMenuFoldLine,
-  RiSystemMenuUnfoldLine,
-  RiSystemCloseLine,
-  RiSystemExternalLinkLine,
-  RiArrowsArrowRightSLine,
-  RiArrowsArrowLeftSLine,
-  RiSystemSearchLine,
-  RiDocumentFolder2Line,
-  RiSystemAppsLine,
-  RiSystemShieldCheckLine,
-  RiSystemSideBarLine,
   RiDevelopmentCommandLine,
+  RiDocumentArticleLine,
+  RiDocumentFileHistoryLine,
+  RiDocumentFolder2Line,
+  RiSystemCloseLine,
+  RiSystemDashboardLine,
+  RiSystemExternalLinkLine,
+  RiSystemLogoutBoxRLine,
+  RiSystemMenuFoldLine,
+  RiSystemMenuLine,
+  RiSystemMenuUnfoldLine,
+  RiSystemSearchLine,
+  RiSystemSettings3Line,
+  RiSystemShieldCheckLine,
 } from "solid-icons/ri";
-import ThemeSwitcher from "~/components/theme-switcher";
+import { For, JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
 import CommandDialog from "~/components/dashboard/command-dialog";
+import ThemeSwitcher from "~/components/theme-switcher";
 import { authClient } from "~/lib/auth-client";
 
 interface NavItem {
@@ -52,7 +49,13 @@ const navGroups: NavGroup[] = [
     icon: RiSystemDashboardLine,
     description: "System health & analytics",
     items: [
-      { id: "dashboard", title: "Dashboard", href: "/dashboard/overview", icon: RiSystemDashboardLine, shortcut: "G D" },
+      {
+        id: "dashboard",
+        title: "Dashboard",
+        href: "/dashboard/overview",
+        icon: RiSystemDashboardLine,
+        shortcut: "G D",
+      },
     ],
   },
   {
@@ -61,11 +64,42 @@ const navGroups: NavGroup[] = [
     icon: RiDocumentFolder2Line,
     description: "Articles, projects & services",
     items: [
-      { id: "blogs", title: "Blog Posts", href: "/dashboard/blogs", icon: RiDocumentArticleLine, badge: "CMS", shortcut: "G B" },
-      { id: "cases", title: "Case Studies", href: "/dashboard/case-studies", icon: RiBusinessBriefcaseLine, shortcut: "G C" },
-      { id: "services", title: "Services", href: "/dashboard/services", icon: RiBusinessCustomerServiceLine, shortcut: "G S" },
-      { id: "experience", title: "Experiences", href: "/dashboard/experience", icon: RiBuildingsBuildingLine, shortcut: "G E" },
-      { id: "testimonials", title: "Testimonials", href: "/dashboard/testimonials", icon: RiCommunicationChatQuoteLine, shortcut: "G T" },
+      {
+        id: "blogs",
+        title: "Blog Posts",
+        href: "/dashboard/blogs",
+        icon: RiDocumentArticleLine,
+        badge: "CMS",
+        shortcut: "G B",
+      },
+      {
+        id: "cases",
+        title: "Case Studies",
+        href: "/dashboard/case-studies",
+        icon: RiBusinessBriefcaseLine,
+        shortcut: "G C",
+      },
+      {
+        id: "services",
+        title: "Services",
+        href: "/dashboard/services",
+        icon: RiBusinessCustomerServiceLine,
+        shortcut: "G S",
+      },
+      {
+        id: "experience",
+        title: "Experiences",
+        href: "/dashboard/experience",
+        icon: RiBuildingsBuildingLine,
+        shortcut: "G E",
+      },
+      {
+        id: "testimonials",
+        title: "Testimonials",
+        href: "/dashboard/testimonials",
+        icon: RiCommunicationChatQuoteLine,
+        shortcut: "G T",
+      },
     ],
   },
   {
@@ -74,8 +108,21 @@ const navGroups: NavGroup[] = [
     icon: RiSystemSettings3Line,
     description: "Preferences & audit records",
     items: [
-      { id: "settings", title: "Settings", href: "/dashboard/settings", icon: RiSystemSettings3Line, shortcut: "G ," },
-      { id: "audit", title: "Audit Logs", href: "/dashboard/audit-logs", icon: RiDocumentFileHistoryLine, badge: "Sec", shortcut: "G A" },
+      {
+        id: "settings",
+        title: "Settings",
+        href: "/dashboard/settings",
+        icon: RiSystemSettings3Line,
+        shortcut: "G ,",
+      },
+      {
+        id: "audit",
+        title: "Audit Logs",
+        href: "/dashboard/audit-logs",
+        icon: RiDocumentFileHistoryLine,
+        badge: "Sec",
+        shortcut: "G A",
+      },
     ],
   },
 ];
@@ -96,18 +143,26 @@ export default function DashboardLayout(props: {
     const curItem = allNavItems.find(
       (item) =>
         location.pathname === item.href ||
-        (item.href !== "/dashboard/overview" && location.pathname.startsWith(item.href))
+        (item.href !== "/dashboard/overview" &&
+          location.pathname.startsWith(item.href)),
     );
     if (!curItem) return navGroups[0].id;
-    const group = navGroups.find((g) => g.items.some((i) => i.id === curItem.id));
+    const group = navGroups.find((g) =>
+      g.items.some((i) => i.id === curItem.id),
+    );
     return group ? group.id : navGroups[0].id;
   };
 
-  const [selectedGroupId, setSelectedGroupId] = createSignal<string>(activeGroupForPath());
+  const [selectedGroupId, setSelectedGroupId] =
+    createSignal<string>(activeGroupForPath());
   const [flyoutPinned, setFlyoutPinned] = createSignal<boolean>(true);
   const [mobileDrawerOpen, setMobileDrawerOpen] = createSignal<boolean>(false);
-  const [commandDialogOpen, setCommandDialogOpen] = createSignal<boolean>(false);
-  const [user, setUser] = createSignal<{ name?: string; email?: string } | null>(null);
+  const [commandDialogOpen, setCommandDialogOpen] =
+    createSignal<boolean>(false);
+  const [user, setUser] = createSignal<{
+    name?: string;
+    email?: string;
+  } | null>(null);
   const [checkingAuth, setCheckingAuth] = createSignal<boolean>(true);
   const [quickFilter, setQuickFilter] = createSignal<string>("");
 
@@ -178,7 +233,8 @@ export default function DashboardLayout(props: {
     const cur = allNavItems.find(
       (i) =>
         location.pathname === i.href ||
-        (i.href !== "/dashboard/overview" && location.pathname.startsWith(i.href))
+        (i.href !== "/dashboard/overview" &&
+          location.pathname.startsWith(i.href)),
     );
     return cur ? cur.title : props.title;
   };
@@ -186,7 +242,13 @@ export default function DashboardLayout(props: {
   const userInitials = () => {
     const u = user();
     if (!u) return "?";
-    if (u.name) return u.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+    if (u.name)
+      return u.name
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
     if (u.email) return u.email[0].toUpperCase();
     return "A";
   };
@@ -219,7 +281,7 @@ export default function DashboardLayout(props: {
             {/* Brand Logo */}
             <div class="flex flex-col items-center">
               <A
-                href="/"
+                href="/dashboard"
                 class="text-primary group relative px-1.5 py-0.5 font-mono text-sm font-medium inline-block select-none transition-transform hover:scale-105"
                 title="Return to public site"
               >
@@ -237,7 +299,8 @@ export default function DashboardLayout(props: {
                     group.items.some(
                       (item) =>
                         location.pathname === item.href ||
-                        (item.href !== "/dashboard/overview" && location.pathname.startsWith(item.href))
+                        (item.href !== "/dashboard/overview" &&
+                          location.pathname.startsWith(item.href)),
                     );
 
                   return (
@@ -296,7 +359,9 @@ export default function DashboardLayout(props: {
           {/* ── Rail 2: Dynamic Flyout Command Panel (w-56) ── */}
           <div
             class={`flex flex-col transition-[width,opacity] duration-300 ease-in-out bg-card/95 ${
-              flyoutPinned() ? "w-60 opacity-100" : "w-0 opacity-0 pointer-events-none overflow-hidden"
+              flyoutPinned()
+                ? "w-60 opacity-100"
+                : "w-0 opacity-0 pointer-events-none overflow-hidden"
             }`}
           >
             {/* Panel Header */}
@@ -342,7 +407,8 @@ export default function DashboardLayout(props: {
                 {(item) => {
                   const isActive = () =>
                     location.pathname === item.href ||
-                    (item.href !== "/dashboard/overview" && location.pathname.startsWith(item.href));
+                    (item.href !== "/dashboard/overview" &&
+                      location.pathname.startsWith(item.href));
 
                   return (
                     <A
@@ -373,7 +439,9 @@ export default function DashboardLayout(props: {
                         <Show when={item.shortcut}>
                           <span
                             class={`text-[9px] font-mono tracking-tight ${
-                              isActive() ? "text-primary-foreground/70" : "text-muted-foreground/50"
+                              isActive()
+                                ? "text-primary-foreground/70"
+                                : "text-muted-foreground/50"
                             }`}
                           >
                             {item.shortcut}
@@ -423,7 +491,8 @@ export default function DashboardLayout(props: {
               class="text-primary group relative px-1.5 font-mono text-sm font-medium inline-block select-none"
             >
               <span class="border-primary/60 group-hover:bg-border absolute inset-0 -z-10 border border-dashed bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] bg-[size:10px_10px] bg-fixed transition-colors duration-300" />
-              ./ab <span class="text-[10px] text-muted-foreground ml-0.5">cms</span>
+              ./ab{" "}
+              <span class="text-[10px] text-muted-foreground ml-0.5">cms</span>
             </A>
             <button
               type="button"
@@ -447,7 +516,8 @@ export default function DashboardLayout(props: {
                       {(item) => {
                         const isActive = () =>
                           location.pathname === item.href ||
-                          (item.href !== "/dashboard/overview" && location.pathname.startsWith(item.href));
+                          (item.href !== "/dashboard/overview" &&
+                            location.pathname.startsWith(item.href));
 
                         return (
                           <A
@@ -494,7 +564,9 @@ export default function DashboardLayout(props: {
                 <p class="text-xs font-mono font-medium text-foreground truncate">
                   {user()?.name || "Admin"}
                 </p>
-                <p class="text-[10px] text-muted-foreground truncate">{user()?.email || ""}</p>
+                <p class="text-[10px] text-muted-foreground truncate">
+                  {user()?.email || ""}
+                </p>
               </div>
             </div>
 
@@ -553,7 +625,9 @@ export default function DashboardLayout(props: {
               <div class="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
                 <span class="hover:text-foreground transition-colors">CMS</span>
                 <RiArrowsArrowRightSLine class="size-3 shrink-0" />
-                <span class="text-foreground font-semibold truncate">{breadcrumb()}</span>
+                <span class="text-foreground font-semibold truncate">
+                  {breadcrumb()}
+                </span>
               </div>
               <Show when={props.description}>
                 <p class="text-[11px] text-muted-foreground truncate hidden sm:block mt-0.5">
@@ -592,7 +666,9 @@ export default function DashboardLayout(props: {
               </button>
 
               <Show when={props.action || props.actions}>
-                <div class="flex items-center gap-2">{props.action || props.actions}</div>
+                <div class="flex items-center gap-2">
+                  {props.action || props.actions}
+                </div>
               </Show>
 
               <ThemeSwitcher />
@@ -616,9 +692,7 @@ export default function DashboardLayout(props: {
 
           {/* Page Body */}
           <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-            <div class="w-full space-y-6">
-              {props.children}
-            </div>
+            <div class="w-full space-y-6">{props.children}</div>
           </main>
         </div>
 
