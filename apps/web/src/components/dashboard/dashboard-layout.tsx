@@ -487,7 +487,7 @@ export default function DashboardLayout(props: {
           {/* Mobile Header */}
           <div class="flex h-16 items-center justify-between border-b border-dashed border-border px-5">
             <A
-              href="/"
+              href="/dashboard"
               class="text-primary group relative px-1.5 font-mono text-sm font-medium inline-block select-none"
             >
               <span class="border-primary/60 group-hover:bg-border absolute inset-0 -z-10 border border-dashed bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] bg-[size:10px_10px] bg-fixed transition-colors duration-300" />
