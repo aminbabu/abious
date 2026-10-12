@@ -1,6 +1,6 @@
 import { createResource, createSignal, Show, For } from "solid-js";
 import * as v from "valibot";
-import { createForm, Form, Field } from "@formisch/solid";
+import { createForm, Form, Field, setInput } from "@formisch/solid";
 import {
   RiSystemAddLine,
   RiSystemDeleteBinLine,
@@ -14,6 +14,8 @@ import DashboardLayout from "~/components/dashboard/dashboard-layout";
 import { DataTable, ColumnDef } from "~/components/dashboard/data-table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import { Select } from "~/components/ui/select";
+import ImageUploadDropzone from "~/components/dashboard/image-upload-dropzone";
 import { api, ITestimonialItem } from "~/lib/api";
 
 const TestimonialSchema = v.object({
@@ -49,6 +51,7 @@ export default function TestimonialsAdminPage() {
   });
 
   const [rating, setRating] = createSignal(5);
+  const [isPublished, setIsPublished] = createSignal(true);
   const [editingId, setEditingId] = createSignal<string | null>(null);
   const [saving, setSaving] = createSignal(false);
   const [deletingId, setDeletingId] = createSignal<string | null>(null);
@@ -69,6 +72,7 @@ export default function TestimonialsAdminPage() {
 
   const resetForm = () => {
     setRating(5);
+    setIsPublished(true);
     setEditingId(null);
     setShowForm(false);
     setErrorMessage(null);
@@ -77,6 +81,7 @@ export default function TestimonialsAdminPage() {
   const handleEdit = (item: ITestimonialItem) => {
     setEditingId(item.id);
     setRating(item.rating || 5);
+    setIsPublished(true);
     setErrorMessage(null);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -94,6 +99,7 @@ export default function TestimonialsAdminPage() {
         avatar: values.avatar?.trim() || undefined,
         body: values.body.trim(),
         rating: rating(),
+        isPublished: isPublished(),
       };
 
       if (editingId()) {
@@ -258,7 +264,8 @@ export default function TestimonialsAdminPage() {
               </div>
             </Show>
 
-            <Form of={form} onSubmit={handleSubmit} class="space-y-4">
+            <Form of={form} onSubmit={handleSubmit} class="space-y-5">
+              {/* Row 1: Client Name, Role, Company */}
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Field of={form} path={["name"]}>
                   {(field) => {
@@ -271,7 +278,7 @@ export default function TestimonialsAdminPage() {
                           type="text"
                           value={field.input ?? currentItem()?.name ?? currentItem()?.data?.name ?? ""}
                           placeholder="Sarah Connor"
-                          class={`w-full rounded-lg border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
+                          class={`w-full h-9 rounded-md border bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
                             field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
                           }`}
                         />
@@ -294,7 +301,7 @@ export default function TestimonialsAdminPage() {
                           type="text"
                           value={field.input ?? currentItem()?.role ?? currentItem()?.data?.role ?? ""}
                           placeholder="CTO"
-                          class={`w-full rounded-lg border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
+                          class={`w-full h-9 rounded-md border bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
                             field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
                           }`}
                         />
@@ -317,60 +324,7 @@ export default function TestimonialsAdminPage() {
                           type="text"
                           value={field.input ?? currentItem()?.company ?? currentItem()?.data?.company ?? ""}
                           placeholder="Cyberdyne Systems"
-                          class={`w-full rounded-lg border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
-                            field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
-                          }`}
-                        />
-                        {field.errors && (
-                          <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
-                        )}
-                      </div>
-                    );
-                  }}
-                </Field>
-
-                <Field of={form} path={["avatar"]}>
-                  {(field) => {
-                    const currentItem = () => editingId() ? testimonials()?.find((t) => t.id === editingId()) : null;
-                    return (
-                      <div class="space-y-1.5">
-                        <label class="text-xs font-mono font-medium text-foreground">Avatar URL</label>
-                        <input
-                          {...field.props}
-                          type="url"
-                          value={field.input ?? currentItem()?.avatar ?? currentItem()?.data?.avatar ?? ""}
-                          placeholder="https://..."
-                          class="w-full rounded-lg border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
-                      </div>
-                    );
-                  }}
-                </Field>
-
-                <div class="space-y-1.5">
-                  <label class="text-xs font-mono font-medium text-foreground">Rating (1–5)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="5"
-                    value={rating()}
-                    onInput={(e) => setRating(parseInt(e.currentTarget.value, 10))}
-                    class="w-full rounded-lg border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-
-                <Field of={form} path={["body"]}>
-                  {(field) => {
-                    const currentItem = () => editingId() ? testimonials()?.find((t) => t.id === editingId()) : null;
-                    return (
-                      <div class="space-y-1.5 sm:col-span-3">
-                        <label class="text-xs font-mono font-medium text-foreground">Testimonial Body *</label>
-                        <textarea
-                          {...field.props}
-                          rows={3}
-                          value={field.input ?? currentItem()?.body ?? ""}
-                          placeholder="Amin delivered exceptional architecture ahead of schedule..."
-                          class={`w-full rounded-lg border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary leading-relaxed ${
+                          class={`w-full h-9 rounded-md border bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
                             field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
                           }`}
                         />
@@ -383,14 +337,103 @@ export default function TestimonialsAdminPage() {
                 </Field>
               </div>
 
-              <div class="flex items-center gap-2">
-                <Button type="submit" disabled={saving()} class="font-mono text-xs cursor-pointer gap-1.5">
-                  <RiSystemCheckLine class="size-3.5" />
-                  {saving() ? "Saving..." : editingId() ? "Update Testimonial" : "Add Testimonial"}
-                </Button>
-                <Button type="button" variant="outline" onClick={resetForm} class="font-mono text-xs cursor-pointer">
-                  Cancel
-                </Button>
+              {/* Row 2: Rating & Publication Status side-by-side */}
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <label class="text-xs font-mono font-medium text-foreground">Rating</label>
+                    <span class="text-[11px] font-mono text-muted-foreground">{rating()} of 5 stars</span>
+                  </div>
+                  <Select
+                    value={String(rating())}
+                    onChange={(val) => setRating(parseInt(val, 10))}
+                    options={[
+                      { value: "5", label: "★★★★★ 5 Stars (Exceptional)", badge: "5/5" },
+                      { value: "4", label: "★★★★☆ 4 Stars (Very Good)", badge: "4/5" },
+                      { value: "3", label: "★★★☆☆ 3 Stars (Satisfied)", badge: "3/5" },
+                      { value: "2", label: "★★☆☆☆ 2 Stars (Fair)", badge: "2/5" },
+                      { value: "1", label: "★☆☆☆☆ 1 Star (Poor)", badge: "1/5" },
+                    ]}
+                  />
+                </div>
+
+                <div class="space-y-1.5">
+                  <label class="text-xs font-mono font-medium text-foreground">Publication Status *</label>
+                  <Select
+                    value={isPublished() ? "published" : "draft"}
+                    onChange={(val) => setIsPublished(val === "published")}
+                    options={[
+                      { value: "published", label: "Published (Live on portfolio)", badge: "Live" },
+                      { value: "draft", label: "Draft (Hidden from showcase)", badge: "Hidden" },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Client Avatar with compact dropzone */}
+              <div>
+                <Field of={form} path={["avatar"]}>
+                  {(field) => {
+                    const currentItem = () => editingId() ? testimonials()?.find((t) => t.id === editingId()) : null;
+                    return (
+                      <ImageUploadDropzone
+                        compact
+                        label="Client Avatar Photo"
+                        description="Upload headshot or client photo for endorsement credibility (max 10MB)"
+                        value={field.input ?? currentItem()?.avatar ?? currentItem()?.data?.avatar ?? ""}
+                        onChange={(url) => {
+                          setInput(form, {
+                            path: ["avatar"],
+                            input: url,
+                          });
+                        }}
+                      />
+                    );
+                  }}
+                </Field>
+              </div>
+
+              {/* Row 4: Testimonial Body */}
+              <Field of={form} path={["body"]}>
+                {(field) => {
+                  const currentItem = () => editingId() ? testimonials()?.find((t) => t.id === editingId()) : null;
+                  return (
+                    <div class="space-y-1.5">
+                      <div class="flex items-center justify-between">
+                        <label class="text-xs font-mono font-medium text-foreground">Testimonial Body *</label>
+                        <span class="text-[11px] font-mono text-muted-foreground">Markdown & quotes supported</span>
+                      </div>
+                      <textarea
+                        {...field.props}
+                        rows={4}
+                        value={field.input ?? currentItem()?.body ?? ""}
+                        placeholder="Outline the client review, accomplishments delivered, and endorsement..."
+                        class={`w-full min-h-[110px] resize-y rounded-md border bg-background/50 px-3.5 py-2.5 text-xs font-mono text-foreground leading-relaxed shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
+                          field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
+                        }`}
+                      />
+                      {field.errors && (
+                        <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                      )}
+                    </div>
+                  );
+                }}
+              </Field>
+
+              {/* Bottom Actions */}
+              <div class="flex items-center justify-between pt-2 border-t border-border/40">
+                <p class="text-[11px] font-mono text-muted-foreground">
+                  * Required fields. Approved testimonials are displayed publicly on landing reviews.
+                </p>
+                <div class="flex items-center gap-2">
+                  <Button type="button" variant="outline" onClick={resetForm} class="font-mono text-xs cursor-pointer">
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={saving()} class="font-mono text-xs cursor-pointer gap-1.5">
+                    <RiSystemCheckLine class="size-3.5" />
+                    <span>{saving() ? "Saving..." : editingId() ? "Update Testimonial" : "Add Testimonial"}</span>
+                  </Button>
+                </div>
               </div>
             </Form>
           </CardContent>

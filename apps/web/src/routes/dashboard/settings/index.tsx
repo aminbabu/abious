@@ -115,7 +115,7 @@ export default function SettingsAdminPage() {
                     required
                     value={siteName()}
                     onInput={(e) => setSiteName(e.currentTarget.value)}
-                    class="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    class="w-full h-9 rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
@@ -126,7 +126,7 @@ export default function SettingsAdminPage() {
                     required
                     value={siteTitle()}
                     onInput={(e) => setSiteTitle(e.currentTarget.value)}
-                    class="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    class="w-full h-9 rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -135,10 +135,10 @@ export default function SettingsAdminPage() {
                 <label class="text-xs font-mono font-medium text-foreground">Author Bio / Summary</label>
                 <textarea
                   required
-                  rows={3}
+                  rows={4}
                   value={bio()}
                   onInput={(e) => setBio(e.currentTarget.value)}
-                  class="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary leading-relaxed"
+                  class="w-full min-h-[100px] resize-y rounded-md border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary leading-relaxed"
                 />
               </div>
             </CardContent>
@@ -159,7 +159,7 @@ export default function SettingsAdminPage() {
                     required
                     value={email()}
                     onInput={(e) => setEmail(e.currentTarget.value)}
-                    class="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    class="w-full h-9 rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
@@ -169,7 +169,7 @@ export default function SettingsAdminPage() {
                     type="text"
                     value={phone()}
                     onInput={(e) => setPhone(e.currentTarget.value)}
-                    class="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    class="w-full h-9 rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
@@ -179,7 +179,7 @@ export default function SettingsAdminPage() {
                     type="text"
                     value={resumeUrl()}
                     onInput={(e) => setResumeUrl(e.currentTarget.value)}
-                    class="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    class="w-full h-9 rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
@@ -190,7 +190,7 @@ export default function SettingsAdminPage() {
                     value={calcomLink()}
                     onInput={(e) => setCalcomLink(e.currentTarget.value)}
                     placeholder="e.g. aminbabu/30min"
-                    class="w-full rounded-md border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    class="w-full h-9 rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -224,21 +224,21 @@ export default function SettingsAdminPage() {
                       placeholder="Title (e.g. GitHub)"
                       value={item.title}
                       onInput={(e) => handleSocialChange(index(), "title", e.currentTarget.value)}
-                      class="w-1/3 rounded-md border border-input bg-background/50 px-3 py-1.5 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      class="w-1/3 h-9 rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                     <input
                       type="url"
                       placeholder="https://..."
                       value={item.url}
                       onInput={(e) => handleSocialChange(index(), "url", e.currentTarget.value)}
-                      class="flex-1 rounded-md border border-input bg-background/50 px-3 py-1.5 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      class="flex-1 h-9 rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       onClick={() => handleRemoveSocial(index())}
-                      class="size-8 text-destructive hover:bg-destructive/10 cursor-pointer shrink-0"
+                      class="size-9 text-destructive hover:bg-destructive/10 cursor-pointer shrink-0"
                     >
                       <RiSystemDeleteBinLine class="size-3.5" />
                     </Button>

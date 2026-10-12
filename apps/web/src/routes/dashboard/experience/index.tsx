@@ -1,6 +1,6 @@
 import { createResource, createSignal, For, Show } from "solid-js";
 import * as v from "valibot";
-import { createForm, Form, Field } from "@formisch/solid";
+import { createForm, Form, Field, setInput } from "@formisch/solid";
 import {
   RiBuildingsBuildingLine,
   RiMapMapPin2Line,
@@ -15,6 +15,7 @@ import {
 import DashboardLayout from "~/components/dashboard/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import ImageUploadDropzone from "~/components/dashboard/image-upload-dropzone";
 import { api, IExperienceItem } from "~/lib/api";
 
 const ExperienceSchema = v.object({
@@ -179,8 +180,9 @@ export default function ExperienceAdminPage() {
               </div>
             </Show>
 
-            <Form of={form} onSubmit={handleSubmit} class="space-y-4">
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Form of={form} onSubmit={handleSubmit} class="space-y-5">
+              {/* Top Row: Company & Location */}
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Field of={form} path={["company"]}>
                   {(field) => {
                     const currentItem = () => editingId() ? experiences()?.find((e) => e.id === editingId()) : null;
@@ -192,7 +194,7 @@ export default function ExperienceAdminPage() {
                           type="text"
                           value={field.input ?? currentItem()?.company ?? ""}
                           placeholder="Google / Tech Corp"
-                          class={`w-full rounded-lg border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
+                          class={`w-full h-9 rounded-md border bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
                             field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
                           }`}
                         />
@@ -215,137 +217,150 @@ export default function ExperienceAdminPage() {
                           type="text"
                           value={field.input ?? currentItem()?.location ?? ""}
                           placeholder="San Francisco, CA / Remote"
-                          class={`w-full rounded-lg border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
+                          class={`w-full h-9 rounded-md border bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
                             field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
                           }`}
                         />
                         {field.errors && (
                           <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
                         )}
-                      </div>
-                    );
-                  }}
-                </Field>
-
-                <Field of={form} path={["logo"]}>
-                  {(field) => {
-                    const currentItem = () => editingId() ? experiences()?.find((e) => e.id === editingId()) : null;
-                    return (
-                      <div class="space-y-1.5">
-                        <label class="text-xs font-mono font-medium text-foreground">Logo URL *</label>
-                        <input
-                          {...field.props}
-                          type="url"
-                          value={field.input ?? currentItem()?.logo ?? ""}
-                          placeholder="https://..."
-                          class={`w-full rounded-lg border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
-                            field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
-                          }`}
-                        />
-                        {field.errors && (
-                          <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
-                        )}
-                      </div>
-                    );
-                  }}
-                </Field>
-
-                <Field of={form} path={["roleTitle"]}>
-                  {(field) => {
-                    const currentPos = () => editingId() ? experiences()?.find((e) => e.id === editingId())?.positions?.[0] : null;
-                    return (
-                      <div class="space-y-1.5">
-                        <label class="text-xs font-mono font-medium text-foreground">Role Title *</label>
-                        <input
-                          {...field.props}
-                          type="text"
-                          value={field.input ?? currentPos()?.title ?? ""}
-                          placeholder="Principal Software Architect"
-                          class={`w-full rounded-lg border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
-                            field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
-                          }`}
-                        />
-                        {field.errors && (
-                          <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
-                        )}
-                      </div>
-                    );
-                  }}
-                </Field>
-
-                <Field of={form} path={["roleType"]}>
-                  {(field) => {
-                    const currentPos = () => editingId() ? experiences()?.find((e) => e.id === editingId())?.positions?.[0] : null;
-                    return (
-                      <div class="space-y-1.5">
-                        <label class="text-xs font-mono font-medium text-foreground">Employment Type *</label>
-                        <input
-                          {...field.props}
-                          type="text"
-                          value={field.input ?? currentPos()?.type ?? ""}
-                          placeholder="Full-time / Contract / Lead"
-                          class={`w-full rounded-lg border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
-                            field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
-                          }`}
-                        />
-                        {field.errors && (
-                          <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
-                        )}
-                      </div>
-                    );
-                  }}
-                </Field>
-
-                <Field of={form} path={["startDate"]}>
-                  {(field) => {
-                    const currentPos = () => editingId() ? experiences()?.find((e) => e.id === editingId())?.positions?.[0] : null;
-                    return (
-                      <div class="space-y-1.5">
-                        <label class="text-xs font-mono font-medium text-foreground">Start Date *</label>
-                        <input
-                          {...field.props}
-                          type="text"
-                          value={field.input ?? currentPos()?.startDate ?? ""}
-                          placeholder="e.g. Jan 2022"
-                          class={`w-full rounded-lg border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
-                            field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
-                          }`}
-                        />
-                        {field.errors && (
-                          <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
-                        )}
-                      </div>
-                    );
-                  }}
-                </Field>
-
-                <Field of={form} path={["endDate"]}>
-                  {(field) => {
-                    const currentPos = () => editingId() ? experiences()?.find((e) => e.id === editingId())?.positions?.[0] : null;
-                    return (
-                      <div class="space-y-1.5">
-                        <label class="text-xs font-mono font-medium text-foreground">End Date</label>
-                        <input
-                          {...field.props}
-                          type="text"
-                          value={field.input ?? currentPos()?.endDate ?? ""}
-                          placeholder="e.g. Present or Dec 2024"
-                          class="w-full rounded-lg border border-input bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                        />
                       </div>
                     );
                   }}
                 </Field>
               </div>
 
-              <div class="flex items-center gap-2 pt-1">
-                <Button type="submit" disabled={saving()} class="font-mono text-xs cursor-pointer gap-1.5">
-                  <RiSystemCheckLine class="size-3.5" />
-                  <span>{saving() ? "Saving..." : editingId() ? "Update Milestone" : "Add Experience"}</span>
-                </Button>
-                <Button type="button" variant="outline" onClick={resetForm} class="font-mono text-xs cursor-pointer">
-                  Cancel
-                </Button>
+              {/* Company Logo Dropzone */}
+              <div>
+                <Field of={form} path={["logo"]}>
+                  {(field) => {
+                    const currentItem = () => editingId() ? experiences()?.find((e) => e.id === editingId()) : null;
+                    return (
+                      <ImageUploadDropzone
+                        compact
+                        label="Company Logo / Brand Mark"
+                        description="Upload company emblem or SVG/PNG mark (max 10MB)"
+                        value={field.input ?? currentItem()?.logo ?? ""}
+                        onChange={(url) => {
+                          setInput(form, {
+                            path: ["logo"],
+                            input: url,
+                          });
+                        }}
+                      />
+                    );
+                  }}
+                </Field>
+              </div>
+
+              {/* Position / Role Details: 4 columns on large screens */}
+              <div class="border-t border-dashed border-border/60 pt-4">
+                <div class="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold mb-3">
+                  Primary Position Details
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Field of={form} path={["roleTitle"]}>
+                    {(field) => {
+                      const currentPos = () => editingId() ? experiences()?.find((e) => e.id === editingId())?.positions?.[0] : null;
+                      return (
+                        <div class="space-y-1.5">
+                          <label class="text-xs font-mono font-medium text-foreground">Role Title *</label>
+                          <input
+                            {...field.props}
+                            type="text"
+                            value={field.input ?? currentPos()?.title ?? ""}
+                            placeholder="Principal Architect"
+                            class={`w-full h-9 rounded-md border bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
+                              field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
+                            }`}
+                          />
+                          {field.errors && (
+                            <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                          )}
+                        </div>
+                      );
+                    }}
+                  </Field>
+
+                  <Field of={form} path={["roleType"]}>
+                    {(field) => {
+                      const currentPos = () => editingId() ? experiences()?.find((e) => e.id === editingId())?.positions?.[0] : null;
+                      return (
+                        <div class="space-y-1.5">
+                          <label class="text-xs font-mono font-medium text-foreground">Employment Type *</label>
+                          <input
+                            {...field.props}
+                            type="text"
+                            value={field.input ?? currentPos()?.type ?? ""}
+                            placeholder="Full-time / Contract"
+                            class={`w-full h-9 rounded-md border bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
+                              field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
+                            }`}
+                          />
+                          {field.errors && (
+                            <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                          )}
+                        </div>
+                      );
+                    }}
+                  </Field>
+
+                  <Field of={form} path={["startDate"]}>
+                    {(field) => {
+                      const currentPos = () => editingId() ? experiences()?.find((e) => e.id === editingId())?.positions?.[0] : null;
+                      return (
+                        <div class="space-y-1.5">
+                          <label class="text-xs font-mono font-medium text-foreground">Start Date *</label>
+                          <input
+                            {...field.props}
+                            type="text"
+                            value={field.input ?? currentPos()?.startDate ?? ""}
+                            placeholder="e.g. Jan 2022"
+                            class={`w-full h-9 rounded-md border bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
+                              field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
+                            }`}
+                          />
+                          {field.errors && (
+                            <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                          )}
+                        </div>
+                      );
+                    }}
+                  </Field>
+
+                  <Field of={form} path={["endDate"]}>
+                    {(field) => {
+                      const currentPos = () => editingId() ? experiences()?.find((e) => e.id === editingId())?.positions?.[0] : null;
+                      return (
+                        <div class="space-y-1.5">
+                          <label class="text-xs font-mono font-medium text-foreground">End Date</label>
+                          <input
+                            {...field.props}
+                            type="text"
+                            value={field.input ?? currentPos()?.endDate ?? ""}
+                            placeholder="Present or Dec 2024"
+                            class="w-full h-9 rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                          />
+                        </div>
+                      );
+                    }}
+                  </Field>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-border/40">
+                <p class="text-[11px] font-mono text-muted-foreground">
+                  * Required fields. Added milestone will immediately appear on your timeline.
+                </p>
+                <div class="flex items-center gap-2">
+                  <Button type="button" variant="outline" onClick={resetForm} class="font-mono text-xs cursor-pointer">
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={saving()} class="font-mono text-xs cursor-pointer gap-1.5">
+                    <RiSystemCheckLine class="size-3.5" />
+                    <span>{saving() ? "Saving..." : editingId() ? "Update Milestone" : "Add Experience"}</span>
+                  </Button>
+                </div>
               </div>
             </Form>
           </CardContent>

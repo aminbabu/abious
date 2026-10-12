@@ -7,6 +7,7 @@ import {
   RiArrowsArrowRightLine,
   RiSystemSearchLine,
 } from "solid-icons/ri";
+import { Select } from "~/components/ui/select";
 
 export interface ColumnDef<T> {
   key: string;
@@ -121,20 +122,22 @@ export function DataTable<T>(props: DataTableProps<T>) {
               placeholder={props.searchPlaceholder ?? "Search..."}
               value={search()}
               onInput={(e) => { setSearch(e.currentTarget.value); resetPage(); }}
-              class="w-full rounded-lg border border-input bg-card/60 pl-8 pr-3 py-1.5 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+              class="w-full h-9 rounded-md border border-input bg-card/60 pl-8 pr-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
             />
           </div>
           <div class="flex items-center gap-2 text-xs font-mono text-muted-foreground shrink-0">
             <span>Rows per page:</span>
-            <select
-              value={pageSize()}
-              onChange={(e) => { setPageSize(Number(e.currentTarget.value)); resetPage(); }}
-              class="rounded-md border border-input bg-card/60 px-2 py-1 text-xs font-mono text-foreground outline-none focus:border-primary cursor-pointer"
-            >
-              <For each={props.pageSizeOptions ?? DEFAULT_PAGE_SIZES}>
-                {(n) => <option value={n}>{n}</option>}
-              </For>
-            </select>
+            <Select
+              size="sm"
+              align="end"
+              class="w-18"
+              value={String(pageSize())}
+              onChange={(val) => { setPageSize(Number(val)); resetPage(); }}
+              options={(props.pageSizeOptions ?? DEFAULT_PAGE_SIZES).map((n) => ({
+                value: String(n),
+                label: String(n),
+              }))}
+            />
           </div>
         </div>
       </Show>

@@ -334,5 +334,38 @@ export const api = {
         body: JSON.stringify(payload),
       }),
   },
+  upload: {
+    image: async (file: File): Promise<{ url: string; filename: string; size: number; mimetype: string }> => {
+      const baseUrl = getApiBaseUrl();
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(`${baseUrl}/api/upload`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        let errorMsg = `Upload failed: ${response.statusText}`;
+        try {
+          const errData = await response.json();
+          if (errData?.message) {
+            errorMsg = Array.isArray(errData.message) ? errData.message.join(", ") : errData.message;
+          }
+        } catch {
+          // ignore
+        }
+        throw new ApiError(errorMsg, response.status);
+      }
+
+      const json = await response.json();
+      if (json && typeof json === "object" && "success" in json && "data" in json) {
+        return json.data;
+      }
+      return json;
+    },
+  },
 };
+
 

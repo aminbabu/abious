@@ -2,6 +2,7 @@ import { createResource, createSignal, Show } from "solid-js";
 import { RiSystemTimeLine } from "solid-icons/ri";
 import DashboardLayout from "~/components/dashboard/dashboard-layout";
 import { DataTable, ColumnDef } from "~/components/dashboard/data-table";
+import { Select } from "~/components/ui/select";
 import { api, IAuditLogItem } from "~/lib/api";
 
 const ACTION_COLORS: Record<string, string> = {
@@ -124,18 +125,19 @@ export default function AuditLogsPage() {
       {/* Action filter */}
       <div class="flex items-center gap-2">
         <label class="text-xs font-mono text-muted-foreground shrink-0">Filter by action:</label>
-        <select
+        <Select
+          class="w-44"
           value={actionFilter()}
-          onChange={(e) => setActionFilter(e.currentTarget.value)}
-          class="rounded-lg border border-input bg-card/60 px-2 py-1.5 text-xs font-mono text-foreground outline-none focus:border-primary cursor-pointer"
-        >
-          <option value="">All Actions</option>
-          <option value="create">CREATE</option>
-          <option value="update">UPDATE</option>
-          <option value="delete">DELETE</option>
-          <option value="login">LOGIN</option>
-          <option value="logout">LOGOUT</option>
-        </select>
+          onChange={setActionFilter}
+          options={[
+            { value: "", label: "All Actions" },
+            { value: "create", label: "CREATE" },
+            { value: "update", label: "UPDATE" },
+            { value: "delete", label: "DELETE" },
+            { value: "login", label: "LOGIN" },
+            { value: "logout", label: "LOGOUT" },
+          ]}
+        />
         <span class="text-xs font-mono text-muted-foreground ml-auto">
           Total: <strong class="text-foreground">{filteredLogs().length}</strong> events
         </span>

@@ -86,6 +86,7 @@ export default function DashboardLayout(props: {
   title: string;
   description?: string;
   action?: JSX.Element;
+  actions?: JSX.Element;
   children: JSX.Element;
 }) {
   const location = useLocation();
@@ -590,8 +591,8 @@ export default function DashboardLayout(props: {
                 <RiSystemSearchLine class="size-4" />
               </button>
 
-              <Show when={props.action}>
-                <div>{props.action}</div>
+              <Show when={props.action || props.actions}>
+                <div class="flex items-center gap-2">{props.action || props.actions}</div>
               </Show>
 
               <ThemeSwitcher />
