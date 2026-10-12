@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import nodemailer, { type Transporter } from 'nodemailer';
 
+import { renderContactNotificationEmail } from '../../../common/templates/email-templates.js';
+
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
@@ -45,22 +47,15 @@ export class MailService {
           ? `"Amin Babu" <${process.env.SMTP_USER}>`
           : `"Abious Portfolio" <no-reply@abious.ddev.site>`);
 
+      const emailContent = renderContactNotificationEmail(inquiry);
+
       await this.transporter.sendMail({
         from: sender,
         to: receiver,
         replyTo: inquiry.email,
         subject: `New Inquiry from ${inquiry.name}: ${inquiry.subject || 'Portfolio Contact'}`,
-        text: `Name: ${inquiry.name}\nEmail: ${inquiry.email}\nSubject: ${inquiry.subject || 'N/A'}\n\nMessage:\n${inquiry.message}`,
-        html: `
-          <h3>New Portfolio Inquiry</h3>
-          <p><strong>Name:</strong> ${inquiry.name}</p>
-          <p><strong>Email:</strong> <a href="mailto:${inquiry.email}">${inquiry.email}</a></p>
-          <p><strong>Subject:</strong> ${inquiry.subject || 'N/A'}</p>
-          <p><strong>Message:</strong></p>
-          <blockquote style="background:#f4f4f4;padding:12px;border-left:4px solid #10b981;">
-            ${inquiry.message.replace(/\n/g, '<br/>')}
-          </blockquote>
-        `,
+        text: emailContent.text,
+        html: emailContent.html,
       });
 
       this.logger.log(`Inquiry notification email sent to ${receiver}`);

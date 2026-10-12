@@ -1,6 +1,6 @@
 import { createSignal, createResource, Show } from "solid-js";
 import * as v from "valibot";
-import { createForm, Form, Field, setInput } from "@formisch/solid";
+import { createForm, Form, Field, setInput, reset } from "@formisch/solid";
 import {
   RiSystemDeleteBinLine,
   RiDesignEditLine,
@@ -58,6 +58,7 @@ export default function ServicesAdminPage() {
   });
 
   const resetForm = () => {
+    reset(form);
     setEditingId(null);
     setIsActive(true);
     setShowForm(false);

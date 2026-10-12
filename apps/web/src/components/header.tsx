@@ -10,6 +10,7 @@ import {
   RiSystemLogoutBoxRLine,
   RiArrowsArrowDownSLine,
   RiSystemShieldCheckLine,
+  RiSystemShieldKeyholeLine,
   RiSystemSettings3Line,
   RiDesignEditLine,
 } from "solid-icons/ri";
@@ -225,13 +226,14 @@ export default function Header() {
                 fallback={
                   <li class="hidden sm:block">
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="ghost"
+                      size="icon"
                       href="/auth/login"
-                      class="rounded-full text-xs font-mono font-medium h-9 px-3 gap-1.5 cursor-pointer border-dashed hover:border-primary/60"
+                      aria-label="Admin Portal"
+                      title="Admin Portal"
+                      class="text-muted-foreground hover:text-foreground cursor-pointer"
                     >
-                      <RiSystemLoginBoxLine class="size-3.5" />
-                      <span>Admin</span>
+                      <RiSystemShieldKeyholeLine class="size-5" />
                     </Button>
                   </li>
                 }

@@ -54,25 +54,17 @@ export const auth = betterAuth({
           ? `"Amin Babu" <${smtpUser}>`
           : '"Abious Admin" <no-reply@abious.ddev.site>');
 
+      const { renderPasswordResetEmail } = await import(
+        './common/templates/email-templates.js'
+      );
+      const emailContent = renderPasswordResetEmail({ url, email: user.email });
+
       await transporter.sendMail({
         from: sender,
         to: user.email,
         subject: 'Reset your Abious Admin password',
-        text: `Reset your password by following this link: ${url}`,
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; color: #333;">
-            <h2>Password Reset Request</h2>
-            <p>Hello,</p>
-            <p>You requested to reset your password for the Abious Admin Dashboard.</p>
-            <p style="margin: 24px 0;">
-              <a href="${url}" style="background-color: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                Reset Password
-              </a>
-            </p>
-            <p>If you didn't request this, you can safely ignore this email.</p>
-            <p style="color: #888; font-size: 12px; margin-top: 30px;">Or copy and paste this link: ${url}</p>
-          </div>
-        `,
+        text: emailContent.text,
+        html: emailContent.html,
       });
     },
   },

@@ -1,6 +1,6 @@
 import { createSignal, Show } from "solid-js";
 import * as v from "valibot";
-import { createForm, Form, Field } from "@formisch/solid";
+import { createForm, Form, Field, reset } from "@formisch/solid";
 import {
   RiBusinessMailSendLine,
   RiDevicePhoneLine,
@@ -66,6 +66,7 @@ export default function Contact() {
       });
       setSuccessMessage(res.message || "Message sent successfully!");
       setStatus("success");
+      reset(form);
     } catch (err: any) {
       setErrorMessage(err.message || "Something went wrong. Please try again.");
       setStatus("error");

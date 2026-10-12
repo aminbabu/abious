@@ -45,7 +45,12 @@ export default function ImageUploadDropzone(props: ImageUploadDropzoneProps) {
       const res = await api.upload.image(file);
       props.onChange(res.url);
     } catch (err: any) {
-      setUploadError(err.message || "Failed to upload image. Please try again.");
+      const msg = err?.message?.replace(/^Upload failed:\s*/, "")?.trim();
+      setUploadError(
+        msg && msg.length > 0
+          ? `Upload failed: ${msg}`
+          : "Failed to upload image. Please ensure you are logged in as admin."
+      );
     } finally {
       setIsUploading(false);
     }

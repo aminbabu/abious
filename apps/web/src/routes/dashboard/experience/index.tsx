@@ -1,6 +1,6 @@
 import { createResource, createSignal, For, Show } from "solid-js";
 import * as v from "valibot";
-import { createForm, Form, Field, setInput } from "@formisch/solid";
+import { createForm, Form, Field, setInput, reset } from "@formisch/solid";
 import {
   RiBuildingsBuildingLine,
   RiMapMapPin2Line,
@@ -76,6 +76,7 @@ export default function ExperienceAdminPage() {
   });
 
   const resetForm = () => {
+    reset(form);
     setEditingId(null);
     setShowForm(false);
     setErrorMessage(null);

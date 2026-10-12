@@ -22,7 +22,17 @@ export const getApiBaseUrl = (): string => {
     // In DDEV SSR environment, the NestJS server is reachable at http://127.0.0.1:3000
     return "http://127.0.0.1:3000";
   }
-  // Browser fallback defaults to current origin or public API domain
+  // Browser mode: detect current host & protocol dynamically to avoid mixed-content / SSL mismatches
+  if (typeof window !== "undefined" && window.location) {
+    const { protocol, hostname } = window.location;
+    if (hostname === "abious.ddev.site" || hostname.endsWith(".ddev.site")) {
+      return `${protocol}//api.abious.ddev.site`;
+    }
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return `${protocol}//${hostname}:3000`;
+    }
+  }
+  // Browser fallback defaults to public API domain
   return "https://api.abious.ddev.site";
 };
 
@@ -67,10 +77,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     let errorData: any = null;
     try {
       errorData = await response.json();
-      if (errorData?.message) {
-        errorMessage = Array.isArray(errorData.message)
-          ? errorData.message.join(", ")
-          : errorData.message;
+      const rawMsg = errorData?.error?.message ?? errorData?.message;
+      if (rawMsg) {
+        errorMessage = Array.isArray(rawMsg) ? rawMsg.join(", ") : rawMsg;
       }
     } catch {
       // Body not JSON
@@ -347,11 +356,12 @@ export const api = {
       });
 
       if (!response.ok) {
-        let errorMsg = `Upload failed: ${response.statusText}`;
+        let errorMsg = `Upload failed: ${response.statusText || response.status}`;
         try {
           const errData = await response.json();
-          if (errData?.message) {
-            errorMsg = Array.isArray(errData.message) ? errData.message.join(", ") : errData.message;
+          const rawMsg = errData?.error?.message ?? errData?.message;
+          if (rawMsg) {
+            errorMsg = Array.isArray(rawMsg) ? rawMsg.join(", ") : rawMsg;
           }
         } catch {
           // ignore

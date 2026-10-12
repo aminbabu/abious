@@ -1,6 +1,6 @@
 import { createResource, createSignal, Show, For } from "solid-js";
 import * as v from "valibot";
-import { createForm, Form, Field, setInput } from "@formisch/solid";
+import { createForm, Form, Field, setInput, reset } from "@formisch/solid";
 import {
   RiSystemAddLine,
   RiSystemDeleteBinLine,
@@ -71,6 +71,7 @@ export default function TestimonialsAdminPage() {
   });
 
   const resetForm = () => {
+    reset(form);
     setRating(5);
     setIsPublished(true);
     setEditingId(null);

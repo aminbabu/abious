@@ -7,12 +7,21 @@ export class CorsMiddleware implements NestMiddleware {
     const origin = req.headers.origin;
     const allowedOrigins = [
       process.env.CLIENT_URL || 'http://localhost:5173',
+      'http://localhost:5173',
       'http://localhost:3000',
+      'http://abious.ddev.site',
       'https://abious.ddev.site',
+      'http://api.abious.ddev.site',
       'https://api.abious.ddev.site',
     ];
 
-    if (origin && allowedOrigins.includes(origin)) {
+    const isAllowed =
+      origin &&
+      (allowedOrigins.includes(origin) ||
+        /\.ddev\.site(:\d+)?$/.test(origin.replace(/^https?:\/\//, '')) ||
+        /^https?:\/\/localhost(:\d+)?$/.test(origin));
+
+    if (origin && isAllowed) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       res.setHeader(
