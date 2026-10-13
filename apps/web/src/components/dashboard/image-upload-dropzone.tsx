@@ -8,6 +8,7 @@ import {
 } from "solid-icons/ri";
 
 
+import Image from "~/components/ui/image";
 import { api } from "~/lib/api";
 
 interface ImageUploadDropzoneProps {
@@ -194,16 +195,12 @@ export default function ImageUploadDropzone(props: ImageUploadDropzoneProps) {
             <div class={`relative w-full overflow-hidden rounded-md border border-border/50 bg-black/40 flex items-center justify-center ${
               props.compact ? "max-h-[120px]" : "max-h-[160px]"
             }`}>
-              <img
+              <Image
                 src={props.value}
                 alt="Uploaded preview"
                 class={`w-full h-auto object-contain transition-transform group-hover:scale-[1.01] ${
                   props.compact ? "max-h-[120px]" : "max-h-[160px]"
                 }`}
-                onError={(e) => {
-                  // Fallback if image fails to load
-                  (e.currentTarget as HTMLImageElement).style.display = "none";
-                }}
               />
               <div class="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
                 <span class="inline-flex items-center gap-1 text-xs font-mono text-foreground bg-background/90 px-2.5 py-1 rounded shadow-xs border border-border">

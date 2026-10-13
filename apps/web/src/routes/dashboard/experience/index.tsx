@@ -15,6 +15,7 @@ import {
 import DashboardLayout from "~/components/dashboard/dashboard-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import Image from "~/components/ui/image";
 import ImageUploadDropzone from "~/components/dashboard/image-upload-dropzone";
 import { api, IExperienceItem } from "~/lib/api";
 
@@ -416,7 +417,7 @@ export default function ExperienceAdminPage() {
                             </div>
                           }
                         >
-                          <img
+                          <Image
                             src={item.logo}
                             alt={item.company}
                             class="size-9 rounded-lg object-contain bg-secondary/40 p-1"

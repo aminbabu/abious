@@ -115,11 +115,11 @@ export default function BlogsAdminPage() {
       cell: (p) => (
         <div class="flex items-center justify-end gap-1">
           <Show when={!p.isDraft}>
-            <a href={`/blogs/${p.slug}`} target="_blank" rel="noopener noreferrer">
+            <A href={`/blogs/${p.slug}`} target="_blank" rel="noopener noreferrer">
               <Button variant="ghost" size="icon" class="size-7 cursor-pointer" title="Preview">
                 <RiSystemEyeLine class="size-3.5 text-muted-foreground" />
               </Button>
-            </a>
+            </A>
           </Show>
           <A href={`/dashboard/blogs/${p.id}`}>
             <Button variant="ghost" size="icon" class="size-7 cursor-pointer" title="Edit">

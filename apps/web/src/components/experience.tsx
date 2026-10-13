@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import { createResource, onCleanup, onMount, Show, createEffect } from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
 import Section from "~/components/section";
+import Image from "~/components/ui/image";
 import { Heading } from "~/components/ui/global/heading";
 import { Paragraph } from "~/components/ui/global/paragraph";
 import ExperienceLoader from "~/components/ui/loaders/experience";
@@ -114,7 +115,7 @@ export default function Experience() {
                     {data()?.map((work) => (
                       <li class="splide__slide flex gap-x-3 py-2">
                         <figure class="border-border bg-background aspect-square size-10 shrink-0 overflow-hidden rounded-full border shadow-sm">
-                          <img
+                          <Image
                             src={work.logo}
                             alt={work.company}
                             width="56"

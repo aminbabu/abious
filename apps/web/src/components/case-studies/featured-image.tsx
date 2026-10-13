@@ -1,5 +1,6 @@
 import DecoratorUI from "~/components/decorator-ui";
 import Section from "~/components/section";
+import Image from "~/components/ui/image";
 import type { ICaseStudy } from "~/components/global/case-study";
 import { cn } from "~/lib/utils";
 
@@ -11,7 +12,7 @@ export default function FeaturedImage(props: {
     <Section class={cn("pt-0 lg:pt-0", props.class)}>
       <DecoratorUI class="bg-secondary p-3 md:-mx-3">
         <figure class="aspect-video overflow-hidden rounded-xl grayscale-100 transition duration-500 hover:grayscale-0">
-          <img
+          <Image
             src={props.caseStudy?.data?.banner}
             alt={props.caseStudy?.data?.title}
             width="1200"
