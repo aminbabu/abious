@@ -12,42 +12,66 @@ import {
   RiDesignEditLine,
   RiSystemAlertLine,
 } from "solid-icons/ri";
+import dayjs from "dayjs";
 import DashboardLayout from "~/components/dashboard/dashboard-layout";
 import { DataTable, ColumnDef } from "~/components/dashboard/data-table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
+import { DatePicker } from "~/components/ui/date-picker";
 import Image from "~/components/ui/image";
 import ImageUploadDropzone from "~/components/dashboard/image-upload-dropzone";
 import { api, IExperienceItem } from "~/lib/api";
 
-const ExperienceSchema = v.object({
-  company: v.pipe(
-    v.string("Company name is required"),
-    v.nonEmpty("Please enter company name"),
-    v.minLength(2, "Company must be at least 2 characters")
-  ),
-  location: v.pipe(
-    v.string("Location is required"),
-    v.nonEmpty("Please enter location")
-  ),
-  logo: v.pipe(
-    v.string("Logo URL is required"),
-    v.nonEmpty("Please enter logo URL")
-  ),
-  roleTitle: v.pipe(
-    v.string("Primary role is required"),
-    v.nonEmpty("Please enter primary role title")
-  ),
-  roleType: v.pipe(
-    v.string("Role type is required"),
-    v.nonEmpty("Please enter role type (e.g. Full-time, Contract)")
-  ),
-  startDate: v.pipe(
-    v.string("Start date is required"),
-    v.nonEmpty("Please enter start date (e.g. Jan 2022)")
-  ),
-  endDate: v.optional(v.string()),
-});
+const DATE_REGEX = /^(\d{4}-\d{2}-\d{2}|[A-Za-z]{3}\s\d{4})$/;
+const END_DATE_REGEX = /^(\d{4}-\d{2}-\d{2}|[A-Za-z]{3}\s\d{4}|[Pp]resent)$/;
+
+const ExperienceSchema = v.pipe(
+  v.object({
+    company: v.pipe(
+      v.string("Company name is required"),
+      v.nonEmpty("Please enter company name"),
+      v.minLength(2, "Company must be at least 2 characters")
+    ),
+    location: v.pipe(
+      v.string("Location is required"),
+      v.nonEmpty("Please enter location")
+    ),
+    logo: v.pipe(
+      v.string("Logo URL is required"),
+      v.nonEmpty("Please enter logo URL")
+    ),
+    roleTitle: v.pipe(
+      v.string("Primary role is required"),
+      v.nonEmpty("Please enter primary role title")
+    ),
+    roleType: v.pipe(
+      v.string("Role type is required"),
+      v.nonEmpty("Please enter role type (e.g. Full-time, Contract)")
+    ),
+    startDate: v.pipe(
+      v.string("Start date is required"),
+      v.nonEmpty("Please select start date"),
+      v.regex(DATE_REGEX, "Start date must be in YYYY-MM-DD format")
+    ),
+    endDate: v.optional(
+      v.pipe(
+        v.string(),
+        v.regex(END_DATE_REGEX, "End date must be in YYYY-MM-DD format or 'Present'")
+      )
+    ),
+  }),
+  v.check((input) => {
+    if (!input.startDate || !input.endDate || input.endDate.toLowerCase() === "present") {
+      return true;
+    }
+    const start = dayjs(input.startDate);
+    const end = dayjs(input.endDate);
+    if (start.isValid() && end.isValid()) {
+      return end.isAfter(start) || end.isSame(start, "day");
+    }
+    return true;
+  }, "End date cannot be earlier than start date")
+);
 
 export default function ExperienceAdminPage() {
   const [experiences, { refetch }] = createResource(async () => {
@@ -228,12 +252,19 @@ export default function ExperienceAdminPage() {
           return end === "Present" || end === "present" || !end;
         };
 
+        const formatDate = (d?: string | null) => {
+          if (!d) return "Present";
+          if (d.toLowerCase() === "present") return "Present";
+          const parsed = dayjs(d);
+          return parsed.isValid() ? parsed.format("MMM YYYY") : d;
+        };
+
         return (
           <Show when={primary()} fallback={<span class="text-muted-foreground/60">—</span>}>
             <div class="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
               <RiSystemTimeLine class="size-3 shrink-0" />
               <span>
-                {primary()?.startDate} — {primary()?.endDate || "Present"}
+                {formatDate(primary()?.startDate)} — {formatDate(primary()?.endDate)}
               </span>
               <Show when={isCurrent()}>
                 <span class="rounded-md bg-emerald-500/10 px-1.5 py-0.2 text-[9px] text-emerald-500 font-semibold">
@@ -462,17 +493,21 @@ export default function ExperienceAdminPage() {
                   <Field of={form} path={["startDate"]}>
                     {(field) => {
                       const currentPos = () => editingId() ? experiences()?.find((e) => e.id === editingId())?.positions?.[0] : null;
+                      const val = () => (field.input !== undefined ? field.input : currentPos()?.startDate) || "";
                       return (
                         <div class="space-y-1.5">
                           <label class="text-xs font-mono font-medium text-foreground">Start Date *</label>
-                          <input
-                            {...field.props}
-                            type="text"
-                            value={field.input ?? currentPos()?.startDate ?? ""}
-                            placeholder="e.g. Jan 2022"
-                            class={`w-full h-9 rounded-md border bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary ${
-                              field.errors ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input"
-                            }`}
+                          <DatePicker
+                            value={val()}
+                            onChange={(date) => {
+                              setInput(form, {
+                                path: ["startDate"],
+                                input: date,
+                              });
+                            }}
+                            placeholder="Select start date"
+                            hasError={!!field.errors}
+                            clearable
                           />
                           {field.errors && (
                             <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
@@ -485,16 +520,28 @@ export default function ExperienceAdminPage() {
                   <Field of={form} path={["endDate"]}>
                     {(field) => {
                       const currentPos = () => editingId() ? experiences()?.find((e) => e.id === editingId())?.positions?.[0] : null;
+                      const val = () => (field.input !== undefined ? field.input : currentPos()?.endDate) ?? "Present";
+                      const startVal = () => (form.values?.startDate || currentPos()?.startDate) || undefined;
                       return (
                         <div class="space-y-1.5">
                           <label class="text-xs font-mono font-medium text-foreground">End Date</label>
-                          <input
-                            {...field.props}
-                            type="text"
-                            value={field.input ?? currentPos()?.endDate ?? ""}
-                            placeholder="Present or Dec 2024"
-                            class="w-full h-9 rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                          <DatePicker
+                            value={val()}
+                            minDate={startVal()}
+                            onChange={(date) => {
+                              setInput(form, {
+                                path: ["endDate"],
+                                input: date,
+                              });
+                            }}
+                            placeholder="Select date or Present"
+                            allowPresent
+                            hasError={!!field.errors}
+                            clearable
                           />
+                          {field.errors && (
+                            <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                          )}
                         </div>
                       );
                     }}
