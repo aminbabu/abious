@@ -9,6 +9,14 @@ export default function CaseStudiesList(props: {
   error?: any;
   limit?: string;
 }) {
+  const displayedStudies = () => {
+    const list = props.caseStudies ?? [];
+    if (props.limit) {
+      return list.slice(0, Number(props.limit));
+    }
+    return list;
+  };
+
   return (
     <Show
       when={!props.isLoading}
@@ -29,7 +37,7 @@ export default function CaseStudiesList(props: {
         }
       >
         <Show
-          when={props.caseStudies?.length}
+          when={displayedStudies().length}
           fallback={
             <DecoratorUI>
               <div class="bg-secondary -mx-3 p-3">
@@ -41,7 +49,7 @@ export default function CaseStudiesList(props: {
           <DecoratorUI class="-mt-3">
             <div class="bg-secondary -mx-3 p-3">
               <div class="grid grid-cols-12 gap-3">
-                <For each={props.caseStudies}>
+                <For each={displayedStudies()}>
                   {(caseStudy) => <CaseStudy caseStudy={caseStudy} />}
                 </For>
               </div>

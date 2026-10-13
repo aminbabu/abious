@@ -31,7 +31,7 @@ export default function CaseStudies(props: { title?: string }) {
         </Paragraph>
       </DecoratorUI>
       <CaseStudiesList
-        limit="6"
+        limit="9"
         caseStudies={data()}
         isLoading={data.loading}
         error={data.error}
