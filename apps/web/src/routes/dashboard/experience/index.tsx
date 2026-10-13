@@ -13,6 +13,7 @@ import {
   RiSystemAlertLine,
 } from "solid-icons/ri";
 import DashboardLayout from "~/components/dashboard/dashboard-layout";
+import { DataTable, ColumnDef } from "~/components/dashboard/data-table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import Image from "~/components/ui/image";
@@ -85,6 +86,14 @@ export default function ExperienceAdminPage() {
 
   const handleEdit = (item: IExperienceItem) => {
     setEditingId(item.id);
+    const primaryPos = item.positions?.[0];
+    setInput(form, { path: ["company"], input: item.company || "" });
+    setInput(form, { path: ["location"], input: item.location || "" });
+    setInput(form, { path: ["logo"], input: item.logo || "" });
+    setInput(form, { path: ["roleTitle"], input: primaryPos?.title || "" });
+    setInput(form, { path: ["roleType"], input: primaryPos?.type || "Full-time" });
+    setInput(form, { path: ["startDate"], input: primaryPos?.startDate || "" });
+    setInput(form, { path: ["endDate"], input: primaryPos?.endDate || "Present" });
     setErrorMessage(null);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -138,8 +147,151 @@ export default function ExperienceAdminPage() {
     }
   };
 
+  const handleBulkDelete = async (ids: string[], clearSelection: () => void) => {
+    if (!confirm(`Delete ${ids.length} selected experience record(s)? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      await Promise.all(ids.map((id) => api.experience.delete(id)));
+      clearSelection();
+      refetch();
+    } catch (err: any) {
+      alert(err.message || "Failed to delete selected experiences.");
+    }
+  };
+
   const totalPositions = () =>
     (experiences() || []).reduce((acc, e) => acc + (e.positions || []).length, 0);
+
+  const columns: ColumnDef<IExperienceItem>[] = [
+    {
+      key: "company",
+      header: "Company",
+      sortable: true,
+      accessorFn: (e) => e.company,
+      cell: (e) => (
+        <div class="flex items-center gap-3 min-w-[200px]">
+          <Show
+            when={e.logo}
+            fallback={
+              <div class="size-8 rounded-lg bg-secondary flex items-center justify-center shrink-0 border border-border/40">
+                <RiBuildingsBuildingLine class="size-4 text-muted-foreground" />
+              </div>
+            }
+          >
+            <Image
+              src={e.logo}
+              alt={e.company}
+              class="size-8 rounded-lg object-contain bg-secondary/40 p-1 shrink-0 border border-border/40"
+            />
+          </Show>
+          <div class="min-w-0">
+            <p class="font-medium text-foreground text-xs font-mono truncate">{e.company}</p>
+            <p class="text-[10px] text-muted-foreground font-mono flex items-center gap-1 mt-0.5 truncate">
+              <RiMapMapPin2Line class="size-2.5 shrink-0" />
+              <span>{e.location}</span>
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "primaryRole",
+      header: "Primary Role",
+      sortable: true,
+      accessorFn: (e) => e.positions?.[0]?.title || "",
+      cell: (e) => {
+        const primary = () => e.positions?.[0];
+        return (
+          <div class="space-y-1">
+            <Show when={primary()} fallback={<span class="text-muted-foreground/60">—</span>}>
+              <p class="text-xs font-mono font-medium text-foreground">{primary()?.title}</p>
+              <span class="inline-block rounded-md bg-secondary px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground">
+                {primary()?.type}
+              </span>
+            </Show>
+          </div>
+        );
+      },
+    },
+    {
+      key: "period",
+      header: "Duration / Period",
+      accessorFn: (e) => {
+        const p = e.positions?.[0];
+        return p ? `${p.startDate} — ${p.endDate || "Present"}` : "";
+      },
+      cell: (e) => {
+        const primary = () => e.positions?.[0];
+        const isCurrent = () => {
+          const end = primary()?.endDate;
+          return end === "Present" || end === "present" || !end;
+        };
+
+        return (
+          <Show when={primary()} fallback={<span class="text-muted-foreground/60">—</span>}>
+            <div class="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
+              <RiSystemTimeLine class="size-3 shrink-0" />
+              <span>
+                {primary()?.startDate} — {primary()?.endDate || "Present"}
+              </span>
+              <Show when={isCurrent()}>
+                <span class="rounded-md bg-emerald-500/10 px-1.5 py-0.2 text-[9px] text-emerald-500 font-semibold">
+                  Current
+                </span>
+              </Show>
+            </div>
+          </Show>
+        );
+      },
+    },
+    {
+      key: "rolesCount",
+      header: "Roles",
+      sortable: true,
+      headerClass: "text-center",
+      cellClass: "text-center",
+      accessorFn: (e) => (e.positions || []).length,
+      cell: (e) => {
+        const count = () => (e.positions || []).length;
+        return (
+          <span class="inline-flex items-center justify-center min-w-[20px] rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+            {count()}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      headerClass: "text-right",
+      cellClass: "text-right",
+      skipFilter: true,
+      cell: (item) => (
+        <div class="flex items-center justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleEdit(item)}
+            class="size-7 cursor-pointer"
+            title="Edit"
+          >
+            <RiDesignEditLine class="size-3.5 text-foreground" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleDelete(item.id)}
+            disabled={deletingId() === item.id}
+            class="size-7 text-destructive hover:text-destructive cursor-pointer"
+            title="Delete"
+          >
+            <RiSystemDeleteBinLine class="size-3.5" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <DashboardLayout
@@ -391,99 +543,26 @@ export default function ExperienceAdminPage() {
         </div>
       </Show>
 
-      <Show
-        when={experiences() && (experiences() || []).length > 0}
-        fallback={
-          <div class="rounded-xl border border-dashed border-border bg-card/60 py-16 text-center">
-            <RiBuildingsBuildingLine class="size-8 mx-auto mb-3 text-muted-foreground/40" />
-            <p class="text-xs font-mono text-muted-foreground">No experience records loaded.</p>
-            <p class="text-[11px] text-muted-foreground/60 mt-1">Data comes from the API — check API connectivity.</p>
-          </div>
-        }
-      >
-        <div class="space-y-4">
-          <div class="space-y-3">
-            <For each={experiences()}>
-              {(item) => (
-                <Card class="border-dashed bg-card/60 hover:border-primary/30 transition-colors">
-                  <CardHeader class="pb-3">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-3">
-                        <Show
-                          when={item.logo}
-                          fallback={
-                            <div class="size-9 rounded-lg bg-secondary flex items-center justify-center">
-                              <RiBuildingsBuildingLine class="size-4 text-muted-foreground" />
-                            </div>
-                          }
-                        >
-                          <Image
-                            src={item.logo}
-                            alt={item.company}
-                            class="size-9 rounded-lg object-contain bg-secondary/40 p-1"
-                          />
-                        </Show>
-                        <div>
-                          <CardTitle class="text-sm font-mono font-semibold">{item.company}</CardTitle>
-                          <CardDescription class="flex items-center gap-1 text-[11px] mt-0.5">
-                            <RiMapMapPin2Line class="size-3 shrink-0" />
-                            {item.location}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      <div class="flex items-center gap-1.5">
-                        <span class="text-[10px] font-mono text-muted-foreground bg-secondary px-2 py-0.5 rounded-md mr-1">
-                          {(item.positions || []).length} role{(item.positions || []).length !== 1 ? "s" : ""}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(item)}
-                          class="size-7 cursor-pointer"
-                          title="Edit"
-                        >
-                          <RiDesignEditLine class="size-3.5 text-foreground" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(item.id)}
-                          disabled={deletingId() === item.id}
-                          class="size-7 text-destructive hover:text-destructive cursor-pointer"
-                          title="Delete"
-                        >
-                          <RiSystemDeleteBinLine class="size-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent class="pt-0">
-                    <div class="space-y-2 border-t border-dashed border-border/60 pt-3">
-                      <For each={item.positions || []}>
-                        {(pos, idx) => (
-                          <div class={`flex items-center justify-between text-xs font-mono ${idx() > 0 ? "border-t border-dashed border-border/40 pt-2" : ""}`}>
-                            <div class="flex items-center gap-2">
-                              <div class="size-1.5 rounded-full bg-primary/60 shrink-0" />
-                              <span class="font-medium text-foreground">{pos.title}</span>
-                              <span class="text-[10px] rounded-md bg-secondary px-1.5 py-0.5 text-muted-foreground">
-                                {pos.type}
-                              </span>
-                            </div>
-                            <span class="text-muted-foreground text-[11px] flex items-center gap-1 shrink-0">
-                              <RiSystemTimeLine class="size-3" />
-                              {pos.startDate} — {pos.endDate || "Present"}
-                            </span>
-                          </div>
-                        )}
-                      </For>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </For>
-          </div>
-        </div>
-      </Show>
+      {/* DataTable */}
+      <DataTable
+        data={experiences()}
+        columns={columns}
+        loading={experiences.loading}
+        searchPlaceholder="Search by company or role..."
+        defaultPageSize={10}
+        emptyMessage="No experience records found. Click 'Add Experience' to add your first milestone."
+        bulkActions={(ids, _, clear) => (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => handleBulkDelete(ids, clear)}
+            class="h-7 text-xs font-mono cursor-pointer gap-1.5"
+          >
+            <RiSystemDeleteBinLine class="size-3.5" />
+            <span>Delete Selected ({ids.length})</span>
+          </Button>
+        )}
+      />
     </DashboardLayout>
   );
 }
