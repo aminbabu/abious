@@ -1,13 +1,6 @@
-import { createResource, Show } from "solid-js";
-import {
-  RiBusinessLinksLine,
-  RiBusinessWindowLine,
-  RiDevelopmentBugLine,
-  RiEditorSlashCommands,
-  RiDeviceServerLine,
-  RiDesignPencilLine,
-  RiDevelopmentCodeSSlashLine,
-} from "solid-icons/ri";
+import { Splide } from "@splidejs/splide";
+import { AutoScroll } from "@splidejs/splide-extension-auto-scroll";
+import { createResource, Show, createEffect, onCleanup } from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
 import CalCom from "~/components/global/calcom";
 import Section from "~/components/section";
@@ -22,16 +15,75 @@ import { Heading } from "~/components/ui/global/heading";
 import { Paragraph } from "~/components/ui/global/paragraph";
 import ServicesLoader from "~/components/ui/loaders/services";
 import { api, type IServiceItem } from "~/lib/api";
-
 import { SERVICE_ICONS_MAP } from "~/components/dashboard/icon-picker";
+import { RiBusinessWindowLine } from "solid-icons/ri";
 
 function getServiceIcon(iconName: string) {
   return SERVICE_ICONS_MAP[iconName] || RiBusinessWindowLine;
 }
 
-
 export default function Services() {
   const [data] = createResource<IServiceItem[]>(() => api.services.list());
+
+  let splideEl: HTMLDivElement | undefined;
+  let splideInstance: Splide | null = null;
+
+  const destroySplide = () => {
+    if (splideInstance) {
+      try {
+        splideInstance.destroy();
+      } catch {
+        // ignore
+      }
+      splideInstance = null;
+    }
+  };
+
+  createEffect(() => {
+    const items = data();
+    if (!splideEl || !items?.length) {
+      destroySplide();
+      return;
+    }
+
+    destroySplide();
+
+    const track = splideEl.querySelector(".splide__track");
+    const list = splideEl.querySelector(".splide__list");
+    if (!track || !list) return;
+
+    splideInstance = new Splide(splideEl, {
+      type: "loop",
+      perPage: 1,
+      gap: "0.75rem",
+      arrows: false,
+      pagination: false,
+      padding: {
+        right: "15%",
+      },
+      autoScroll: { speed: 0.125 },
+      mediaQuery: "min",
+      breakpoints: {
+        768: {
+          perPage: 2,
+          gap: "1rem",
+        },
+        1024: {
+          perPage: 3,
+          gap: "1rem",
+        },
+        1280: {
+          perPage: 4,
+          gap: "1rem",
+        },
+      },
+    });
+    splideInstance.mount({ AutoScroll });
+  });
+
+  onCleanup(() => {
+    destroySplide();
+  });
 
   return (
     <Section id="services">
@@ -49,46 +101,64 @@ export default function Services() {
         </Paragraph>
       </DecoratorUI>
 
-      <div class="relative z-0 before:absolute before:-inset-3 before:-z-10 before:bg-secondary">
-        <Show
-          when={!data.loading}
-          fallback={
-            <DecoratorUI class="before:-inset-y-3">
+      <Show
+        when={!data.loading}
+        fallback={
+          <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
+            <div class="-mx-3 bg-secondary p-3">
               <ServicesLoader count={4} />
+            </div>
+          </DecoratorUI>
+        }
+      >
+        <Show
+          when={!data.error && data()?.length}
+          fallback={
+            <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
+              <div class="-mx-3 bg-secondary p-6 text-center text-muted-foreground">
+                <p>{data.error ? "Failed to load services." : "No services available."}</p>
+              </div>
             </DecoratorUI>
           }
         >
-          <Show
-            when={!data.error && data()?.length}
-            fallback={
-              <DecoratorUI class="py-6 text-center text-muted-foreground before:-inset-y-3">
-                <p>{data.error ? "Failed to load services." : "No services available."}</p>
-              </DecoratorUI>
-            }
+          <div
+            ref={splideEl}
+            class="splide -mt-3"
+            aria-label="Services"
           >
-            <DecoratorUI class="grid grid-cols-12 gap-y-3 before:-inset-y-3 md:gap-x-3">
-              {data()?.map((work) => {
-                const IconComponent = getServiceIcon(work.icon);
-                return (
-                  <Card class="col-span-12 bg-background md:col-span-6 lg:col-span-3 transition-all duration-300 hover:border-foreground/30 hover:shadow-md">
-                    <CardHeader>
-                      <IconComponent class="size-9 text-primary transition-transform duration-300 group-hover:scale-110" />
-                    </CardHeader>
-                    <CardContent class="space-y-2">
-                      <CardTitle class="text-foreground text-lg">
-                        {work.title}
-                      </CardTitle>
-                      <CardDescription class="text-muted-foreground leading-normal">
-                        {work.description}
-                      </CardDescription>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+            <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
+              <div class="-mx-3 bg-secondary p-3">
+                <div class="splide__track">
+                  <ul class="splide__list">
+                    {data()?.map((work) => {
+                      const IconComponent = getServiceIcon(work.icon);
+                      return (
+                        <li class="splide__slide flex h-full py-2">
+                          <Card class="flex h-full w-full flex-col justify-between bg-background transition-all duration-300 hover:border-foreground/30 hover:shadow-md">
+                            <div>
+                              <CardHeader>
+                                <IconComponent class="size-9 text-primary transition-transform duration-300 group-hover:scale-110" />
+                              </CardHeader>
+                              <CardContent class="space-y-2">
+                                <CardTitle class="text-foreground text-lg">
+                                  {work.title}
+                                </CardTitle>
+                                <CardDescription class="text-muted-foreground leading-normal">
+                                  {work.description}
+                                </CardDescription>
+                              </CardContent>
+                            </div>
+                          </Card>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </div>
             </DecoratorUI>
-          </Show>
+          </div>
         </Show>
-      </div>
+      </Show>
 
       <DecoratorUI class="mt-16 text-center">
         <CalCom title="Let's Talk" size="lg" type="popup" />
@@ -96,4 +166,3 @@ export default function Services() {
     </Section>
   );
 }
-
