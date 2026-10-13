@@ -9,13 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
+import { cn } from "~/lib/utils";
 import type { IBlogPostItem } from "~/lib/api";
 
-export default function BlogCard(props: { post: IBlogPostItem }) {
+export default function BlogCard(props: { post: IBlogPostItem; class?: string }) {
   const item = () => props.post;
 
   return (
-    <Card class="bg-card/60 border-dashed backdrop-blur-xs group col-span-12 md:col-span-6 lg:col-span-4 transition-all duration-200 hover:border-primary/60 hover:shadow-md flex flex-col justify-between">
+    <Card class={cn("bg-card/60 border-dashed backdrop-blur-xs group col-span-12 md:col-span-6 lg:col-span-4 transition-all duration-200 hover:border-primary/60 hover:shadow-md flex flex-col justify-between", props.class)}>
       <div>
         <CardHeader>
           <figure class="relative flex aspect-video overflow-hidden rounded-lg border border-dashed border-border/80 bg-muted/30">

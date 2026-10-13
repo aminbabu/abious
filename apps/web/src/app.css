@@ -179,6 +179,15 @@
   .splide__arrow--transformed {
     @apply !bg-background/75 [&>svg]:!fill-foreground [&>svg]:!size-3.5 shadow-lg backdrop-blur-lg !opacity-100;
   }
+  .splide__track {
+    @apply h-full;
+  }
+  .splide__list {
+    @apply h-full items-stretch;
+  }
+  .splide__slide {
+    @apply h-auto;
+  }
 }
 
 @layer utilities {

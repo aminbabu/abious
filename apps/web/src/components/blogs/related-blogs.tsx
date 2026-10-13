@@ -1,5 +1,5 @@
-import { createResource, onCleanup, Show, For, createEffect } from "solid-js";
 import { Splide } from "@splidejs/splide";
+import { createEffect, createResource, For, onCleanup, Show } from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
 import BlogCard from "~/components/global/blog-card";
 import Section from "~/components/section";
@@ -12,7 +12,9 @@ export default function RelatedBlogs(props: { currentSlug: string }) {
   const [data] = createResource(async () => {
     try {
       const list = await api.blogs.list();
-      return (list || []).filter((b) => b.slug !== props.currentSlug);
+      return (list || [])
+        .filter((b) => b.slug !== props.currentSlug)
+        .slice(0, 6);
     } catch {
       return [];
     }
@@ -50,7 +52,7 @@ export default function RelatedBlogs(props: { currentSlug: string }) {
       perPage: 1,
       gap: "0.75rem",
       arrows: false,
-      pagination: true,
+      pagination: false,
       mediaQuery: "min",
       breakpoints: {
         768: {
@@ -116,14 +118,14 @@ export default function RelatedBlogs(props: { currentSlug: string }) {
               class="splide -mt-5"
               aria-label="Related Blog Posts"
             >
-              <DecoratorUI class="before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed py-px">
+              <DecoratorUI class="before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed py-px">
                 <div class="-mx-3 bg-secondary px-3">
                   <div class="splide__track">
                     <ul class="splide__list">
                       <For each={data()}>
                         {(post: IBlogPostItem) => (
-                          <li class="splide__slide py-3">
-                            <BlogCard post={post} />
+                          <li class="splide__slide flex h-full py-3">
+                            <BlogCard post={post} class="h-full w-full" />
                           </li>
                         )}
                       </For>

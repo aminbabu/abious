@@ -1,5 +1,5 @@
-import { createResource, onMount, onCleanup, Show, For, createEffect } from "solid-js";
 import { Splide } from "@splidejs/splide";
+import { createEffect, createResource, For, onCleanup, Show } from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
 import CaseStudy, { type ICaseStudy } from "~/components/global/case-study";
 import Section from "~/components/section";
@@ -8,19 +8,21 @@ import { Paragraph } from "~/components/ui/global/paragraph";
 import CaseStudiesLoader from "~/components/ui/loaders/case-studies";
 import { api } from "~/lib/api";
 
-export default function RelatedCaseStudies(props: { id: string; type?: string }) {
+export default function RelatedCaseStudies(props: {
+  id: string;
+  type?: string;
+}) {
   const [data] = createResource(
     () => ({ id: props.id, type: props.type }),
     async (params) => {
       try {
         const res = await api.caseStudies.related(params.id, params.type);
-        return res as unknown as ICaseStudy[];
+        return ((res as unknown as ICaseStudy[]) || []).slice(0, 6);
       } catch {
         return [];
       }
-    }
+    },
   );
-
 
   let splideEl: HTMLDivElement | undefined;
   let splideInstance: Splide | null = null;
@@ -54,7 +56,7 @@ export default function RelatedCaseStudies(props: { id: string; type?: string })
       perPage: 1,
       gap: "0.75rem",
       arrows: false,
-      pagination: true,
+      pagination: false,
       mediaQuery: "min",
       breakpoints: {
         768: {
@@ -71,8 +73,6 @@ export default function RelatedCaseStudies(props: { id: string; type?: string })
   onCleanup(() => {
     destroySplide();
   });
-
-
 
   return (
     <Section>
@@ -110,7 +110,9 @@ export default function RelatedCaseStudies(props: { id: string; type?: string })
             fallback={
               <DecoratorUI class="-mt-5">
                 <div class="bg-secondary -mx-3 p-3">
-                  <p class="text-muted-foreground">No related case studies found.</p>
+                  <p class="text-muted-foreground">
+                    No related case studies found.
+                  </p>
                 </div>
               </DecoratorUI>
             }
@@ -120,15 +122,17 @@ export default function RelatedCaseStudies(props: { id: string; type?: string })
               class="splide -mt-5"
               aria-label="Related Case Studies"
             >
-
-              <DecoratorUI class="before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed py-px">
+              <DecoratorUI class="before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed py-px">
                 <div class="-mx-3 bg-secondary px-3">
                   <div class="splide__track">
                     <ul class="splide__list">
                       <For each={data()}>
                         {(caseStudy) => (
-                          <li class="splide__slide py-3">
-                            <CaseStudy caseStudy={caseStudy} />
+                          <li class="splide__slide flex h-full py-3">
+                            <CaseStudy
+                              caseStudy={caseStudy}
+                              class="h-full w-full"
+                            />
                           </li>
                         )}
                       </For>
