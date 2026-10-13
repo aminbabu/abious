@@ -79,13 +79,15 @@ export default function Contact() {
         ./contact
       </Paragraph>
       <DecoratorUI>
-        <Heading size="lg" class="mb-4 max-w-sm sm:max-w-2xl lg:max-w-3xl xl:max-w-4xl">
-          Let&apos;s Build Something Great Together!
+        <Heading class="mb-3 max-w-sm sm:max-w-2xl lg:max-w-3xl">
+          {"Let's Build Something Great Together!"}
         </Heading>
       </DecoratorUI>
-      <DecoratorUI class="mb-12 before:-bottom-3 before:border-t-0 lg:mb-16">
-        <Paragraph size="lg" class="max-w-3xl text-muted-foreground font-normal leading-relaxed text-base sm:text-lg lg:text-xl">
-          Have a project in mind, need technical consulting, or just want to say hello? Send a message directly below, schedule a call, or reach out via email.
+      <DecoratorUI class="mb-16 before:-bottom-2 before:border-t-0 lg:mb-20">
+        <Paragraph class="max-w-2xl text-muted-foreground text-base sm:text-lg">
+          Have a project in mind, need technical consulting, or just want to
+          say hello? Send a message directly below, schedule a call, or reach
+          out via email.
         </Paragraph>
       </DecoratorUI>
 
@@ -94,14 +96,14 @@ export default function Contact() {
         <div class="col-span-12 lg:col-span-7">
           <Card class="bg-card/60 border-dashed backdrop-blur-xs shadow-md">
             <CardContent class="p-6 sm:p-8">
-              <h3 class="mb-2 text-xl font-bold font-mono tracking-tight text-foreground">Send a Message</h3>
+              <h3 class="mb-2 text-xl font-bold tracking-tight text-foreground">Send a Message</h3>
               <p class="mb-6 text-sm text-muted-foreground">Fill in the details and I'll reply promptly.</p>
 
               <Show when={status() === "success"}>
                 <div class="mb-6 flex items-start gap-3 rounded-lg border border-dashed border-emerald-500/40 bg-emerald-500/10 p-4 text-emerald-400">
                   <RiSystemCheckDoubleLine class="size-5 shrink-0 mt-0.5 text-emerald-500" />
                   <div>
-                    <h4 class="font-semibold text-sm font-mono">Message Sent</h4>
+                    <h4 class="font-semibold text-sm">Message Sent</h4>
                     <p class="text-xs sm:text-sm mt-0.5 opacity-90">{successMessage()}</p>
                   </div>
                 </div>
@@ -111,7 +113,7 @@ export default function Contact() {
                 <div class="mb-6 flex items-start gap-3 rounded-lg border border-dashed border-destructive/40 bg-destructive/10 p-4 text-destructive">
                   <RiSystemAlertLine class="size-5 shrink-0 mt-0.5" />
                   <div>
-                    <h4 class="font-semibold text-sm font-mono">Error Sending Message</h4>
+                    <h4 class="font-semibold text-sm">Error Sending Message</h4>
                     <p class="text-xs sm:text-sm mt-0.5 opacity-90">{errorMessage()}</p>
                   </div>
                 </div>
@@ -122,7 +124,7 @@ export default function Contact() {
                   <Field of={form} path={["name"]}>
                     {(field) => (
                       <div class="space-y-1.5">
-                        <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="name">
+                        <label class="text-xs uppercase tracking-wider text-muted-foreground font-medium" for="name">
                           Name *
                         </label>
                         <div class="relative flex items-center">
@@ -149,7 +151,7 @@ export default function Contact() {
                   <Field of={form} path={["email"]}>
                     {(field) => (
                       <div class="space-y-1.5">
-                        <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="email">
+                        <label class="text-xs uppercase tracking-wider text-muted-foreground font-medium" for="email">
                           Email *
                         </label>
                         <div class="relative flex items-center">
@@ -167,7 +169,7 @@ export default function Contact() {
                           />
                         </div>
                         {field.errors && (
-                          <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                          <p class="text-[11px] text-destructive">{field.errors[0]}</p>
                         )}
                       </div>
                     )}
@@ -177,7 +179,7 @@ export default function Contact() {
                 <Field of={form} path={["subject"]}>
                   {(field) => (
                     <div class="space-y-1.5">
-                      <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="subject">
+                      <label class="text-xs uppercase tracking-wider text-muted-foreground font-medium" for="subject">
                         Subject *
                       </label>
                       <div class="relative flex items-center">
@@ -195,7 +197,7 @@ export default function Contact() {
                         />
                       </div>
                       {field.errors && (
-                        <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                        <p class="text-[11px] text-destructive">{field.errors[0]}</p>
                       )}
                     </div>
                   )}
@@ -204,7 +206,7 @@ export default function Contact() {
                 <Field of={form} path={["message"]}>
                   {(field) => (
                     <div class="space-y-1.5">
-                      <label class="text-xs font-mono uppercase tracking-wider text-muted-foreground" for="message">
+                      <label class="text-xs uppercase tracking-wider text-muted-foreground font-medium" for="message">
                         Message *
                       </label>
                       <div class="relative">
@@ -222,7 +224,7 @@ export default function Contact() {
                         />
                       </div>
                       {field.errors && (
-                        <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                        <p class="text-[11px] text-destructive">{field.errors[0]}</p>
                       )}
                     </div>
                   )}
@@ -233,7 +235,7 @@ export default function Contact() {
                     type="submit"
                     size="lg"
                     disabled={status() === "submitting" || form.isSubmitting}
-                    class="w-full sm:w-auto h-11 px-8 rounded-full font-mono font-medium cursor-pointer"
+                    class="w-full sm:w-auto h-11 px-8 rounded-full font-medium cursor-pointer"
                   >
                     <Show
                       when={status() === "submitting" || form.isSubmitting}

@@ -45,9 +45,7 @@ export default function Services() {
       </DecoratorUI>
       <DecoratorUI class="mb-16 before:-bottom-2 before:border-t-0 lg:mb-20">
         <Paragraph class="max-w-2xl text-muted-foreground text-base sm:text-lg">
-          Building fast, scalable, and intuitive solutions—whether it&apos;s web
-          development, backend APIs, WordPress, or debugging, I ensure
-          performance and innovation in every project.
+          {"Building fast, scalable, and intuitive solutions—whether it's web development, backend APIs, WordPress, or debugging, I ensure performance and innovation in every project."}
         </Paragraph>
       </DecoratorUI>
 

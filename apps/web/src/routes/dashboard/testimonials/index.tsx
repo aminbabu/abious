@@ -15,6 +15,7 @@ import { DataTable, ColumnDef } from "~/components/dashboard/data-table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Select } from "~/components/ui/select";
+import Image from "~/components/ui/image";
 import ImageUploadDropzone from "~/components/dashboard/image-upload-dropzone";
 import { api, ITestimonialItem } from "~/lib/api";
 
@@ -151,7 +152,7 @@ export default function TestimonialsAdminPage() {
                 </div>
               }
             >
-              <img
+              <Image
                 src={clientAvatar}
                 alt={clientName}
                 class="size-7 rounded-full object-cover border border-border"
@@ -349,11 +350,11 @@ export default function TestimonialsAdminPage() {
                     value={String(rating())}
                     onChange={(val) => setRating(parseInt(val, 10))}
                     options={[
-                      { value: "5", label: "★★★★★ 5 Stars (Exceptional)", badge: "5/5" },
-                      { value: "4", label: "★★★★☆ 4 Stars (Very Good)", badge: "4/5" },
-                      { value: "3", label: "★★★☆☆ 3 Stars (Satisfied)", badge: "3/5" },
-                      { value: "2", label: "★★☆☆☆ 2 Stars (Fair)", badge: "2/5" },
-                      { value: "1", label: "★☆☆☆☆ 1 Star (Poor)", badge: "1/5" },
+                      { value: "5", label: "5 Stars (Exceptional)", badge: "5/5", icon: RiSystemStarFill },
+                      { value: "4", label: "4 Stars (Very Good)", badge: "4/5", icon: RiSystemStarFill },
+                      { value: "3", label: "3 Stars (Satisfied)", badge: "3/5", icon: RiSystemStarFill },
+                      { value: "2", label: "2 Stars (Fair)", badge: "2/5", icon: RiSystemStarFill },
+                      { value: "1", label: "1 Star (Poor)", badge: "1/5", icon: RiSystemStarFill },
                     ]}
                   />
                 </div>

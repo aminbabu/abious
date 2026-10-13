@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import { RiBusinessCopyrightLine } from "solid-icons/ri";
 import Container from "~/components/container";
 import DecoratorUI from "~/components/decorator-ui";
 import { cn } from "~/lib/utils";
@@ -14,8 +15,9 @@ export default function Footer() {
     <footer class="overflow-hidden">
       <Container>
         <DecoratorUI class="flex flex-col items-center justify-between gap-2 gap-x-6 py-5 before:border-b-0 before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed sm:flex-row md:px-3">
-          <p class="text-sm text-muted-foreground">
-            &copy; {dayjs().format("YYYY")} Design & Developed by{" "}
+          <p class="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+            <RiBusinessCopyrightLine class="size-3.5" />
+            <span>{dayjs().format("YYYY")} Design & Developed by{" "}</span>
             <span class="font-medium text-foreground">Amin Babu</span>
           </p>
           <ul class="flex gap-x-2 text-muted-foreground">

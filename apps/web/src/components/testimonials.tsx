@@ -1,6 +1,8 @@
-import { createResource, onMount, onCleanup, Show, createEffect } from "solid-js";
+import { createResource, onMount, onCleanup, Show, createEffect, For } from "solid-js";
+import { RiEditorDoubleQuotesL, RiSystemStarFill } from "solid-icons/ri";
 import DecoratorUI from "~/components/decorator-ui";
 import Section from "~/components/section";
+import Image from "~/components/ui/image";
 import {
   Card,
   CardContent,
@@ -130,13 +132,16 @@ export default function Testimonials() {
                             <Card class="h-full">
                               <CardContent class="flex h-full flex-col gap-6">
                                 <CardDescription>
-                                  <p class="text-base sm:text-lg leading-relaxed text-foreground/85 font-normal">
-                                    &ldquo;{testimonial.body?.trim()}&rdquo;
-                                  </p>
+                                  <div class="relative pl-6">
+                                    <RiEditorDoubleQuotesL class="absolute left-0 top-0 size-4 text-primary/60 shrink-0" />
+                                    <p class="text-base sm:text-lg leading-relaxed text-foreground/85 font-normal">
+                                      {testimonial.body?.trim()}
+                                    </p>
+                                  </div>
                                 </CardDescription>
                                 <div class="mt-auto flex items-center gap-4">
                                   <figure class="border-border block aspect-square size-14 shrink-0 overflow-hidden rounded-full border shadow-sm">
-                                    <img
+                                    <Image
                                       src={avatar}
                                       alt={name}
                                       width="100"
