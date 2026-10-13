@@ -1,4 +1,5 @@
 import { JSX, splitProps } from "solid-js";
+import { A } from "@solidjs/router";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "~/lib/utils";
 
@@ -46,10 +47,32 @@ export interface ButtonProps
 function Button(props: ButtonProps) {
   const [local, others] = splitProps(props, ["class", "variant", "size", "as", "asChild", "children", "href", "target", "rel"]);
 
-  // If href is passed or children is a single anchor in asChild mode, render as <a> or respect component
+  // If href is passed, render with <A /> for internal links or <a> for external
   if (local.href) {
+    const isExternal =
+      local.href.startsWith("http://") ||
+      local.href.startsWith("https://") ||
+      local.href.startsWith("mailto:") ||
+      local.href.startsWith("tel:") ||
+      Boolean(local.target && local.target !== "_self");
+
+    if (isExternal) {
+      return (
+        <a
+          href={local.href}
+          target={local.target}
+          rel={local.rel ?? "noopener noreferrer"}
+          data-slot="button"
+          class={cn(buttonVariants({ variant: local.variant, size: local.size }), local.class)}
+          {...(others as any)}
+        >
+          {local.children}
+        </a>
+      );
+    }
+
     return (
-      <a
+      <A
         href={local.href}
         target={local.target}
         rel={local.rel}
@@ -58,7 +81,7 @@ function Button(props: ButtonProps) {
         {...(others as any)}
       >
         {local.children}
-      </a>
+      </A>
     );
   }
 
