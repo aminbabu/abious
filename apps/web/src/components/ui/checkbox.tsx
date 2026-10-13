@@ -6,6 +6,7 @@ export interface CheckboxProps {
   id?: string;
   name?: string;
   checked?: boolean;
+  indeterminate?: boolean;
   disabled?: boolean;
   required?: boolean;
   onChange?: (checked: boolean) => void;
@@ -18,12 +19,15 @@ export function Checkbox(props: CheckboxProps) {
   const [local, others] = splitProps(props, [
     "id",
     "checked",
+    "indeterminate",
     "disabled",
     "onChange",
     "class",
     "label",
     "description",
   ]);
+
+  let inputRef: HTMLInputElement | undefined;
 
   return (
     <label
@@ -35,6 +39,10 @@ export function Checkbox(props: CheckboxProps) {
     >
       <div class="relative flex items-center justify-center mt-0.5">
         <input
+          ref={(el) => {
+            inputRef = el;
+            if (el) el.indeterminate = !!local.indeterminate;
+          }}
           type="checkbox"
           id={local.id}
           checked={local.checked}
@@ -47,12 +55,15 @@ export function Checkbox(props: CheckboxProps) {
           class={cn(
             "flex size-4.5 items-center justify-center rounded-md border border-dashed border-input bg-background/60 shadow-2xs transition-all",
             "peer-focus-visible:border-ring peer-focus-visible:ring-2 peer-focus-visible:ring-ring/40",
-            "peer-checked:border-primary peer-checked:bg-primary peer-checked:text-primary-foreground",
+            (local.checked || local.indeterminate) && "border-primary bg-primary text-primary-foreground",
             "group-hover:border-primary/70"
           )}
         >
-          <Show when={local.checked}>
+          <Show when={local.checked && !local.indeterminate}>
             <RiSystemCheckLine class="size-3 stroke-2" />
+          </Show>
+          <Show when={local.indeterminate}>
+            <span class="h-0.5 w-2 bg-primary-foreground rounded-full" />
           </Show>
         </div>
       </div>
