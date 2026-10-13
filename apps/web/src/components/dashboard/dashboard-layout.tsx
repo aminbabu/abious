@@ -638,31 +638,19 @@ export default function DashboardLayout(props: {
 
             {/* Top Right Controls */}
             <div class="flex items-center gap-2 shrink-0">
-              {/* Shadcn-like Command Search Trigger Button */}
+              {/* Command Search Trigger Button - compact icon + ⌘K */}
               <button
                 type="button"
                 onClick={() => setCommandDialogOpen(true)}
-                class="hidden sm:inline-flex items-center gap-2.5 h-9 px-3 rounded-lg border border-dashed border-border/80 bg-background/70 hover:bg-secondary hover:border-primary/50 text-xs font-mono text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                class="inline-flex items-center gap-1.5 h-9 px-2.5 rounded-lg border border-dashed border-border/80 bg-background/70 hover:bg-secondary hover:border-primary/50 text-xs font-mono text-muted-foreground hover:text-foreground transition-all cursor-pointer shadow-xs"
                 title="Search commands (⌘K or Ctrl+K)"
                 aria-label="Search dashboard commands"
               >
                 <RiSystemSearchLine class="size-3.5 text-primary" />
-                <span class="hidden md:inline">Search commands...</span>
-                <span class="inline md:hidden">Search</span>
-                <kbd class="pointer-events-none hidden md:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-muted/70 px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                <kbd class="pointer-events-none inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-muted/70 px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
                   <RiDevelopmentCommandLine class="size-2.5" />
                   <span>K</span>
                 </kbd>
-              </button>
-
-              {/* Mobile Search Icon Button */}
-              <button
-                type="button"
-                onClick={() => setCommandDialogOpen(true)}
-                class="sm:hidden flex items-center justify-center size-9 rounded-lg border border-dashed border-border/80 text-muted-foreground hover:bg-secondary hover:text-foreground cursor-pointer"
-                aria-label="Search"
-              >
-                <RiSystemSearchLine class="size-4" />
               </button>
 
               <Show when={props.action || props.actions}>
