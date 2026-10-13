@@ -131,7 +131,7 @@ export default function RegisterPage() {
 
           <div class="relative flex items-center justify-center py-2">
             <div class="w-full border-t border-dashed border-border" />
-            <span class="absolute bg-card px-2 text-[11px] font-mono uppercase text-muted-foreground">
+            <span class="absolute bg-card px-2 text-[11px] uppercase text-muted-foreground">
               Or sign up with email
             </span>
           </div>
@@ -141,7 +141,7 @@ export default function RegisterPage() {
             <Field of={form} path={["name"]}>
               {(field) => (
                 <div class="space-y-1.5">
-                  <label for="name" class="text-xs font-mono font-medium text-foreground">
+                  <label for="name" class="text-xs font-medium text-foreground">
                     Full Name
                   </label>
                   <div class="relative flex items-center">
@@ -156,7 +156,7 @@ export default function RegisterPage() {
                     />
                   </div>
                   {field.errors && (
-                    <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                    <p class="text-[11px] text-destructive">{field.errors[0]}</p>
                   )}
                 </div>
               )}
@@ -165,7 +165,7 @@ export default function RegisterPage() {
             <Field of={form} path={["email"]}>
               {(field) => (
                 <div class="space-y-1.5">
-                  <label for="email" class="text-xs font-mono font-medium text-foreground">
+                  <label for="email" class="text-xs font-medium text-foreground">
                     Email address
                   </label>
                   <div class="relative flex items-center">
@@ -180,7 +180,7 @@ export default function RegisterPage() {
                     />
                   </div>
                   {field.errors && (
-                    <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                    <p class="text-[11px] text-destructive">{field.errors[0]}</p>
                   )}
                 </div>
               )}
@@ -189,7 +189,7 @@ export default function RegisterPage() {
             <Field of={form} path={["password"]}>
               {(field) => (
                 <div class="space-y-1.5">
-                  <label for="password" class="text-xs font-mono font-medium text-foreground">
+                  <label for="password" class="text-xs font-medium text-foreground">
                     Password
                   </label>
                   <div class="relative flex items-center">
@@ -216,7 +216,7 @@ export default function RegisterPage() {
                     </button>
                   </div>
                   {field.errors && (
-                    <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                    <p class="text-[11px] text-destructive">{field.errors[0]}</p>
                   )}
                 </div>
               )}
@@ -225,14 +225,14 @@ export default function RegisterPage() {
             <Button
               type="submit"
               disabled={loading() || form.isSubmitting}
-              class="w-full font-mono mt-2 cursor-pointer flex items-center justify-center gap-2"
+              class="w-full mt-2 cursor-pointer flex items-center justify-center gap-2"
             >
               <span>{loading() || form.isSubmitting ? "Creating profile..." : "Create Account"}</span>
               <RiArrowsArrowRightLine class="size-4" />
             </Button>
           </Form>
 
-          <div class="text-center pt-2 text-xs text-muted-foreground font-mono">
+          <div class="text-center pt-2 text-xs text-muted-foreground">
             Already have an account?{" "}
             <A href="/auth/login" class="text-primary hover:underline font-medium">
               Sign in

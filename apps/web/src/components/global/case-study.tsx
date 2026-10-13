@@ -1,4 +1,5 @@
 import { RiArrowsArrowRightLine, RiSystemExternalLinkLine } from "solid-icons/ri";
+import Image from "~/components/ui/image";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -29,7 +30,7 @@ export default function CaseStudy(props: { caseStudy: ICaseStudy }) {
       <div>
         <CardHeader>
           <figure class="relative flex aspect-video overflow-hidden rounded-lg border border-dashed border-border/80">
-            <img
+            <Image
               src={item()?.data?.banner}
               alt={item()?.data?.title}
               width="600"
@@ -39,14 +40,14 @@ export default function CaseStudy(props: { caseStudy: ICaseStudy }) {
           </figure>
         </CardHeader>
         <CardContent class="space-y-2">
-          <CardTitle class="text-foreground text-lg font-mono font-bold group-hover:text-primary transition-colors">{item()?.data?.title}</CardTitle>
+          <CardTitle class="text-foreground text-lg font-bold group-hover:text-primary transition-colors">{item()?.data?.title}</CardTitle>
           <CardDescription class="line-clamp-2 text-muted-foreground leading-normal text-xs sm:text-sm">
             {item()?.data?.description}
           </CardDescription>
         </CardContent>
       </div>
       <CardFooter class="mt-auto flex items-center gap-x-2.5 pt-4">
-        <Button href={`/case-studies/${item()?.id}`} class="rounded-full text-xs font-mono font-medium cursor-pointer">
+        <Button href={`/case-studies/${item()?.id}`} class="rounded-full text-xs font-medium cursor-pointer">
           View Details
           <RiArrowsArrowRightLine class="ml-1.5 size-3.5" />
         </Button>
@@ -56,7 +57,7 @@ export default function CaseStudy(props: { caseStudy: ICaseStudy }) {
             href={item()?.data?.liveURL}
             target="_blank"
             rel="noopener noreferrer"
-            class="rounded-full text-xs font-mono font-medium cursor-pointer"
+            class="rounded-full text-xs font-medium cursor-pointer"
           >
             Live Site
             <RiSystemExternalLinkLine class="ml-1.5 size-3.5" />

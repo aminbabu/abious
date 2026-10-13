@@ -87,7 +87,7 @@ export function Pagination(props: PaginationProps) {
           disabled={props.currentPage <= 1}
           onClick={() => props.onPageChange(props.currentPage - 1)}
           aria-label="Previous Page"
-          class="rounded-full px-3 gap-1 font-mono text-xs"
+          class="rounded-full px-3 gap-1 text-xs"
         >
           <RiArrowsArrowLeftSLine class="size-4" />
           <span class="hidden sm:inline">Prev</span>
@@ -99,7 +99,7 @@ export function Pagination(props: PaginationProps) {
               <Show
                 when={pageItem !== "ellipsis"}
                 fallback={
-                  <span class="px-2 py-1 text-xs text-muted-foreground font-mono select-none">
+                  <span class="px-2 py-1 text-xs text-muted-foreground select-none">
                     …
                   </span>
                 }
@@ -110,7 +110,7 @@ export function Pagination(props: PaginationProps) {
                   aria-current={pageItem === props.currentPage ? "page" : undefined}
                   onClick={() => props.onPageChange(pageItem as number)}
                   class={cn(
-                    "min-w-8 h-8 rounded-full font-mono text-xs px-2.5",
+                    "min-w-8 h-8 rounded-full text-xs px-2.5",
                     pageItem === props.currentPage && "pointer-events-none shadow-xs font-semibold",
                   )}
                 >
@@ -127,7 +127,7 @@ export function Pagination(props: PaginationProps) {
           disabled={props.currentPage >= props.totalPages}
           onClick={() => props.onPageChange(props.currentPage + 1)}
           aria-label="Next Page"
-          class="rounded-full px-3 gap-1 font-mono text-xs"
+          class="rounded-full px-3 gap-1 text-xs"
         >
           <span class="hidden sm:inline">Next</span>
           <RiArrowsArrowRightSLine class="size-4" />

@@ -1,4 +1,5 @@
 import { JSX, Show } from "solid-js";
+import { A } from "@solidjs/router";
 import {
   RiArrowsArrowLeftLine,
   RiArrowsArrowRightLine,
@@ -190,7 +191,7 @@ export default function NotFoundState(props: NotFoundStateProps) {
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           {quickLinks.map((item) => (
-            <a
+            <A
               href={item.href}
               class="group bg-card hover:bg-secondary/40 relative flex flex-col justify-between rounded-xl border border-border/80 p-5 transition-all duration-200 hover:border-primary/50 hover:shadow-sm"
             >
@@ -214,7 +215,7 @@ export default function NotFoundState(props: NotFoundStateProps) {
                 <span>Navigate</span>
                 <RiArrowsArrowRightLine class="size-3.5 transition-transform group-hover:translate-x-1" />
               </div>
-            </a>
+            </A>
           ))}
         </div>
       </div>

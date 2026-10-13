@@ -122,7 +122,7 @@ export default function ResetPasswordPage() {
                 <Button
                   as="a"
                   href="/auth/login"
-                  class="w-full font-mono text-xs cursor-pointer flex items-center justify-center gap-2"
+                  class="w-full text-xs cursor-pointer flex items-center justify-center gap-2"
                 >
                   <span>Proceed to sign in</span>
                   <RiArrowsArrowRightLine class="size-4" />
@@ -135,7 +135,7 @@ export default function ResetPasswordPage() {
               <Field of={form} path={["password"]}>
                 {(field) => (
                   <div class="space-y-1.5">
-                    <label for="password" class="text-xs font-mono font-medium text-foreground">
+                    <label for="password" class="text-xs font-medium text-foreground">
                       New Password
                     </label>
                     <div class="relative flex items-center">
@@ -162,7 +162,7 @@ export default function ResetPasswordPage() {
                       </button>
                     </div>
                     {field.errors && (
-                      <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                      <p class="text-[11px] text-destructive">{field.errors[0]}</p>
                     )}
                   </div>
                 )}
@@ -171,7 +171,7 @@ export default function ResetPasswordPage() {
               <Field of={form} path={["confirmPassword"]}>
                 {(field) => (
                   <div class="space-y-1.5">
-                    <label for="confirmPassword" class="text-xs font-mono font-medium text-foreground">
+                    <label for="confirmPassword" class="text-xs font-medium text-foreground">
                       Confirm New Password
                     </label>
                     <div class="relative flex items-center">
@@ -198,7 +198,7 @@ export default function ResetPasswordPage() {
                       </button>
                     </div>
                     {field.errors && (
-                      <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                      <p class="text-[11px] text-destructive">{field.errors[0]}</p>
                     )}
                   </div>
                 )}
@@ -207,14 +207,14 @@ export default function ResetPasswordPage() {
               <Button
                 type="submit"
                 disabled={loading() || !token() || form.isSubmitting}
-                class="w-full font-mono mt-2 cursor-pointer flex items-center justify-center gap-2"
+                class="w-full mt-2 cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>{loading() || form.isSubmitting ? "Updating password..." : "Confirm & Save"}</span>
                 <RiArrowsArrowRightLine class="size-4" />
               </Button>
             </Form>
 
-            <div class="text-center pt-2 text-xs text-muted-foreground font-mono">
+            <div class="text-center pt-2 text-xs text-muted-foreground">
               Remembered your credentials?{" "}
               <A href="/auth/login" class="text-primary hover:underline font-medium">
                 Sign in

@@ -11,7 +11,7 @@ export function Input(props: InputProps) {
     <input
       type={local.type || "text"}
       class={cn(
-        "flex h-9 w-full rounded-md border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs transition-colors outline-none",
+        "flex h-9 w-full rounded-md border bg-background/50 px-3 py-2 text-xs text-foreground shadow-xs transition-colors outline-none",
         "placeholder:text-muted-foreground",
         "focus:border-primary focus:ring-1 focus:ring-primary",
         "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/40",
@@ -34,7 +34,7 @@ export function Textarea(props: TextareaProps) {
   return (
     <textarea
       class={cn(
-        "flex min-h-[90px] w-full resize-y rounded-md border bg-background/50 px-3 py-2 text-xs font-mono text-foreground shadow-xs transition-colors outline-none leading-relaxed",
+        "flex min-h-[90px] w-full resize-y rounded-md border bg-background/50 px-3 py-2 text-xs text-foreground shadow-xs transition-colors outline-none leading-relaxed",
         "placeholder:text-muted-foreground",
         "focus:border-primary focus:ring-1 focus:ring-primary",
         "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/40",
@@ -56,7 +56,7 @@ export function FormLabel(props: FormLabelProps) {
   const [local, others] = splitProps(props, ["class", "required", "children"]);
   return (
     <label
-      class={cn("text-xs font-mono font-medium text-foreground flex items-center gap-1", local.class)}
+      class={cn("text-xs font-medium text-foreground flex items-center gap-1", local.class)}
       {...others}
     >
       <span>{local.children}</span>
@@ -70,7 +70,7 @@ export interface FormDescriptionProps extends JSX.HTMLAttributes<HTMLParagraphEl
 export function FormDescription(props: FormDescriptionProps) {
   const [local, others] = splitProps(props, ["class", "children"]);
   return (
-    <p class={cn("text-[11px] font-mono text-muted-foreground leading-normal", local.class)} {...others}>
+    <p class={cn("text-[11px] text-muted-foreground leading-normal", local.class)} {...others}>
       {local.children}
     </p>
   );
@@ -81,7 +81,7 @@ export interface FormErrorProps extends JSX.HTMLAttributes<HTMLParagraphElement>
 export function FormError(props: FormErrorProps) {
   const [local, others] = splitProps(props, ["class", "children"]);
   return (
-    <p class={cn("text-[11px] font-mono text-destructive leading-normal", local.class)} {...others}>
+    <p class={cn("text-[11px] text-destructive leading-normal", local.class)} {...others}>
       {local.children}
     </p>
   );

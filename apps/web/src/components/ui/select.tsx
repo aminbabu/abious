@@ -114,7 +114,7 @@ export function Select(props: SelectProps) {
   return (
     <div
       ref={containerRef}
-      class={cn("relative font-mono select-none", local.class)}
+      class={cn("relative select-none", local.class)}
       {...others}
     >
       {/* Hidden input for form serialization if name is provided */}
@@ -129,7 +129,7 @@ export function Select(props: SelectProps) {
         disabled={local.disabled}
         onClick={toggleOpen}
         class={cn(
-          "w-full flex items-center justify-between rounded-md border border-input bg-background/50 px-3 text-xs font-mono text-foreground shadow-xs outline-none transition-all",
+          "w-full flex items-center justify-between rounded-md border border-input bg-background/50 px-3 text-xs text-foreground shadow-xs outline-none transition-all",
           "hover:bg-background/80 hover:border-foreground/30 focus:border-primary focus:ring-1 focus:ring-primary",
           "disabled:cursor-not-allowed disabled:opacity-50",
           isSmall() ? "h-8 py-1 text-[11px]" : "h-9 py-2",
@@ -200,7 +200,7 @@ export function Select(props: SelectProps) {
                     role="option"
                     aria-selected={isSelected()}
                     class={cn(
-                      "relative flex w-full items-center justify-between rounded-sm px-2.5 py-1.5 text-xs font-mono outline-none transition-colors text-left cursor-pointer",
+                      "relative flex w-full items-center justify-between rounded-sm px-2.5 py-1.5 text-xs outline-none transition-colors text-left cursor-pointer",
                       "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
                       isSelected() && "bg-primary/10 text-primary font-medium",
                       option.disabled && "cursor-not-allowed opacity-50",

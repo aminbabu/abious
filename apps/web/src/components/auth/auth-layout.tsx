@@ -1,4 +1,5 @@
 import { JSX } from "solid-js";
+import { A } from "@solidjs/router";
 import { RiArrowsArrowLeftLine, RiSystemShieldKeyholeLine } from "solid-icons/ri";
 import Container from "~/components/container";
 import ThemeSwitcher from "~/components/theme-switcher";
@@ -17,7 +18,7 @@ export default function AuthLayout(props: {
       <header class="py-4">
         <Container>
           <div class="flex items-center justify-between">
-            <a
+            <A
               href="/"
               class="text-primary group relative px-1.5 font-mono text-sm font-medium inline-block select-none"
               aria-label="Amin Babu Home"
@@ -36,16 +37,16 @@ export default function AuthLayout(props: {
               <svg width="5" height="5" viewBox="0 0 5 5" class="fill-primary absolute -bottom-0.5 -right-0.5 pointer-events-none">
                 <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
               </svg>
-            </a>
+            </A>
 
             <div class="flex items-center gap-3">
-              <a
+              <A
                 href="/"
-                class="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
+                class="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
                 <RiArrowsArrowLeftLine class="size-3.5" />
                 <span>Back to site</span>
-              </a>
+              </A>
               <ThemeSwitcher />
             </div>
           </div>
@@ -59,7 +60,7 @@ export default function AuthLayout(props: {
             <div class="mb-3.5 flex size-12 items-center justify-center rounded-xl border border-dashed border-border bg-card/80 shadow-xs backdrop-blur-xs">
               <IconComponent />
             </div>
-            <h1 class="text-2xl font-bold tracking-tight text-foreground font-mono">
+            <h1 class="text-2xl font-bold tracking-tight text-foreground">
               {props.title}
             </h1>
             {props.subtitle && (

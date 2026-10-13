@@ -1,4 +1,5 @@
 import { createSignal, Show, onCleanup, createEffect, onMount } from "solid-js";
+import { A } from "@solidjs/router";
 import { Portal } from "solid-js/web";
 import {
   RiLogosGithubLine,
@@ -138,7 +139,7 @@ export default function Header() {
       <Container>
         <div class="border-border flex items-center justify-between gap-x-2 sm:gap-x-4 py-3 md:border-x md:border-dashed md:px-3 lg:gap-x-6">
           {/* Brand Logo - visible across all screens */}
-          <a
+          <A
             href="/"
             class="text-primary group relative px-1.5 font-mono text-sm font-medium inline-block select-none shrink-0"
             aria-label="Amin Babu Home"
@@ -177,18 +178,18 @@ export default function Header() {
             >
               <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
             </svg>
-          </a>
+          </A>
 
           {/* Desktop Navigation Links - hidden under 1024px (< lg) */}
           <ul class="mr-auto hidden items-center gap-x-4 lg:flex xl:gap-x-6">
             {navigationItems.map((item) => (
               <li key={item.id}>
-                <a
+                <A
                   href={item.href}
                   class="text-muted-foreground hover:text-foreground text-sm font-medium transition-colors duration-200"
                 >
                   {item.title}
-                </a>
+                </A>
               </li>
             ))}
           </ul>
@@ -269,48 +270,48 @@ export default function Header() {
                       <div class="absolute right-0 top-full mt-2 z-50 w-64 rounded-xl border border-dashed border-border bg-card/95 p-2 shadow-xl backdrop-blur-xl animate-in fade-in-0 zoom-in-95">
                         {/* User Identity Header */}
                         <div class="border-b border-dashed border-border/70 px-2.5 pb-2.5 pt-1">
-                          <p class="text-xs font-mono font-semibold text-foreground truncate">
+                          <p class="text-xs font-semibold text-foreground truncate">
                             {u().name || "Admin"}
                           </p>
-                          <p class="text-[11px] font-mono text-muted-foreground truncate">
+                          <p class="text-[11px] text-muted-foreground truncate">
                             {u().email || ""}
                           </p>
-                          <div class="mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary font-mono text-[10px] font-medium">
+                          <div class="mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary text-[10px] font-medium">
                             <RiSystemShieldCheckLine class="size-3" />
                             <span>Authenticated Admin</span>
                           </div>
                         </div>
 
                         {/* Navigation Links */}
-                        <div class="py-1.5 space-y-0.5 font-mono text-xs">
-                          <a
+                        <div class="py-1.5 space-y-0.5 text-xs">
+                          <A
                             href="/dashboard/overview"
                             onClick={() => setUserMenuOpen(false)}
                             class="flex items-center gap-2 rounded-lg px-2.5 py-2 text-foreground hover:bg-secondary hover:text-primary transition-colors"
                           >
                             <RiSystemDashboardLine class="size-3.5 text-primary" />
                             <span>Dashboard Overview</span>
-                          </a>
-                          <a
+                          </A>
+                          <A
                             href="/dashboard/blogs"
                             onClick={() => setUserMenuOpen(false)}
                             class="flex items-center gap-2 rounded-lg px-2.5 py-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                           >
                             <RiDesignEditLine class="size-3.5" />
                             <span>Manage Content</span>
-                          </a>
-                          <a
+                          </A>
+                          <A
                             href="/dashboard/settings"
                             onClick={() => setUserMenuOpen(false)}
                             class="flex items-center gap-2 rounded-lg px-2.5 py-2 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
                           >
                             <RiSystemSettings3Line class="size-3.5" />
                             <span>CMS Settings</span>
-                          </a>
+                          </A>
                         </div>
 
                         {/* Sign Out Action */}
-                        <div class="border-t border-dashed border-border/70 pt-1 font-mono text-xs">
+                        <div class="border-t border-dashed border-border/70 pt-1 text-xs">
                           <button
                             type="button"
                             onClick={() => {
@@ -364,7 +365,7 @@ export default function Header() {
               {/* Drawer Header */}
               <div class="flex items-center justify-between pb-3 border-b border-dashed border-border/80">
                 <div class="flex flex-col gap-0.5">
-                  <a
+                  <A
                     href="/"
                     onClick={() => setSheetOpen(false)}
                     class="text-primary group relative px-1.5 font-mono text-sm self-start font-medium inline-block select-none"
@@ -384,7 +385,7 @@ export default function Header() {
                     <svg width="5" height="5" viewBox="0 0 5 5" class="fill-primary absolute -bottom-0.5 -right-0.5 pointer-events-none">
                       <path d="M2 0h1v2h2v1h-2v2h-1v-2h-2v-1h2z"></path>
                     </svg>
-                  </a>
+                  </A>
                   <span class="text-xs text-muted-foreground">Navigation & Connect</span>
                 </div>
                 {/* Standard close button */}
@@ -406,13 +407,13 @@ export default function Header() {
                 <ul class="flex flex-col gap-y-1">
                   {navigationItems.map((item) => (
                     <li key={item.id}>
-                      <a
+                      <A
                         href={item.href}
                         onClick={() => setSheetOpen(false)}
                         class="flex items-center rounded-lg px-3 py-2.5 text-base font-medium text-foreground hover:bg-secondary transition-colors"
                       >
                         {item.title}
-                      </a>
+                      </A>
                     </li>
                   ))}
                 </ul>
@@ -425,43 +426,43 @@ export default function Header() {
                       <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                           <RiUserFacesUserLine class="size-4 text-muted-foreground" />
-                          <span class="text-xs font-mono text-muted-foreground">Portal Access</span>
+                          <span class="text-xs text-muted-foreground">Portal Access</span>
                         </div>
-                        <a
+                        <A
                           href="/auth/login"
                           onClick={() => setSheetOpen(false)}
-                          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-primary/50 text-xs font-mono font-medium text-primary hover:bg-primary/10 transition-colors"
+                          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-primary/50 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
                         >
                           <RiSystemLoginBoxLine class="size-3.5" />
                           <span>Admin Login</span>
-                        </a>
+                        </A>
                       </div>
                     }
                   >
                     {(u) => (
                       <div class="space-y-2">
                         <div class="flex items-center justify-between">
-                          <span class="text-[11px] font-mono text-muted-foreground uppercase">Logged in as</span>
-                          <span class="text-xs font-mono font-medium text-primary truncate max-w-[150px]">
+                          <span class="text-[11px] text-muted-foreground uppercase">Logged in as</span>
+                          <span class="text-xs font-medium text-primary truncate max-w-[150px]">
                             {u().email || u().name}
                           </span>
                         </div>
                         <div class="flex items-center gap-2 pt-1">
-                          <a
+                          <A
                             href="/dashboard/overview"
                             onClick={() => setSheetOpen(false)}
-                            class="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-primary text-primary-foreground font-mono text-xs font-medium shadow-xs"
+                            class="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium shadow-xs"
                           >
                             <RiSystemDashboardLine class="size-3.5" />
                             <span>Dashboard</span>
-                          </a>
+                          </A>
                           <button
                             type="button"
                             onClick={() => {
                               setSheetOpen(false);
                               handleSignOut();
                             }}
-                            class="px-2.5 py-1.5 rounded-lg border border-dashed border-destructive/50 text-destructive font-mono text-xs hover:bg-destructive/10 transition-colors cursor-pointer"
+                            class="px-2.5 py-1.5 rounded-lg border border-dashed border-destructive/50 text-destructive text-xs hover:bg-destructive/10 transition-colors cursor-pointer"
                           >
                             <RiSystemLogoutBoxRLine class="size-3.5" />
                           </button>
@@ -481,7 +482,7 @@ export default function Header() {
                   />
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-mono text-muted-foreground uppercase tracking-wider">Socials</span>
+                  <span class="text-xs text-muted-foreground uppercase tracking-wider">Socials</span>
                   <div class="flex items-center gap-x-2">
                     {socialItems.map((item) => (
                       <Button

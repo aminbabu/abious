@@ -238,7 +238,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             } bg-card/40`}
           >
             <div
-              class="prose prose-neutral dark:prose-invert max-w-none text-xs font-sans prose-headings:font-mono prose-headings:tracking-tight prose-a:text-primary hover:prose-a:underline prose-code:font-mono prose-code:text-[11px] prose-pre:bg-muted prose-pre:p-3 prose-pre:rounded-lg prose-pre:border prose-pre:border-border"
+              class="prose prose-neutral dark:prose-invert max-w-none text-xs font-sans prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary hover:prose-a:underline prose-code:font-mono prose-code:text-[11px] prose-pre:bg-muted prose-pre:p-3 prose-pre:rounded-lg prose-pre:border prose-pre:border-border"
               innerHTML={renderedHtml()}
             />
           </div>

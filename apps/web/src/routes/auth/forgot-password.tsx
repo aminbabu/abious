@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
                   as="a"
                   href="/auth/login"
                   variant="outline"
-                  class="w-full font-mono text-xs cursor-pointer flex items-center justify-center gap-2"
+                  class="w-full text-xs cursor-pointer flex items-center justify-center gap-2"
                 >
                   <RiArrowsArrowLeftLine class="size-3.5" />
                   <span>Return to sign in</span>
@@ -106,7 +106,7 @@ export default function ForgotPasswordPage() {
               <Field of={form} path={["email"]}>
                 {(field) => (
                   <div class="space-y-1.5">
-                    <label for="email" class="text-xs font-mono font-medium text-foreground">
+                    <label for="email" class="text-xs font-medium text-foreground">
                       Email address
                     </label>
                     <div class="relative flex items-center">
@@ -121,7 +121,7 @@ export default function ForgotPasswordPage() {
                       />
                     </div>
                     {field.errors && (
-                      <p class="text-[11px] font-mono text-destructive">{field.errors[0]}</p>
+                      <p class="text-[11px] text-destructive">{field.errors[0]}</p>
                     )}
                   </div>
                 )}
@@ -130,14 +130,14 @@ export default function ForgotPasswordPage() {
               <Button
                 type="submit"
                 disabled={loading() || form.isSubmitting}
-                class="w-full font-mono mt-2 cursor-pointer flex items-center justify-center gap-2"
+                class="w-full mt-2 cursor-pointer flex items-center justify-center gap-2"
               >
                 <RiBusinessMailSendLine class="size-4" />
                 <span>{loading() || form.isSubmitting ? "Sending link..." : "Send reset link"}</span>
               </Button>
             </Form>
 
-            <div class="text-center pt-2 text-xs text-muted-foreground font-mono">
+            <div class="text-center pt-2 text-xs text-muted-foreground">
               Remember your password?{" "}
               <A href="/auth/login" class="text-primary hover:underline font-medium">
                 Sign in
