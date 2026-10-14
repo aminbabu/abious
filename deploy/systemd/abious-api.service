@@ -1,0 +1,24 @@
+[Unit]
+Description=Abious NestJS API Service (User Unit)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory={{APP_DIR}}/apps/api
+EnvironmentFile={{APP_DIR}}/apps/api/.env.production
+Environment=NODE_ENV=production
+
+# Execute pre-compiled dist/main.js using user's node binary
+ExecStart={{NODE_BIN}} dist/main.js
+
+# Restart policies
+Restart=always
+RestartSec=5s
+
+# Logging via journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=abious-api
+
+[Install]
+WantedBy=default.target

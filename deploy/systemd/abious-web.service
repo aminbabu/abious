@@ -1,0 +1,24 @@
+[Unit]
+Description=Abious SolidStart Web Application (User Unit)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory={{APP_DIR}}/apps/web
+EnvironmentFile={{APP_DIR}}/apps/web/.env.production
+Environment=NODE_ENV=production
+
+# Execute Nitro server using user's node binary
+ExecStart={{NODE_BIN}} .output/server/index.mjs
+
+# Restart policies
+Restart=always
+RestartSec=5s
+
+# Logging via journald
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=abious-web
+
+[Install]
+WantedBy=default.target
