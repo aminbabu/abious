@@ -14,7 +14,7 @@ No sudo required for site-user deploys. See **[CLOUDPANEL.md](./CLOUDPANEL.md)**
 ## First-time setup
 
 ```bash
-cd /path/to/abious   # separate from Astro clone
+cd /path/to/abious
 git checkout main
 bash deploy/install-interactive.sh
 ```
