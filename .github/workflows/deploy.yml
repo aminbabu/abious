@@ -22,7 +22,7 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_PORT: ${{ secrets.SERVER_PORT }}
           SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          SERVER_APP_DIR_MONOREPO: ${{ secrets.SERVER_APP_DIR_MONOREPO }}
+          SERVER_APP_DIR: ${{ secrets.SERVER_APP_DIR }}
         run: |
           set -eu
 
@@ -46,7 +46,7 @@ jobs:
             "$SERVER_USER@$SERVER_HOST" 'bash -se' <<'REMOTE'
           set -e
 
-          cd '${{ secrets.SERVER_APP_DIR_MONOREPO }}'
+          cd '${{ secrets.SERVER_APP_DIR }}'
 
           export DEPLOY_BRANCH='${{ github.ref_name }}'
 
