@@ -125,3 +125,41 @@ health_check() {
   echo "[WARN] $name did not respond at $url (check: pm2 logs $name)"
   return 1
 }
+
+# Install each app separately.
+# Avoids npm workspaces arborist bug: "Cannot read properties of null (reading 'edgesOut')"
+npm_install_apps() {
+  echo "--> Cleaning previous node_modules / lockfiles..."
+  rm -rf "$APP_DIR/node_modules" \
+    "$APP_DIR/apps/api/node_modules" \
+    "$APP_DIR/apps/web/node_modules"
+  rm -f "$APP_DIR/package-lock.json" \
+    "$APP_DIR/apps/api/package-lock.json" \
+    "$APP_DIR/apps/web/package-lock.json"
+
+  echo "--> npm install in apps/api..."
+  (
+    cd "$APP_DIR/apps/api"
+    npm install --no-package-lock --no-fund --no-audit
+  )
+
+  echo "--> npm install in apps/web..."
+  (
+    cd "$APP_DIR/apps/web"
+    npm install --no-package-lock --no-fund --no-audit
+  )
+}
+
+npm_build_apps() {
+  echo "--> Building apps/api (NestJS)..."
+  (
+    cd "$APP_DIR/apps/api"
+    npm run build
+  )
+
+  echo "--> Building apps/web (SolidStart / Nitro)..."
+  (
+    cd "$APP_DIR/apps/web"
+    npm run build
+  )
+}

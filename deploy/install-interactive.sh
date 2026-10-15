@@ -207,19 +207,14 @@ if [[ "$DO_MIGRATE" =~ ^[Yy]$ ]]; then
   bash "$APP_DIR/deploy/apply-migrations.sh" || echo -e "${YELLOW}Migration failed — fix DB then re-run apply-migrations.sh${NC}"
 fi
 
-echo "--> npm install..."
-npm install --no-package-lock --workspaces --include-workspace-root
-
-echo "--> Build API..."
-npm run build -w api
-
-echo "--> Build Web..."
-VITE_API_URL="${BETTER_AUTH_URL}" npm run build -w web
+npm_install_apps
+export VITE_API_URL="${BETTER_AUTH_URL}"
+npm_build_apps
 
 read -rp "$(echo -e "${CYAN}Run DB seed now? (Y/n): ${NC}")" DO_SEED
 DO_SEED=${DO_SEED:-Y}
 if [[ "$DO_SEED" =~ ^[Yy]$ ]]; then
-  npm run db:seed -w api || echo -e "${YELLOW}Seed failed — ensure migrations succeeded first.${NC}"
+  (cd "$APP_DIR/apps/api" && npm run db:seed) || echo -e "${YELLOW}Seed failed — ensure migrations succeeded first.${NC}"
 fi
 
 pm2 delete abious-api >/dev/null 2>&1 || true

@@ -72,15 +72,9 @@ fi
 
 mkdir -p "$APP_DIR/apps/api/uploads"
 
-# 2. Install + build (npm only on server)
-echo "--> npm install (workspaces)..."
-npm install --no-package-lock --workspaces --include-workspace-root
-
-echo "--> Building API (NestJS)..."
-npm run build -w api
-
-echo "--> Building Web (SolidStart / Nitro)..."
-npm run build -w web
+# 2. Install + build (npm only on server; per-app to avoid workspaces bug)
+npm_install_apps
+npm_build_apps
 
 # 3. Optional migrate / seed
 if [ "${RUN_MIGRATE:-false}" = "true" ]; then
@@ -90,7 +84,7 @@ fi
 
 if [ "${RUN_SEED:-false}" = "true" ]; then
   echo "--> Seeding database..."
-  npm run db:seed -w api
+  (cd "$APP_DIR/apps/api" && npm run db:seed)
 fi
 
 # 4. PM2 reload/start (keep process names stable for CloudPanel)
