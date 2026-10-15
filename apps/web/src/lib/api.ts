@@ -19,21 +19,27 @@ export const getApiBaseUrl = (): string => {
     return import.meta.env.VITE_API_URL;
   }
   if (isServer) {
-    // In DDEV SSR environment, the NestJS server is reachable at http://127.0.0.1:3000
-    return "http://127.0.0.1:3000";
+    // Prefer local API bind used by PM2 / CloudPanel reverse proxy
+    return process.env?.INTERNAL_API_URL || "http://127.0.0.1:8009";
   }
   // Browser mode: detect current host & protocol dynamically to avoid mixed-content / SSL mismatches
   if (typeof window !== "undefined" && window.location) {
     const { protocol, hostname } = window.location;
+    if (hostname === "aminbabu.com" || hostname === "www.aminbabu.com") {
+      return "https://api.aminbabu.com";
+    }
+    if (hostname === "api.aminbabu.com") {
+      return "https://api.aminbabu.com";
+    }
     if (hostname === "abious.ddev.site" || hostname.endsWith(".ddev.site")) {
       return `${protocol}//api.abious.ddev.site`;
     }
     if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return `${protocol}//${hostname}:3000`;
+      return `${protocol}//${hostname}:8009`;
     }
   }
-  // Browser fallback defaults to public API domain
-  return "https://api.abious.ddev.site";
+  // Browser fallback: production API
+  return "https://api.aminbabu.com";
 };
 
 export class ApiError extends Error {

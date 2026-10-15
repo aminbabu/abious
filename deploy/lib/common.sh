@@ -243,6 +243,15 @@ npm_build_apps() {
   echo "--> Building apps/web (SolidStart / Nitro)..."
   (
     cd "$APP_DIR/apps/web"
+    # Bake public API URL into the client bundle at build time
+    if [ -f "$APP_DIR/apps/web/.env.production" ]; then
+      set -a
+      # shellcheck disable=SC1091
+      . "$APP_DIR/apps/web/.env.production"
+      set +a
+    fi
+    export VITE_API_URL="${VITE_API_URL:-https://api.aminbabu.com}"
+    echo "    VITE_API_URL=${VITE_API_URL}"
     npm run build
   )
 }
