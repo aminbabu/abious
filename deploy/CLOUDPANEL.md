@@ -116,7 +116,7 @@ export DEPLOY_BRANCH=main
 bash deploy/deploy.sh
 ```
 
-Or push to `main` / `dev` once GitHub Actions secrets point at this clone (`SERVER_APP_DIR_MONOREPO`).
+Or push to `main` / `dev` once GitHub Actions secrets point at this clone (`SERVER_APP_DIR`).
 
 Useful PM2 commands:
 
@@ -130,13 +130,12 @@ pm2 save
 
 ---
 
-## 6. GitHub secrets (Astro + monorepo)
+## 6. GitHub secrets
 
-| Secret | Used by | Value |
-|--------|---------|--------|
-| `SERVER_HOST` / `USER` / `PORT` / `SSH_KEY` | both | shared |
-| `SERVER_APP_DIR` | Astro workflow | Astro clone path |
-| `SERVER_APP_DIR_MONOREPO` | `main`/`dev` workflow | e.g. `/home/SITEUSER/abious` |
+| Secret | Value |
+|--------|--------|
+| `SERVER_HOST` / `USER` / `PORT` / `SSH_KEY` | SSH access |
+| `SERVER_APP_DIR` | Absolute path to the app clone being deployed |
 
 ---
 
@@ -149,4 +148,4 @@ pm2 save
 - [ ] `pm2 list` shows `abious-api` and `abious-web`
 - [ ] CloudPanel reverse proxies for web + api
 - [ ] SSL issued in CloudPanel
-- [ ] `SERVER_APP_DIR_MONOREPO` set for CI
+- [ ] `SERVER_APP_DIR` set for CI

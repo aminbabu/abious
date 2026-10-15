@@ -17,9 +17,7 @@ Secrets stay on the server (`apps/*/.env.production`). Nothing DB-related is sto
 | `SERVER_USER` | CloudPanel site SSH user |
 | `SERVER_PORT` | SSH port |
 | `SERVER_SSH_KEY` | Deploy private key |
-| `SERVER_APP_DIR_MONOREPO` | Absolute path to monorepo clone (e.g. `/home/siteuser/abious`) |
-
-Astro keeps using `SERVER_APP_DIR` so the two apps never share one directory secret.
+| `SERVER_APP_DIR` | Absolute path to monorepo clone (e.g. `/home/siteuser/abious`) |
 
 ---
 
