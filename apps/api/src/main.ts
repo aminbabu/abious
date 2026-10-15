@@ -6,8 +6,9 @@ async function bootstrap() {
     bodyParser: false, // Handled conditionally by AppModule's SelectiveBodyParserMiddleware
   });
 
-  const port = process.env.PORT ?? 3000;
-  await app.listen(port);
-  console.log(`[API Server] Running on http://localhost:${port}`);
+  const port = Number(process.env.PORT ?? 3000);
+  const host = process.env.HOST ?? '0.0.0.0';
+  await app.listen(port, host);
+  console.log(`[API Server] Running on http://${host}:${port}`);
 }
 await bootstrap();

@@ -8,10 +8,13 @@ export const auth = betterAuth({
   baseURL:
     process.env.BETTER_AUTH_URL ||
     (process.env.NODE_ENV === 'production'
-      ? 'https://api.abious.ddev.site'
+      ? 'https://api.aminbabu.com'
       : 'https://api.abious.ddev.site'),
   trustedOrigins: [
     process.env.CLIENT_URL || 'http://localhost:5173',
+    'https://aminbabu.com',
+    'https://www.aminbabu.com',
+    'https://api.aminbabu.com',
     'http://localhost:3000',
     'http://localhost:5173',
     'https://abious.ddev.site',

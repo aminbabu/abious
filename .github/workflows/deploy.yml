@@ -1,22 +1,22 @@
-name: Deploy Portfolio
+name: Deploy Production
 
 on:
   push:
     branches:
       - main
-      - dev
   workflow_dispatch:
 
 concurrency:
-  group: deploy-${{ github.ref_name }}
+  group: production-deploy-aminbabu
   cancel-in-progress: false
 
 jobs:
   deploy:
-    name: Deploy to server over SSH
+    name: Deploy aminbabu.com
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - name: Deploy to server over SSH
+      - name: Validate required secrets
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
@@ -25,38 +25,48 @@ jobs:
           SERVER_APP_DIR: ${{ secrets.SERVER_APP_DIR }}
         run: |
           set -eu
+          missing=0
+          for name in SERVER_HOST SERVER_USER SERVER_PORT SERVER_SSH_KEY SERVER_APP_DIR; do
+            if [ -z "${!name}" ]; then
+              echo "Missing secret: $name"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
 
-          # Create ~/.ssh only if it does not exist.
+      - name: Deploy over SSH
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          set -eu
+
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
 
           SSH_KEY="$HOME/.ssh/aminbabu_deploy_key"
-
-          # Create a dedicated deployment key without overwriting existing keys.
           printf '%s\n' "$SERVER_SSH_KEY" > "$SSH_KEY"
           chmod 600 "$SSH_KEY"
 
-          # Use a verified, pinned server host key in production.
-          ssh-keyscan -p "$SERVER_PORT" "$SERVER_HOST" \
-            >> "$HOME/.ssh/known_hosts"
+          ssh-keyscan -p "$SERVER_PORT" "$SERVER_HOST" >> "$HOME/.ssh/known_hosts"
 
           ssh -i "$SSH_KEY" \
             -p "$SERVER_PORT" \
             -o StrictHostKeyChecking=yes \
+            -o IdentitiesOnly=yes \
+            -o ServerAliveInterval=30 \
             "$SERVER_USER@$SERVER_HOST" 'bash -se' <<'REMOTE'
-          set -e
+          set -euo pipefail
 
           cd '${{ secrets.SERVER_APP_DIR }}'
 
-          export DEPLOY_BRANCH='${{ github.ref_name }}'
-
-          git fetch origin "$DEPLOY_BRANCH"
-          git checkout "$DEPLOY_BRANCH"
-          git pull --ff-only origin "$DEPLOY_BRANCH"
-
-          # Monorepo: npm workspaces + PM2 (CloudPanel)
+          export DEPLOY_BRANCH=main
+          # Production updates keep locked ports from .env.production
           bash deploy/deploy.sh
           REMOTE
 
-          # Remove only the dedicated deployment key.
           rm -f "$SSH_KEY"

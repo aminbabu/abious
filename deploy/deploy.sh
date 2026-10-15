@@ -1,82 +1,100 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Abious Monorepo Deployment (npm + PM2, CloudPanel-friendly, no sudo)
-# Usage: bash deploy/deploy.sh
+# Production deploy for aminbabu.com (npm + PM2 + CloudPanel reverse proxy)
+# Usage:
+#   DEPLOY_BRANCH=main bash deploy/deploy.sh
+# Optional:
+#   RUN_MIGRATE=true RUN_SEED=true bash deploy/deploy.sh
 # ==============================================================================
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-# User-local Node/npm/pm2 paths (nvm, CloudPanel node, etc.)
-export PATH="$HOME/.nvm/versions/node/$(ls -1 "$HOME/.nvm/versions/node" 2>/dev/null | tail -n 1)/bin:$HOME/.local/bin:$HOME/bin:/usr/local/bin:/usr/bin:$PATH"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
 
 echo "================================================="
-echo " Starting Abious Monorepo Deployment"
-echo " Time: $(date)"
-echo " Working Directory: $APP_DIR"
-echo " User: $(whoami)"
-echo " Node: $(command -v node || echo 'not found') ($(node -v 2>/dev/null || true))"
-echo " npm:  $(command -v npm || echo 'not found') ($(npm -v 2>/dev/null || true))"
-echo " pm2:  $(command -v pm2 || echo 'not found')"
+echo " Abious production deployment"
+echo " Time: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+print_runtime
 echo "================================================="
 
 cd "$APP_DIR"
+ensure_runtime
 
-if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
-  echo "ERROR: node/npm not found in PATH."
-  exit 1
-fi
-
-if ! command -v pm2 >/dev/null 2>&1; then
-  echo "--> Installing pm2 for current user..."
-  npm install -g pm2
-  export PATH="$(npm prefix -g)/bin:$PATH"
-fi
-
-# 1. Pull latest git changes (if deployment uses git)
+# 1. Sync git
 if [ -d ".git" ]; then
-  DEPLOY_BRANCH="${DEPLOY_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
-  echo "--> Pulling latest source code from git (branch: $DEPLOY_BRANCH)..."
+  DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+  echo "--> Syncing git branch: $DEPLOY_BRANCH"
   git fetch origin "$DEPLOY_BRANCH"
   git checkout "$DEPLOY_BRANCH"
   git reset --hard "origin/$DEPLOY_BRANCH"
 fi
 
-# 2. Check for required production env files (stored ONLY on server)
-if [ ! -f "$APP_DIR/apps/api/.env.production" ]; then
-  echo "ERROR: $APP_DIR/apps/api/.env.production not found on server!"
-  echo "Run: bash deploy/install-interactive.sh"
+API_ENV="$APP_DIR/apps/api/.env.production"
+WEB_ENV="$APP_DIR/apps/web/.env.production"
+
+if [ ! -f "$API_ENV" ] || [ ! -f "$WEB_ENV" ]; then
+  echo "ERROR: Missing production env files."
+  echo "First-time setup: bash deploy/install-interactive.sh"
   exit 1
 fi
 
-if [ ! -f "$APP_DIR/apps/web/.env.production" ]; then
-  echo "ERROR: $APP_DIR/apps/web/.env.production not found on server!"
-  echo "Run: bash deploy/install-interactive.sh"
+API_PORT="$(read_env_value "$API_ENV" PORT)"
+WEB_PORT="$(read_env_value "$WEB_ENV" PORT)"
+DATABASE_URL="$(read_env_value "$API_ENV" DATABASE_URL || true)"
+
+if [ -z "${API_PORT:-}" ] || [ -z "${WEB_PORT:-}" ]; then
+  echo "ERROR: PORT missing in .env.production files."
   exit 1
+fi
+
+echo "--> Locked ports from .env.production (do not change without updating CloudPanel):"
+echo "    API  127.0.0.1:${API_PORT}  -> https://api.aminbabu.com"
+echo "    WEB  127.0.0.1:${WEB_PORT}  -> https://aminbabu.com"
+
+if ! port_usable_by_pm2_app "$API_PORT" "abious-api"; then
+  echo "ERROR: API port ${API_PORT} is in use by another process."
+  echo "Run: bash deploy/check-ports.sh"
+  exit 1
+fi
+if ! port_usable_by_pm2_app "$WEB_PORT" "abious-web"; then
+  echo "ERROR: WEB port ${WEB_PORT} is in use by another process."
+  echo "Run: bash deploy/check-ports.sh"
+  exit 1
+fi
+
+if [ -n "${DATABASE_URL:-}" ] && command -v psql >/dev/null 2>&1; then
+  echo "--> Checking database connectivity..."
+  psql "$DATABASE_URL" -c 'SELECT 1;' >/dev/null
+  echo "[OK] Database reachable"
 fi
 
 mkdir -p "$APP_DIR/apps/api/uploads"
 
-# 3. Install + build with npm workspaces (pnpm is local-dev only)
-echo "--> Installing dependencies via npm..."
+# 2. Install + build (npm only on server)
+echo "--> npm install (workspaces)..."
 npm install --no-package-lock --workspaces --include-workspace-root
 
-echo "--> Building apps/api (NestJS)..."
+echo "--> Building API (NestJS)..."
 npm run build -w api
 
-echo "--> Building apps/web (SolidStart / Nitro)..."
+echo "--> Building Web (SolidStart / Nitro)..."
 npm run build -w web
 
-# 4. Optional seed
+# 3. Optional migrate / seed
+if [ "${RUN_MIGRATE:-false}" = "true" ]; then
+  echo "--> Applying SQL migrations..."
+  bash "$APP_DIR/deploy/apply-migrations.sh"
+fi
+
 if [ "${RUN_SEED:-false}" = "true" ]; then
-  echo "--> Running database seed..."
+  echo "--> Seeding database..."
   npm run db:seed -w api
 fi
 
-# 5. Restart or start PM2 apps
-echo "--> Starting/reloading PM2 processes..."
+# 4. PM2 reload/start (keep process names stable for CloudPanel)
+echo "--> Reloading PM2 apps..."
 if pm2 describe abious-api >/dev/null 2>&1 || pm2 describe abious-web >/dev/null 2>&1; then
   pm2 reload "$APP_DIR/deploy/ecosystem.config.cjs" --update-env
 else
@@ -84,12 +102,28 @@ else
 fi
 pm2 save
 
-echo "--> PM2 status:"
+# 5. Health checks (local reverse-proxy targets)
+echo "--> Health checks..."
+set +e
+health_check "abious-api" "http://127.0.0.1:${API_PORT}/" 25
+API_OK=$?
+health_check "abious-web" "http://127.0.0.1:${WEB_PORT}/" 25
+WEB_OK=$?
+set -e
+
 pm2 list
 
 echo "================================================="
-echo " Deployment completed successfully!"
-echo " Point CloudPanel reverse-proxy vhosts at the PORT"
-echo " values from apps/api/.env.production and"
-echo " apps/web/.env.production (see deploy/CLOUDPANEL.md)."
+if [ "$API_OK" -eq 0 ] && [ "$WEB_OK" -eq 0 ]; then
+  echo " Deployment successful."
+else
+  echo " Deployment finished with health warnings — check pm2 logs."
+fi
+echo " CloudPanel reverse proxy targets (unchanged):"
+echo "   aminbabu.com      -> http://127.0.0.1:${WEB_PORT}"
+echo "   api.aminbabu.com  -> http://127.0.0.1:${API_PORT}"
 echo "================================================="
+
+if [ "$API_OK" -ne 0 ] || [ "$WEB_OK" -ne 0 ]; then
+  exit 1
+fi
