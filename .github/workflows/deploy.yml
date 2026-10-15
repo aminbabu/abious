@@ -54,12 +54,13 @@ jobs:
 
           ssh-keyscan -p "$SERVER_PORT" "$SERVER_HOST" >> "$HOME/.ssh/known_hosts"
 
+          # Use a login shell so CloudPanel / nvm Node is on PATH
           ssh -i "$SSH_KEY" \
             -p "$SERVER_PORT" \
             -o StrictHostKeyChecking=yes \
             -o IdentitiesOnly=yes \
             -o ServerAliveInterval=30 \
-            "$SERVER_USER@$SERVER_HOST" 'bash -se' <<'REMOTE'
+            "$SERVER_USER@$SERVER_HOST" 'bash -lse' <<'REMOTE'
           set -euo pipefail
 
           cd '${{ secrets.SERVER_APP_DIR }}'

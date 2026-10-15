@@ -6,8 +6,62 @@ set -euo pipefail
 DEPLOY_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="$(cd "$DEPLOY_LIB_DIR/../.." && pwd)"
 
-# CloudPanel / nvm / user-local binaries
-export PATH="$HOME/.nvm/versions/node/$(ls -1 "$HOME/.nvm/versions/node" 2>/dev/null | tail -n 1)/bin:$HOME/.local/bin:$HOME/bin:/usr/local/bin:/usr/bin:$PATH"
+# Load Node for non-interactive SSH (CloudPanel / nvm).
+# Interactive shells already source ~/.bashrc; CI SSH does not.
+load_node_env() {
+  # Login/profile snippets (ignore errors; files may be interactive-only)
+  set +u
+  if [ -f "$HOME/.profile" ]; then
+    # shellcheck disable=SC1090
+    . "$HOME/.profile" >/dev/null 2>&1 || true
+  fi
+  if [ -f "$HOME/.bashrc" ]; then
+    # shellcheck disable=SC1090
+    . "$HOME/.bashrc" >/dev/null 2>&1 || true
+  fi
+  if [ -f "$HOME/.bash_profile" ]; then
+    # shellcheck disable=SC1090
+    . "$HOME/.bash_profile" >/dev/null 2>&1 || true
+  fi
+
+  export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+  if [ -s "$NVM_DIR/nvm.sh" ]; then
+    # shellcheck disable=SC1091
+    . "$NVM_DIR/nvm.sh" >/dev/null 2>&1 || true
+    nvm use default >/dev/null 2>&1 || nvm use node >/dev/null 2>&1 || true
+  fi
+  set -u
+
+  # Prefer newest nvm version bin if still missing
+  if ! command -v node >/dev/null 2>&1 && [ -d "$HOME/.nvm/versions/node" ]; then
+    local latest
+    latest="$(ls -1 "$HOME/.nvm/versions/node" 2>/dev/null | sort -V | tail -n 1 || true)"
+    if [ -n "$latest" ] && [ -x "$HOME/.nvm/versions/node/$latest/bin/node" ]; then
+      export PATH="$HOME/.nvm/versions/node/$latest/bin:$PATH"
+    fi
+  fi
+
+  # Common CloudPanel / user paths
+  export PATH="$HOME/bin:$HOME/.local/bin:$HOME/.npm-global/bin:/usr/local/bin:/usr/bin:$PATH"
+
+  # Last resort: resolve via `which` from a login shell
+  if ! command -v node >/dev/null 2>&1; then
+    local login_node
+    login_node="$(bash -lc 'command -v node' 2>/dev/null || true)"
+    if [ -n "$login_node" ] && [ -x "$login_node" ]; then
+      export PATH="$(dirname "$login_node"):$PATH"
+    fi
+  fi
+  if ! command -v npm >/dev/null 2>&1; then
+    local login_npm
+    login_npm="$(bash -lc 'command -v npm' 2>/dev/null || true)"
+    if [ -n "$login_npm" ] && [ -x "$login_npm" ]; then
+      export PATH="$(dirname "$login_npm"):$PATH"
+    fi
+  fi
+}
+
+load_node_env
 
 DEFAULT_WEB_DOMAIN="aminbabu.com"
 DEFAULT_API_DOMAIN="api.aminbabu.com"
@@ -84,9 +138,14 @@ read_env_value() {
 }
 
 ensure_runtime() {
+  load_node_env
+
   if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
-    echo "ERROR: node/npm not found in PATH."
-    echo "Use CloudPanel Node selector or: nvm install 24 && nvm use 24"
+    echo "ERROR: node/npm not found in PATH for non-interactive SSH."
+    echo "PATH=$PATH"
+    echo "Interactive shell has node, but CI SSH did not load it."
+    echo "Fix: ensure nvm/CloudPanel node is on PATH in ~/.profile (not only ~/.bashrc),"
+    echo "or: bash -lc 'command -v node && node -v'"
     exit 1
   fi
 
@@ -94,6 +153,7 @@ ensure_runtime() {
     echo "--> Installing pm2 for current user..."
     npm install -g pm2
     export PATH="$(npm prefix -g)/bin:$PATH"
+    load_node_env
   fi
 
   if ! command -v pm2 >/dev/null 2>&1; then
