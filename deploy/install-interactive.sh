@@ -2,9 +2,10 @@
 # ==============================================================================
 # Non-Root / User-Level Interactive Setup Wizard for Abious
 # Works entirely without sudo / root permissions:
-# - Uses `systemd --user` units stored in ~/.config/systemd/user/
-# - Checks local ports, Node.js & pnpm in user PATH
-# - Generates production envs, builds, seeds, and launches services
+# - Uses PM2 (CloudPanel-friendly, same model as Astro deploy)
+# - Checks local ports, Node.js & npm in user PATH
+# - Generates production envs, builds, seeds, and launches Nest + web apps
+# - Prints CloudPanel reverse-proxy vhost settings (no nginx root access needed)
 # ==============================================================================
 
 set -euo pipefail
@@ -25,7 +26,7 @@ cat << "EOF"
   / /| | / __  |/ // / / / / / /\__ \ 
  / ___ |/ /_/ // // /_/ / /_/ /___/ / 
 /_/  |_/_____/___/\____/\____//____/  
-   Contabo VPS User-Mode Setup (No sudo required)
+   CloudPanel / User-Mode Setup (npm + PM2, no sudo)
 EOF
 echo -e "${NC}"
 
@@ -82,24 +83,22 @@ NODE_BIN="$(command -v node)"
 NODE_VER=$(node -v)
 echo -e "${GREEN}✓ Node.js found: ${NODE_VER} (${NODE_BIN})${NC}"
 
-if ! command -v pnpm >/dev/null 2>&1; then
-    echo -e "${YELLOW}pnpm not found in PATH. Checking corepack or npm...${NC}"
-    if command -v corepack >/dev/null 2>&1; then
-        corepack enable >/dev/null 2>&1 || true
-        corepack prepare pnpm@latest --activate >/dev/null 2>&1 || true
-    fi
-    if ! command -v pnpm >/dev/null 2>&1; then
-        echo -e "${YELLOW}--> Installing pnpm locally for user...${NC}"
-        npm install -g pnpm >/dev/null 2>&1 || curl -fsSL https://get.pnpm.io/install.sh | sh -
-        export PATH="$USER_HOME/.local/share/pnpm:$PATH"
-    fi
-fi
-
-if ! command -v pnpm >/dev/null 2>&1; then
-    echo -e "${RED}[ERROR] Could not find or install pnpm. Please install pnpm in your user home directory.${NC}"
+if ! command -v npm >/dev/null 2>&1; then
+    echo -e "${RED}[ERROR] npm is not found in your PATH (required for server deploys).${NC}"
     exit 1
 fi
-echo -e "${GREEN}✓ pnpm found: $(pnpm -v)${NC}"
+echo -e "${GREEN}✓ npm found: $(npm -v)${NC}"
+
+if ! command -v pm2 >/dev/null 2>&1; then
+    echo -e "${YELLOW}--> Installing pm2 for current user...${NC}"
+    npm install -g pm2 >/dev/null 2>&1 || true
+    export PATH="$(npm prefix -g)/bin:$PATH"
+fi
+if ! command -v pm2 >/dev/null 2>&1; then
+    echo -e "${RED}[ERROR] Could not install pm2. Run: npm install -g pm2${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✓ pm2 found: $(pm2 -v)${NC}"
 
 # ------------------------------------------------------------------------------
 # 2. Port Availability Checks & Selection
@@ -206,9 +205,9 @@ read -rp "$(echo -e "${CYAN}Contact Receiver Email [default: ${SMTP_USER:-admin@
 CONTACT_RECEIVER_EMAIL=${CONTACT_RECEIVER_EMAIL:-${SMTP_USER:-admin@${CLEAN_WEB_DOMAIN}}}
 
 # ------------------------------------------------------------------------------
-# 5. Write Env Files & Systemd User Units
+# 5. Write Env Files & CloudPanel notes
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[Step 5/6] Generating Environment & User-Mode Systemd Units...${NC}"
+echo -e "\n${BOLD}${BLUE}[Step 5/6] Generating Environment Files...${NC}"
 
 # 1. API env
 cat > "$APP_DIR/apps/api/.env.production" << EOF
@@ -248,129 +247,85 @@ echo -e "${GREEN}✓ Created apps/web/.env.production${NC}"
 
 mkdir -p "$APP_DIR/apps/api/uploads"
 
-# 3. Systemd User directory (~/.config/systemd/user)
-USER_SYSTEMD_DIR="$USER_HOME/.config/systemd/user"
-mkdir -p "$USER_SYSTEMD_DIR"
+CLOUDPANEL_NOTES="$APP_DIR/deploy/cloudpanel-${CLEAN_WEB_DOMAIN}.txt"
+cat > "$CLOUDPANEL_NOTES" << EOF
+CloudPanel reverse-proxy targets for ${CLEAN_WEB_DOMAIN}
+=======================================================
+Keep Astro on its existing site/vhost (e.g. port 8006).
+Use a SEPARATE site root / clone for this monorepo: ${APP_DIR}
 
-sed -e "s|{{APP_DIR}}|${APP_DIR}|g" \
-    -e "s|{{NODE_BIN}}|${NODE_BIN}|g" \
-    "$APP_DIR/deploy/systemd/abious-api.service" > "$USER_SYSTEMD_DIR/abious-api.service"
+1) Site for frontend (${CLEAN_WEB_DOMAIN})
+   - Type: Reverse Proxy (or Node.js app pointing to custom port)
+   - Proxy URL / App Port: http://127.0.0.1:${WEB_PORT}
+   - SSL: enable Let's Encrypt in CloudPanel
 
-sed -e "s|{{APP_DIR}}|${APP_DIR}|g" \
-    -e "s|{{NODE_BIN}}|${NODE_BIN}|g" \
-    "$APP_DIR/deploy/systemd/abious-web.service" > "$USER_SYSTEMD_DIR/abious-web.service"
+2) Site for API (${CLEAN_API_DOMAIN})
+   - Type: Reverse Proxy
+   - Proxy URL / App Port: http://127.0.0.1:${API_PORT}
+   - SSL: enable Let's Encrypt in CloudPanel
+   - Increase body size if needed for uploads (e.g. 15M)
 
-echo -e "${GREEN}✓ Installed $USER_SYSTEMD_DIR/abious-api.service${NC}"
-echo -e "${GREEN}✓ Installed $USER_SYSTEMD_DIR/abious-web.service${NC}"
+3) Database
+   - Prefer CloudPanel MariaDB/MySQL only if you migrate the app.
+   - This monorepo expects PostgreSQL via DATABASE_URL.
+   - Create a Postgres DB in CloudPanel (if available) or use a
+     managed Postgres URL, then put it in apps/api/.env.production.
 
-# Enable linger so user services stay running after logout
-if command -v loginctl >/dev/null 2>&1; then
-    echo "--> Enabling user linger via loginctl (keeps service running after SSH disconnect)..."
-    loginctl enable-linger "$CURRENT_USER" 2>/dev/null || echo -e "${YELLOW}Notice: loginctl enable-linger can be enabled by your system administrator if processes stop on logout.${NC}"
-fi
-
-# 4. Generate user nginx snippet to provide to server administrator
-NGINX_SNIPPET="$APP_DIR/deploy/nginx/nginx-${CLEAN_WEB_DOMAIN}.conf"
-cat > "$NGINX_SNIPPET" << EOF
-# Nginx snippet for ${CLEAN_WEB_DOMAIN} (Proxying to local ports ${WEB_PORT} and ${API_PORT})
-server {
-    listen 80;
-    server_name ${CLEAN_API_DOMAIN};
-    client_max_body_size 15M;
-
-    location /uploads/ {
-        alias ${APP_DIR}/apps/api/uploads/;
-        expires 30d;
-        try_files \$uri =404;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:${API_PORT};
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-}
-
-server {
-    listen 80;
-    server_name ${CLEAN_WEB_DOMAIN} www.${CLEAN_WEB_DOMAIN};
-    client_max_body_size 10M;
-
-    location /_build/ {
-        alias ${APP_DIR}/apps/web/.output/public/_build/;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:${WEB_PORT};
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-}
+4) Process manager
+   - Apps run under PM2 as your site user (no sudo):
+       pm2 list
+       pm2 logs abious-api
+       pm2 logs abious-web
 EOF
-echo -e "${GREEN}✓ Generated Nginx reverse proxy snippet at ${NGINX_SNIPPET}${NC}"
+echo -e "${GREEN}✓ Wrote CloudPanel notes: ${CLOUDPANEL_NOTES}${NC}"
 
 # ------------------------------------------------------------------------------
-# 6. Build, Seed & Start with systemd --user
+# 6. Build, Seed & Start with npm + PM2
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[Step 6/6] Building & Starting Applications...${NC}"
+echo -e "\n${BOLD}${BLUE}[Step 6/6] Building & Starting Applications (npm + PM2)...${NC}"
 
 cd "$APP_DIR"
-echo "--> Installing dependencies via pnpm..."
-pnpm install --frozen-lockfile
+echo "--> Installing dependencies via npm..."
+npm install --no-package-lock --workspaces --include-workspace-root
 
 echo "--> Compiling NestJS API..."
-pnpm --filter api run build
+npm run build -w api
 
 echo "--> Compiling SolidStart / Nitro Web..."
-VITE_API_URL="${BETTER_AUTH_URL}" pnpm --filter web run build
+VITE_API_URL="${BETTER_AUTH_URL}" npm run build -w web
 
 read -rp "$(echo -e "${CYAN}Run database seed now? (y/n) [default: y]: ${NC}")" RUN_SEED
 RUN_SEED=${RUN_SEED:-y}
 if [[ "$RUN_SEED" =~ ^[Yy]$ ]]; then
     echo "--> Running database seed..."
-    pnpm --filter api run db:seed || echo -e "${YELLOW}Seed note: ensure database is reachable.${NC}"
+    npm run db:seed -w api || echo -e "${YELLOW}Seed note: apply SQL migrations first, then re-run seed.${NC}"
 fi
 
-# Reload user daemon and start services
-echo "--> Reloading systemd --user..."
-systemctl --user daemon-reload
-
-echo "--> Starting abious-api.service..."
-systemctl --user enable abious-api.service
-systemctl --user restart abious-api.service
-
-echo "--> Starting abious-web.service..."
-systemctl --user enable abious-web.service
-systemctl --user restart abious-web.service
+echo "--> Starting PM2 processes..."
+if pm2 describe abious-api >/dev/null 2>&1 || pm2 describe abious-web >/dev/null 2>&1; then
+    pm2 reload "$APP_DIR/deploy/ecosystem.config.cjs" --update-env
+else
+    pm2 start "$APP_DIR/deploy/ecosystem.config.cjs"
+fi
+pm2 save
 
 sleep 2
-systemctl --user is-active --quiet abious-api && echo -e "${GREEN}✓ abious-api is ACTIVE (running on :${API_PORT})!${NC}" || echo -e "${RED}✗ abious-api failed to start (check: journalctl --user -u abious-api)${NC}"
-systemctl --user is-active --quiet abious-web && echo -e "${GREEN}✓ abious-web is ACTIVE (running on :${WEB_PORT})!${NC}" || echo -e "${RED}✗ abious-web failed to start (check: journalctl --user -u abious-web)${NC}"
+pm2 describe abious-api >/dev/null 2>&1 && echo -e "${GREEN}✓ abious-api is managed by PM2 (port ${API_PORT})!${NC}" || echo -e "${RED}✗ abious-api failed (pm2 logs abious-api)${NC}"
+pm2 describe abious-web >/dev/null 2>&1 && echo -e "${GREEN}✓ abious-web is managed by PM2 (port ${WEB_PORT})!${NC}" || echo -e "${RED}✗ abious-web failed (pm2 logs abious-web)${NC}"
 
 echo -e "\n${GREEN}${BOLD}============================================================${NC}"
-echo -e "${GREEN}${BOLD} Setup Complete (User Mode)!${NC}"
+echo -e "${GREEN}${BOLD} Setup Complete (CloudPanel / User Mode)!${NC}"
 echo -e "${GREEN}${BOLD}============================================================${NC}"
-echo -e "API running at:  http://127.0.0.1:${API_PORT}"
-echo -e "Web running at:  http://127.0.0.1:${WEB_PORT}"
-echo -e "\nManagement commands (no sudo needed):"
-echo -e "  systemctl --user status abious-api"
-echo -e "  systemctl --user status abious-web"
-echo -e "  journalctl --user -u abious-api -f"
-echo -e "  journalctl --user -u abious-web -f"
-echo -e "  systemctl --user restart abious-api"
-echo -e "  systemctl --user restart abious-web"
-echo -e "\nTo pull updates in the future:"
+echo -e "API (local):  http://127.0.0.1:${API_PORT}"
+echo -e "Web (local):  http://127.0.0.1:${WEB_PORT}"
+echo -e "\nCloudPanel: create two Reverse Proxy sites → those ports."
+echo -e "Details: ${CLOUDPANEL_NOTES}"
+echo -e "Guide:   ${APP_DIR}/deploy/CLOUDPANEL.md"
+echo -e "\nManagement (no sudo):"
+echo -e "  pm2 list"
+echo -e "  pm2 logs abious-api"
+echo -e "  pm2 logs abious-web"
+echo -e "  pm2 restart abious-api abious-web"
+echo -e "\nFuture updates:"
 echo -e "  bash deploy/deploy.sh"
 echo -e "============================================================\n"

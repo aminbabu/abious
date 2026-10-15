@@ -3,6 +3,8 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { resolve } from 'node:path';
 import dotenv from 'dotenv';
 
+dotenv.config({ path: resolve(process.cwd(), '.env.production.local') });
+dotenv.config({ path: resolve(process.cwd(), '.env.production') });
 dotenv.config({ path: resolve(process.cwd(), '.env.development.local') });
 dotenv.config({ path: resolve(process.cwd(), '.env.development') });
 dotenv.config({ path: resolve(process.cwd(), '.env') });
