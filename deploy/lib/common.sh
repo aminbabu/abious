@@ -137,16 +137,18 @@ npm_install_apps() {
     "$APP_DIR/apps/api/package-lock.json" \
     "$APP_DIR/apps/web/package-lock.json"
 
+  # --legacy-peer-deps avoids npm@10 arborist crash:
+  # "Cannot read properties of null (reading 'edgesOut')"
   echo "--> npm install in apps/api..."
   (
     cd "$APP_DIR/apps/api"
-    npm install --no-package-lock --no-fund --no-audit
+    npm install --no-package-lock --no-fund --no-audit --legacy-peer-deps
   )
 
   echo "--> npm install in apps/web..."
   (
     cd "$APP_DIR/apps/web"
-    npm install --no-package-lock --no-fund --no-audit
+    npm install --no-package-lock --no-fund --no-audit --legacy-peer-deps
   )
 }
 

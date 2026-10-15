@@ -64,8 +64,13 @@ jobs:
 
           cd '${{ secrets.SERVER_APP_DIR }}'
 
+          # Pull first so deploy.sh itself is the latest before it runs
+          git fetch origin main
+          git checkout main
+          git reset --hard origin/main
+
           export DEPLOY_BRANCH=main
-          # Production updates keep locked ports from .env.production
+          export SKIP_GIT_SYNC=1
           bash deploy/deploy.sh
           REMOTE
 

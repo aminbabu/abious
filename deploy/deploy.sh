@@ -5,31 +5,42 @@
 #   DEPLOY_BRANCH=main bash deploy/deploy.sh
 # Optional:
 #   RUN_MIGRATE=true RUN_SEED=true bash deploy/deploy.sh
+#   SKIP_GIT_SYNC=1 bash deploy/deploy.sh   # when caller already pulled
 # ==============================================================================
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$APP_ROOT"
+
+# 1. Sync git FIRST, then re-exec so the rest of this run uses the new scripts.
+#    (bash keeps the old script body in memory across git reset --hard.)
+if [ "${SKIP_GIT_SYNC:-0}" != "1" ] && [ -d ".git" ]; then
+  DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+  echo "--> Syncing git branch: $DEPLOY_BRANCH"
+  git fetch origin "$DEPLOY_BRANCH"
+  git checkout "$DEPLOY_BRANCH"
+  git reset --hard "origin/$DEPLOY_BRANCH"
+  echo "--> Re-executing deploy.sh from updated commit $(git rev-parse --short HEAD)"
+  export SKIP_GIT_SYNC=1
+  export DEPLOY_BRANCH
+  export RUN_MIGRATE="${RUN_MIGRATE:-false}"
+  export RUN_SEED="${RUN_SEED:-false}"
+  exec bash "$APP_ROOT/deploy/deploy.sh"
+fi
+
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 
 echo "================================================="
 echo " Abious production deployment"
 echo " Time: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+echo " Commit: $(git rev-parse --short HEAD 2>/dev/null || echo n/a)"
 print_runtime
 echo "================================================="
 
-cd "$APP_DIR"
 ensure_runtime
-
-# 1. Sync git
-if [ -d ".git" ]; then
-  DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
-  echo "--> Syncing git branch: $DEPLOY_BRANCH"
-  git fetch origin "$DEPLOY_BRANCH"
-  git checkout "$DEPLOY_BRANCH"
-  git reset --hard "origin/$DEPLOY_BRANCH"
-fi
 
 API_ENV="$APP_DIR/apps/api/.env.production"
 WEB_ENV="$APP_DIR/apps/web/.env.production"
@@ -72,7 +83,7 @@ fi
 
 mkdir -p "$APP_DIR/apps/api/uploads"
 
-# 2. Install + build (npm only on server; per-app to avoid workspaces bug)
+# 2. Install + build per app (never npm workspaces on server)
 npm_install_apps
 npm_build_apps
 
@@ -87,7 +98,7 @@ if [ "${RUN_SEED:-false}" = "true" ]; then
   (cd "$APP_DIR/apps/api" && npm run db:seed)
 fi
 
-# 4. PM2 reload/start (keep process names stable for CloudPanel)
+# 4. PM2 reload/start
 echo "--> Reloading PM2 apps..."
 if pm2 describe abious-api >/dev/null 2>&1 || pm2 describe abious-web >/dev/null 2>&1; then
   pm2 reload "$APP_DIR/deploy/ecosystem.config.cjs" --update-env
@@ -96,7 +107,7 @@ else
 fi
 pm2 save
 
-# 5. Health checks (local reverse-proxy targets)
+# 5. Health checks
 echo "--> Health checks..."
 set +e
 health_check "abious-api" "http://127.0.0.1:${API_PORT}/" 25
