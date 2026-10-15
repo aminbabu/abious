@@ -75,7 +75,7 @@ if [ "${RUN_SEED:-false}" = "true" ]; then
   npm run db:seed -w api
 fi
 
-# 5. Restart or start PM2 apps (same pattern as Astro portfolio)
+# 5. Restart or start PM2 apps
 echo "--> Starting/reloading PM2 processes..."
 if pm2 describe abious-api >/dev/null 2>&1 || pm2 describe abious-web >/dev/null 2>&1; then
   pm2 reload "$APP_DIR/deploy/ecosystem.config.cjs" --update-env

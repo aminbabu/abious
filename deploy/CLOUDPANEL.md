@@ -1,20 +1,19 @@
 # Deploy Abious Monorepo on CloudPanel (no sudo)
 
-This guide is for a **NestJS API + SolidStart web** monorepo on CloudPanel, next to an existing Astro site, as a **site user without sudo**.
+NestJS API (`apps/api`) + SolidStart web (`apps/web`) as a **site user without sudo**.
 
-- **Server deploys use npm + PM2**
-- **Local development can keep using pnpm**
+- **Server / CI:** npm + PM2  
+- **Local development:** pnpm is fine  
+- **`archive/astro`:** code archive / testing only — not deployed by CI
 
 ---
 
-## Layout (do not mix with Astro)
+## Layout
 
-| App | Branch | Example path | Process | Public |
-|-----|--------|--------------|---------|--------|
-| Astro portfolio | `archive/astro` | `~/htdocs/astro` (or current path) | `pm2` `aminbabu-portfolio` `:8006` | Existing CloudPanel vhost |
-| Monorepo | `main` / `dev` | `~/abious` | `pm2` `abious-api` + `abious-web` | **New** reverse-proxy sites |
-
-Use a **second clone** for the monorepo. Never `git checkout main` inside the Astro directory.
+| Env | Branch | Example path | PM2 apps |
+|-----|--------|--------------|----------|
+| Production | `main` | `~/abious` | `abious-api`, `abious-web` |
+| Staging (optional) | `dev` | `~/abious-dev` | separate ports / names if needed |
 
 ---
 
@@ -24,9 +23,9 @@ CloudPanel often ships MariaDB/MySQL. This API expects **PostgreSQL** via `DATAB
 
 Options without sudo:
 
-1. Create Postgres in CloudPanel if your plan/admin provides it, **or**
-2. Use managed Postgres (Neon, Supabase, etc.) and paste the URL into the wizard, **or**
-3. Ask the server admin for a Postgres database + connection string
+1. Create Postgres in CloudPanel if available, **or**
+2. Use managed Postgres (Neon, Supabase, etc.), **or**
+3. Ask the server admin for a Postgres URL
 
 Example:
 
@@ -34,7 +33,7 @@ Example:
 postgresql://USER:PASSWORD@127.0.0.1:5432/abious_prod
 ```
 
-Apply schema SQL once (from the monorepo clone):
+Apply schema SQL once:
 
 ```bash
 cd ~/abious
@@ -63,7 +62,7 @@ bash deploy/install-interactive.sh
 
 The wizard:
 
-- picks free ports (avoid Astro’s `8006`)
+- picks free ports for API + web
 - writes `apps/api/.env.production` and `apps/web/.env.production`
 - runs `npm install` + builds both workspaces
 - starts **PM2** apps `abious-api` and `abious-web`
@@ -77,38 +76,25 @@ In CloudPanel UI (no sudo nginx edits):
 
 ### A) Frontend site (`yourdomain.com`)
 
-1. **Sites → Add Site** (or edit existing unused site)
+1. **Sites → Add Site** (or reuse the testing vhost)
 2. Domain: `yourdomain.com`
 3. Type: **Reverse Proxy**
-4. URL / target: `http://127.0.0.1:<WEB_PORT>`  
-   (`WEB_PORT` = `PORT` in `apps/web/.env.production`)
-5. Enable SSL (Let’s Encrypt) in CloudPanel
+4. Target: `http://127.0.0.1:<WEB_PORT>`  
+   (`PORT` in `apps/web/.env.production`)
+5. Enable SSL (Let’s Encrypt)
 
 ### B) API site (`api.yourdomain.com`)
 
 1. Add site for `api.yourdomain.com`
 2. Type: **Reverse Proxy**
 3. Target: `http://127.0.0.1:<API_PORT>`  
-   (`API_PORT` = `PORT` in `apps/api/.env.production`)
+   (`PORT` in `apps/api/.env.production`)
 4. SSL via CloudPanel
-5. If uploads fail, raise max body size in the site’s nginx overrides (panel UI / ask admin)
-
-Keep the Astro vhost pointing at its own PM2 port unchanged.
+5. Raise max body size if uploads fail (panel UI / ask admin)
 
 ---
 
-## 4. `main` vs `dev`
-
-| Environment | Clone | Branch | DB | Domains |
-|-------------|-------|--------|----|---------|
-| Production | `~/abious` | `main` | `abious_prod` | prod web + api |
-| Staging (optional) | `~/abious-dev` | `dev` | `abious_dev` | staging web + api |
-
-Do not flip one directory between `main` and `dev`.
-
----
-
-## 5. Updates
+## 4. Updates
 
 ```bash
 cd ~/abious
@@ -116,9 +102,7 @@ export DEPLOY_BRANCH=main
 bash deploy/deploy.sh
 ```
 
-Or push to `main` / `dev` once GitHub Actions secrets point at this clone (`SERVER_APP_DIR`).
-
-Useful PM2 commands:
+Or push to `main` / `dev` with `SERVER_APP_DIR` pointing at this clone.
 
 ```bash
 pm2 list
@@ -130,22 +114,20 @@ pm2 save
 
 ---
 
-## 6. GitHub secrets
+## 5. GitHub secrets
 
 | Secret | Value |
 |--------|--------|
 | `SERVER_HOST` / `USER` / `PORT` / `SSH_KEY` | SSH access |
-| `SERVER_APP_DIR` | Absolute path to the app clone being deployed |
+| `SERVER_APP_DIR` | Absolute path to monorepo clone |
 
 ---
 
 ## Checklist
 
-- [ ] Astro still healthy on its vhost/PM2
-- [ ] Separate `~/abious` clone on `main`
+- [ ] Clone on `main` at `SERVER_APP_DIR`
 - [ ] Postgres `DATABASE_URL` reachable as site user
 - [ ] SQL migrations applied + optional seed
 - [ ] `pm2 list` shows `abious-api` and `abious-web`
 - [ ] CloudPanel reverse proxies for web + api
 - [ ] SSL issued in CloudPanel
-- [ ] `SERVER_APP_DIR` set for CI

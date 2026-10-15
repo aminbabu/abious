@@ -2,7 +2,7 @@
 # ==============================================================================
 # Non-Root / User-Level Interactive Setup Wizard for Abious
 # Works entirely without sudo / root permissions:
-# - Uses PM2 (CloudPanel-friendly, same model as Astro deploy)
+# - Uses PM2 (CloudPanel-friendly)
 # - Checks local ports, Node.js & npm in user PATH
 # - Generates production envs, builds, seeds, and launches Nest + web apps
 # - Prints CloudPanel reverse-proxy vhost settings (no nginx root access needed)
@@ -251,8 +251,7 @@ CLOUDPANEL_NOTES="$APP_DIR/deploy/cloudpanel-${CLEAN_WEB_DOMAIN}.txt"
 cat > "$CLOUDPANEL_NOTES" << EOF
 CloudPanel reverse-proxy targets for ${CLEAN_WEB_DOMAIN}
 =======================================================
-Keep Astro on its existing site/vhost (e.g. port 8006).
-Use a SEPARATE site root / clone for this monorepo: ${APP_DIR}
+Monorepo root: ${APP_DIR}
 
 1) Site for frontend (${CLEAN_WEB_DOMAIN})
    - Type: Reverse Proxy (or Node.js app pointing to custom port)
