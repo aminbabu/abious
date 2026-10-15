@@ -4,10 +4,10 @@ One monorepo clone. Two CloudPanel **Reverse Proxy** sites. PostgreSQL. npm + PM
 
 | Public URL | PM2 app | Local target |
 |------------|---------|--------------|
-| `https://aminbabu.com` | `abious-web` | `http://127.0.0.1:<WEB_PORT>` |
-| `https://api.aminbabu.com` | `abious-api` | `http://127.0.0.1:<API_PORT>` |
+| `https://aminbabu.com` | `abious-web` | `http://127.0.0.1:8010` |
+| `https://api.aminbabu.com` | `abious-api` | `http://127.0.0.1:8009` |
 
-Ports are **auto-detected once** from the **8000 series** (first two free ports) during first setup and locked in `.env.production`. Redeploys keep the same ports so CloudPanel proxies do not break.
+Production ports are fixed: **API `8009`**, **WEB `8010`** (in `.env.production`).
 
 ---
 
@@ -34,11 +34,11 @@ postgresql://abious:PASSWORD@127.0.0.1:5432/abious_prod
 At the end the wizard prints the exact reverse-proxy targets, e.g.:
 
 ```text
-aminbabu.com     -> http://127.0.0.1:8001
-api.aminbabu.com -> http://127.0.0.1:8000
+aminbabu.com     -> http://127.0.0.1:8010
+api.aminbabu.com -> http://127.0.0.1:8009
 ```
 
-(Exact numbers are the first free ports from 8000 upward on your server.)
+To apply/migrate ports on the server: `bash deploy/reallocate-ports.sh`
 
 ---
 

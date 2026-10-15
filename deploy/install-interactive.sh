@@ -37,23 +37,18 @@ print_runtime
 # ------------------------------------------------------------------------------
 # 1) Auto free ports (no manual guessing)
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[1/5] Selecting free ports (8000 series)...${NC}"
+echo -e "\n${BOLD}${BLUE}[1/5] Production ports (fixed)...${NC}"
 echo "Tip: bash deploy/check-ports.sh"
 
-read -r API_PORT WEB_PORT <<<"$(allocate_free_port_pair "$DEFAULT_PORT_SERIES_START")"
+read -r API_PORT WEB_PORT <<<"$(allocate_production_port_pair)"
 
 echo -e "${GREEN}✓ API port: ${API_PORT}${NC}"
 echo -e "${GREEN}✓ WEB port: ${WEB_PORT}${NC}"
-echo -e "${YELLOW}These ports will be locked in .env.production.${NC}"
-echo -e "${YELLOW}Point CloudPanel reverse proxies at them and do not change later.${NC}"
+echo -e "${YELLOW}Locked for CloudPanel: api.aminbabu.com -> :${API_PORT}, aminbabu.com -> :${WEB_PORT}${NC}"
 
-read -rp "$(echo -e "${CYAN}Accept these ports? (Y/n): ${NC}")" ACCEPT_PORTS
-ACCEPT_PORTS=${ACCEPT_PORTS:-Y}
-if [[ ! "$ACCEPT_PORTS" =~ ^[Yy]$ ]]; then
-  read -rp "$(echo -e "${CYAN}Start search from port [${DEFAULT_PORT_SERIES_START}]: ${NC}")" CUSTOM_START
-  CUSTOM_START=${CUSTOM_START:-$DEFAULT_PORT_SERIES_START}
-  read -r API_PORT WEB_PORT <<<"$(allocate_free_port_pair "$CUSTOM_START")"
-  echo -e "${GREEN}✓ Using API=${API_PORT} WEB=${WEB_PORT}${NC}"
+if is_port_in_use "$API_PORT" || is_port_in_use "$WEB_PORT"; then
+  echo -e "${YELLOW}Warning: ${API_PORT} and/or ${WEB_PORT} currently in use.${NC}"
+  echo -e "${YELLOW}Stop conflicting PM2 apps first, or run: bash deploy/reallocate-ports.sh${NC}"
 fi
 
 # ------------------------------------------------------------------------------

@@ -65,13 +65,22 @@ load_node_env
 
 DEFAULT_WEB_DOMAIN="aminbabu.com"
 DEFAULT_API_DOMAIN="api.aminbabu.com"
-# Prefer 8000-series ports for CloudPanel reverse proxies
+# Fixed production ports (CloudPanel reverse proxies)
+PRODUCTION_API_PORT=8009
+PRODUCTION_WEB_PORT=8010
 DEFAULT_PORT_SERIES_START=8000
-DEFAULT_API_PORT_START="${DEFAULT_PORT_SERIES_START}"
-DEFAULT_WEB_PORT_START=$((DEFAULT_PORT_SERIES_START + 1))
+DEFAULT_API_PORT_START="${PRODUCTION_API_PORT}"
+DEFAULT_WEB_PORT_START="${PRODUCTION_WEB_PORT}"
 
-# Pick two free consecutive-capable ports from the 8000 series.
-# API = first free >= start; WEB = next free after API.
+# Return the production port pair (8009 / 8010).
+# Optional args override: allocate_production_port_pair [api] [web]
+allocate_production_port_pair() {
+  local api_port="${1:-$PRODUCTION_API_PORT}"
+  local web_port="${2:-$PRODUCTION_WEB_PORT}"
+  echo "$api_port $web_port"
+}
+
+# Legacy helper: first free pair from a start port (used by check-ports scan).
 allocate_free_port_pair() {
   local start="${1:-$DEFAULT_PORT_SERIES_START}"
   local api_port web_port

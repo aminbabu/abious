@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# One-shot: move API/WEB off 3000/4000 onto free 8000-series ports.
-# Updates .env.production, recreates PM2 apps, prints CloudPanel targets.
+# Set production ports to API=8009 and WEB=8010, recreate PM2 apps.
 #
 # Usage:
 #   bash deploy/reallocate-ports.sh
-#   bash deploy/reallocate-ports.sh 8000
+#   bash deploy/reallocate-ports.sh 8009 8010   # optional overrides
 
 set -euo pipefail
 
@@ -12,7 +11,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 
-START="${1:-$DEFAULT_PORT_SERIES_START}"
+API_PORT="${1:-$PRODUCTION_API_PORT}"
+WEB_PORT="${2:-$PRODUCTION_WEB_PORT}"
 API_ENV="$APP_DIR/apps/api/.env.production"
 WEB_ENV="$APP_DIR/apps/web/.env.production"
 
@@ -32,13 +32,21 @@ pm2 delete abious-api >/dev/null 2>&1 || true
 pm2 delete abious-web >/dev/null 2>&1 || true
 sleep 1
 
-read -r API_PORT WEB_PORT <<<"$(allocate_free_port_pair "$START")"
+if is_port_in_use "$API_PORT"; then
+  echo "ERROR: API port ${API_PORT} is still in use after stopping PM2."
+  bash "$APP_DIR/deploy/check-ports.sh" 8000 20 || true
+  exit 1
+fi
+if is_port_in_use "$WEB_PORT"; then
+  echo "ERROR: WEB port ${WEB_PORT} is still in use after stopping PM2."
+  bash "$APP_DIR/deploy/check-ports.sh" 8000 20 || true
+  exit 1
+fi
 
-echo "--> Allocated 8000-series ports:"
+echo "--> Setting fixed production ports:"
 echo "    API  ${OLD_API:-none} -> ${API_PORT}"
 echo "    WEB  ${OLD_WEB:-none} -> ${WEB_PORT}"
 
-# Replace PORT=... in place (keep the rest of the env file)
 tmp_api="$(mktemp)"
 tmp_web="$(mktemp)"
 awk -v port="$API_PORT" '
@@ -56,7 +64,6 @@ awk -v port="$WEB_PORT" '
 mv "$tmp_api" "$API_ENV"
 mv "$tmp_web" "$WEB_ENV"
 
-# Keep INTERNAL_API_URL in sync with new API port
 if grep -q '^INTERNAL_API_URL=' "$WEB_ENV"; then
   tmp_web="$(mktemp)"
   awk -v port="$API_PORT" '
@@ -68,7 +75,6 @@ else
   echo "INTERNAL_API_URL=http://127.0.0.1:${API_PORT}" >>"$WEB_ENV"
 fi
 
-# Ensure HOST is localhost for reverse-proxy only binding
 if ! grep -q '^HOST=' "$API_ENV"; then
   echo "HOST=127.0.0.1" >>"$API_ENV"
 fi
@@ -76,7 +82,7 @@ if ! grep -q '^HOST=' "$WEB_ENV"; then
   echo "HOST=127.0.0.1" >>"$WEB_ENV"
 fi
 
-echo "--> Starting PM2 with new ports..."
+echo "--> Starting PM2 on ${API_PORT} / ${WEB_PORT}..."
 pm2 start "$APP_DIR/deploy/ecosystem.config.cjs"
 pm2 save
 
@@ -101,7 +107,7 @@ EOF
 
 echo ""
 echo "================================================="
-echo " Ports reallocated. Update CloudPanel NOW:"
+echo " Ports set. Update CloudPanel:"
 echo "   aminbabu.com      -> http://127.0.0.1:${WEB_PORT}"
 echo "   api.aminbabu.com  -> http://127.0.0.1:${API_PORT}"
 echo " Notes: ${NOTES}"
