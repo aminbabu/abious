@@ -39,7 +39,13 @@ import { CorsMiddleware } from './common/middlewares/cors.middleware.js';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.development.local', '.env.development', '.env'],
+      envFilePath: [
+        '.env.production.local',
+        '.env.production',
+        '.env.development.local',
+        '.env.development',
+        '.env',
+      ],
     }),
     DbModule,
     LoggerModule.forRoot({

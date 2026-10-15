@@ -22,7 +22,7 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_PORT: ${{ secrets.SERVER_PORT }}
           SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          SERVER_APP_DIR: ${{ secrets.SERVER_APP_DIR }}
+          SERVER_APP_DIR_MONOREPO: ${{ secrets.SERVER_APP_DIR_MONOREPO }}
         run: |
           set -eu
 
@@ -46,7 +46,7 @@ jobs:
             "$SERVER_USER@$SERVER_HOST" 'bash -se' <<'REMOTE'
           set -e
 
-          cd '${{ secrets.SERVER_APP_DIR }}'
+          cd '${{ secrets.SERVER_APP_DIR_MONOREPO }}'
 
           export DEPLOY_BRANCH='${{ github.ref_name }}'
 
@@ -54,7 +54,7 @@ jobs:
           git checkout "$DEPLOY_BRANCH"
           git pull --ff-only origin "$DEPLOY_BRANCH"
 
-          # Monorepo install/build/restart (pnpm + systemd --user)
+          # Monorepo: npm workspaces + PM2 (CloudPanel)
           bash deploy/deploy.sh
           REMOTE
 
