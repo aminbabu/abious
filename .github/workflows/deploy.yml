@@ -1,76 +1,62 @@
-name: Deploy to Contabo VPS
+name: Deploy Portfolio
 
 on:
   push:
     branches:
       - main
+      - dev
+  workflow_dispatch:
 
-# Ensure only one deployment runs at a time
 concurrency:
-  group: production-deploy
+  group: deploy-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
-  lint-and-validate:
-    name: Lint & Pre-flight Check
+  deploy:
+    name: Deploy to server over SSH
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          run_install: false
-
-      - name: Get pnpm store directory
-        shell: bash
+      - name: Deploy to server over SSH
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_APP_DIR: ${{ secrets.SERVER_APP_DIR }}
         run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          set -eu
 
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          # Create ~/.ssh only if it does not exist.
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
 
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+          SSH_KEY="$HOME/.ssh/aminbabu_deploy_key"
 
-      - name: Run Linters
-        run: pnpm --filter "*" run lint
+          # Create a dedicated deployment key without overwriting existing keys.
+          printf '%s\n' "$SERVER_SSH_KEY" > "$SSH_KEY"
+          chmod 600 "$SSH_KEY"
 
-  deploy-to-vps:
-    name: Deploy to Contabo
-    needs: lint-and-validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Remote Deployment via SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.CONTABO_HOST }}
-          username: ${{ secrets.CONTABO_USER }}
-          key: ${{ secrets.CONTABO_SSH_KEY }}
-          passphrase: ${{ secrets.CONTABO_SSH_PASSPHRASE }}
-          port: ${{ secrets.CONTABO_PORT || 22 }}
-          script_stop: true
-          envs: CONTABO_APP_DIR
-          script: |
-            TARGET_DIR="${{ secrets.CONTABO_APP_DIR || '~/abious' }}"
-            # Expand tilde if provided
-            TARGET_DIR="${TARGET_DIR/#\~/$HOME}"
-            
-            echo "--> Navigating to application directory: $TARGET_DIR"
-            cd "$TARGET_DIR"
-            
-            # Execute deployment script on the server
-            # Environment variables (.env.production) already exist solely on the server
-            bash deploy/deploy.sh
+          # Use a verified, pinned server host key in production.
+          ssh-keyscan -p "$SERVER_PORT" "$SERVER_HOST" \
+            >> "$HOME/.ssh/known_hosts"
+
+          ssh -i "$SSH_KEY" \
+            -p "$SERVER_PORT" \
+            -o StrictHostKeyChecking=yes \
+            "$SERVER_USER@$SERVER_HOST" 'bash -se' <<'REMOTE'
+          set -e
+
+          cd '${{ secrets.SERVER_APP_DIR }}'
+
+          export DEPLOY_BRANCH='${{ github.ref_name }}'
+
+          git fetch origin "$DEPLOY_BRANCH"
+          git checkout "$DEPLOY_BRANCH"
+          git pull --ff-only origin "$DEPLOY_BRANCH"
+
+          # Monorepo install/build/restart (pnpm + systemd --user)
+          bash deploy/deploy.sh
+          REMOTE
+
+          # Remove only the dedicated deployment key.
+          rm -f "$SSH_KEY"

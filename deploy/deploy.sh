@@ -33,10 +33,12 @@ cd "$APP_DIR"
 
 # 1. Pull latest git changes (if deployment uses git)
 if [ -d ".git" ]; then
-    echo "--> Pulling latest source code from git..."
+    DEPLOY_BRANCH="${DEPLOY_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
+    echo "--> Pulling latest source code from git (branch: $DEPLOY_BRANCH)..."
     # Discard any accidental local modifications to tracked files
-    git fetch origin main || git fetch origin master || true
-    git reset --hard origin/main || git reset --hard origin/master || true
+    git fetch origin "$DEPLOY_BRANCH"
+    git checkout "$DEPLOY_BRANCH"
+    git reset --hard "origin/$DEPLOY_BRANCH"
 fi
 
 # 2. Check for required production env files (stored ONLY on server)
