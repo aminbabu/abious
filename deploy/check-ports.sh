@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Show which production ports are free / in use.
+# Show which production ports are free / in use (8000 series by default).
 # Usage: bash deploy/check-ports.sh [start_port] [count]
 
 set -euo pipefail
@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 
-START="${1:-3000}"
+START="${1:-$DEFAULT_PORT_SERIES_START}"
 COUNT="${2:-20}"
 
 echo "Scanning ports ${START}..$((START + COUNT - 1)) on $(hostname)..."
@@ -29,17 +29,12 @@ while [ "$i" -lt "$COUNT" ]; do
   i=$((i + 1))
 done
 
-API_FREE="$(find_next_available_port "$DEFAULT_API_PORT_START")"
-WEB_SEARCH="$DEFAULT_WEB_PORT_START"
-if [ "$WEB_SEARCH" -le "$API_FREE" ]; then
-  WEB_SEARCH=$((API_FREE + 1))
-fi
-WEB_FREE="$(find_next_available_port "$WEB_SEARCH")"
+read -r API_FREE WEB_FREE <<<"$(allocate_free_port_pair "$START")"
 
 echo ""
-echo "Suggested free pair:"
-echo "  API  $API_FREE"
-echo "  WEB  $WEB_FREE"
+echo "Suggested free pair (8000 series):"
+echo "  API  $API_FREE  -> api.aminbabu.com"
+echo "  WEB  $WEB_FREE  -> aminbabu.com"
 
 if [ -f "$APP_DIR/apps/api/.env.production" ] && [ -f "$APP_DIR/apps/web/.env.production" ]; then
   API_PORT="$(read_env_value "$APP_DIR/apps/api/.env.production" PORT || true)"

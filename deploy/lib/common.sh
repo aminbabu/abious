@@ -65,8 +65,20 @@ load_node_env
 
 DEFAULT_WEB_DOMAIN="aminbabu.com"
 DEFAULT_API_DOMAIN="api.aminbabu.com"
-DEFAULT_API_PORT_START=3000
-DEFAULT_WEB_PORT_START=4000
+# Prefer 8000-series ports for CloudPanel reverse proxies
+DEFAULT_PORT_SERIES_START=8000
+DEFAULT_API_PORT_START="${DEFAULT_PORT_SERIES_START}"
+DEFAULT_WEB_PORT_START=$((DEFAULT_PORT_SERIES_START + 1))
+
+# Pick two free consecutive-capable ports from the 8000 series.
+# API = first free >= start; WEB = next free after API.
+allocate_free_port_pair() {
+  local start="${1:-$DEFAULT_PORT_SERIES_START}"
+  local api_port web_port
+  api_port="$(find_next_available_port "$start")"
+  web_port="$(find_next_available_port $((api_port + 1)))"
+  echo "$api_port $web_port"
+}
 
 is_port_in_use() {
   local port="$1"

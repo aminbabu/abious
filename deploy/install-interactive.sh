@@ -37,15 +37,10 @@ print_runtime
 # ------------------------------------------------------------------------------
 # 1) Auto free ports (no manual guessing)
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[1/5] Selecting free ports...${NC}"
+echo -e "\n${BOLD}${BLUE}[1/5] Selecting free ports (8000 series)...${NC}"
 echo "Tip: bash deploy/check-ports.sh"
 
-API_PORT="$(find_next_available_port "$DEFAULT_API_PORT_START")"
-WEB_START="$DEFAULT_WEB_PORT_START"
-if [ "$WEB_START" -le "$API_PORT" ]; then
-  WEB_START=$((API_PORT + 1))
-fi
-WEB_PORT="$(find_next_available_port "$WEB_START")"
+read -r API_PORT WEB_PORT <<<"$(allocate_free_port_pair "$DEFAULT_PORT_SERIES_START")"
 
 echo -e "${GREEN}✓ API port: ${API_PORT}${NC}"
 echo -e "${GREEN}✓ WEB port: ${WEB_PORT}${NC}"
@@ -55,15 +50,9 @@ echo -e "${YELLOW}Point CloudPanel reverse proxies at them and do not change lat
 read -rp "$(echo -e "${CYAN}Accept these ports? (Y/n): ${NC}")" ACCEPT_PORTS
 ACCEPT_PORTS=${ACCEPT_PORTS:-Y}
 if [[ ! "$ACCEPT_PORTS" =~ ^[Yy]$ ]]; then
-  read -rp "$(echo -e "${CYAN}API start search port [${DEFAULT_API_PORT_START}]: ${NC}")" CUSTOM_API_START
-  CUSTOM_API_START=${CUSTOM_API_START:-$DEFAULT_API_PORT_START}
-  API_PORT="$(find_next_available_port "$CUSTOM_API_START")"
-  read -rp "$(echo -e "${CYAN}WEB start search port [${DEFAULT_WEB_PORT_START}]: ${NC}")" CUSTOM_WEB_START
-  CUSTOM_WEB_START=${CUSTOM_WEB_START:-$DEFAULT_WEB_PORT_START}
-  if [ "$CUSTOM_WEB_START" -eq "$API_PORT" ]; then
-    CUSTOM_WEB_START=$((API_PORT + 1))
-  fi
-  WEB_PORT="$(find_next_available_port "$CUSTOM_WEB_START")"
+  read -rp "$(echo -e "${CYAN}Start search from port [${DEFAULT_PORT_SERIES_START}]: ${NC}")" CUSTOM_START
+  CUSTOM_START=${CUSTOM_START:-$DEFAULT_PORT_SERIES_START}
+  read -r API_PORT WEB_PORT <<<"$(allocate_free_port_pair "$CUSTOM_START")"
   echo -e "${GREEN}✓ Using API=${API_PORT} WEB=${WEB_PORT}${NC}"
 fi
 
