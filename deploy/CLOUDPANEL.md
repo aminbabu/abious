@@ -80,9 +80,26 @@ RUN_SEED=true bash deploy/deploy.sh
 | `deploy/apply-migrations.sh` | Run package SQL migrations |
 | `deploy/install-interactive.sh` | First-time setup |
 | `deploy/deploy.sh` | Production redeploy |
+| `deploy/reallocate-ports.sh` | Set ports to 8009 / 8010 |
 
 ```bash
 pm2 list
 pm2 logs abious-api
 pm2 logs abious-web
 ```
+
+## Unstyled page / `/_build` 500
+
+If HTML loads but CSS/JS return **500**:
+
+```bash
+cd ~/abious
+ls apps/web/.output/public/_build/assets/ | head
+curl -sI "http://127.0.0.1:8010/_build/assets/$(ls apps/web/.output/public/_build/assets/*.css | head -1 | xargs basename)"
+
+# Rebuild + clean restart (safe)
+git pull origin main
+SKIP_GIT_SYNC=1 bash deploy/deploy.sh
+```
+
+Confirm CloudPanel `aminbabu.com` proxies to **8010** (web), not **8009** (api).

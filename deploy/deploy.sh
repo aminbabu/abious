@@ -83,11 +83,18 @@ fi
 
 mkdir -p "$APP_DIR/apps/api/uploads"
 
-# 2. Install + build per app (never npm workspaces on server)
+# 2. Stop web before rebuilding .output (avoids 500 on /_build assets mid-deploy)
+echo "--> Stopping PM2 apps before rebuild..."
+pm2 delete abious-web >/dev/null 2>&1 || true
+pm2 delete abious-api >/dev/null 2>&1 || true
+sleep 1
+
+# 3. Install + build per app (never npm workspaces on server)
 npm_install_apps
 npm_build_apps
+verify_web_build_assets
 
-# 3. Optional migrate / seed
+# 4. Optional migrate / seed
 if [ "${RUN_MIGRATE:-false}" = "true" ]; then
   echo "--> Applying SQL migrations..."
   bash "$APP_DIR/deploy/apply-migrations.sh"
@@ -98,37 +105,38 @@ if [ "${RUN_SEED:-false}" = "true" ]; then
   (cd "$APP_DIR/apps/api" && npm run db:seed)
 fi
 
-# 4. PM2 reload/start
-echo "--> Reloading PM2 apps..."
-if pm2 describe abious-api >/dev/null 2>&1 || pm2 describe abious-web >/dev/null 2>&1; then
-  pm2 reload "$APP_DIR/deploy/ecosystem.config.cjs" --update-env
-else
-  pm2 start "$APP_DIR/deploy/ecosystem.config.cjs"
-fi
+# 5. Fresh PM2 start (do not reload over a half-written .output)
+echo "--> Starting PM2 apps..."
+pm2 start "$APP_DIR/deploy/ecosystem.config.cjs"
 pm2 save
 
-# 5. Health checks
+# 6. Health checks (HTML + a real CSS asset)
 echo "--> Health checks..."
 set +e
 health_check "abious-api" "http://127.0.0.1:${API_PORT}/" 25
 API_OK=$?
 health_check "abious-web" "http://127.0.0.1:${WEB_PORT}/" 25
 WEB_OK=$?
+ASSET_OK=0
+if [ -n "${WEB_ASSET_SAMPLE_PATH:-}" ]; then
+  health_check_asset "$WEB_PORT" "$WEB_ASSET_SAMPLE_PATH"
+  ASSET_OK=$?
+fi
 set -e
 
 pm2 list
 
 echo "================================================="
-if [ "$API_OK" -eq 0 ] && [ "$WEB_OK" -eq 0 ]; then
+if [ "$API_OK" -eq 0 ] && [ "$WEB_OK" -eq 0 ] && [ "$ASSET_OK" -eq 0 ]; then
   echo " Deployment successful."
 else
-  echo " Deployment finished with health warnings — check pm2 logs."
+  echo " Deployment finished with health warnings — check: pm2 logs abious-web"
 fi
 echo " CloudPanel reverse proxy targets (unchanged):"
 echo "   aminbabu.com      -> http://127.0.0.1:${WEB_PORT}"
 echo "   api.aminbabu.com  -> http://127.0.0.1:${API_PORT}"
 echo "================================================="
 
-if [ "$API_OK" -ne 0 ] || [ "$WEB_OK" -ne 0 ]; then
+if [ "$API_OK" -ne 0 ] || [ "$WEB_OK" -ne 0 ] || [ "$ASSET_OK" -ne 0 ]; then
   exit 1
 fi

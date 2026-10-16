@@ -250,8 +250,55 @@ npm_build_apps() {
       . "$APP_DIR/apps/web/.env.production"
       set +a
     fi
+    # Vite rejects NODE_ENV=production inside .env files
+    unset NODE_ENV || true
     export VITE_API_URL="${VITE_API_URL:-https://api.aminbabu.com}"
     echo "    VITE_API_URL=${VITE_API_URL}"
     npm run build
   )
+}
+
+# Ensure client CSS/JS were emitted (prevents unstyled HTML after deploy)
+verify_web_build_assets() {
+  local public_dir="$APP_DIR/apps/web/.output/public"
+  local build_dir="$public_dir/_build/assets"
+  local css_count js_count sample
+
+  if [ ! -d "$build_dir" ]; then
+    echo "ERROR: Missing $build_dir — web build did not emit client assets."
+    return 1
+  fi
+
+  css_count="$(find "$build_dir" -maxdepth 1 -type f -name '*.css' 2>/dev/null | wc -l | tr -d ' ')"
+  js_count="$(find "$build_dir" -maxdepth 1 -type f -name '*.js' 2>/dev/null | wc -l | tr -d ' ')"
+
+  if [ "${css_count:-0}" -lt 1 ] || [ "${js_count:-0}" -lt 1 ]; then
+    echo "ERROR: Expected CSS/JS under $build_dir (css=$css_count js=$js_count)."
+    return 1
+  fi
+
+  sample="$(find "$build_dir" -maxdepth 1 -type f -name 'entry-client-*.css' | head -n 1 || true)"
+  if [ -z "$sample" ]; then
+    sample="$(find "$build_dir" -maxdepth 1 -type f -name '*.css' | head -n 1 || true)"
+  fi
+
+  echo "[OK] Web assets present (css=$css_count js=$js_count)"
+  echo "    sample: ${sample#$APP_DIR/}"
+  # Expose for health checks
+  WEB_ASSET_SAMPLE_PATH="/_build/assets/$(basename "$sample")"
+}
+
+health_check_asset() {
+  local port="$1"
+  local asset_path="$2"
+  local url="http://127.0.0.1:${port}${asset_path}"
+  local code
+
+  code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 5 "$url" || echo 000)"
+  if [ "$code" = "200" ]; then
+    echo "[OK] Static asset HTTP $code at $url"
+    return 0
+  fi
+  echo "[WARN] Static asset HTTP $code at $url"
+  return 1
 }
