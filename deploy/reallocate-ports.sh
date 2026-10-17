@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Set production ports to API=8009 and WEB=8010, recreate PM2 apps.
+# Update production ports and recreate PM2 apps.
 #
 # Usage:
 #   bash deploy/reallocate-ports.sh
-#   bash deploy/reallocate-ports.sh 8009 8010   # optional overrides
+#   bash deploy/reallocate-ports.sh [api_port] [web_port]   # optional overrides
 
 set -euo pipefail
 
@@ -11,14 +11,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 
-API_PORT="${1:-$PRODUCTION_API_PORT}"
-WEB_PORT="${2:-$PRODUCTION_WEB_PORT}"
 API_ENV="$APP_DIR/apps/api/.env.production"
 WEB_ENV="$APP_DIR/apps/web/.env.production"
 
 if [ ! -f "$API_ENV" ] || [ ! -f "$WEB_ENV" ]; then
   echo "ERROR: Missing .env.production files. Run install-interactive.sh first."
   exit 1
+fi
+
+CURRENT_API_PORT="$(read_env_value "$API_ENV" PORT || true)"
+CURRENT_WEB_PORT="$(read_env_value "$WEB_ENV" PORT || true)"
+
+API_PORT="${1:-${CURRENT_API_PORT:-}}"
+WEB_PORT="${2:-${CURRENT_WEB_PORT:-}}"
+
+if [ -z "$API_PORT" ] || [ -z "$WEB_PORT" ]; then
+  read -r AUTO_API AUTO_WEB <<<"$(allocate_production_port_pair)"
+  API_PORT="${API_PORT:-$AUTO_API}"
+  WEB_PORT="${WEB_PORT:-$AUTO_WEB}"
 fi
 
 load_node_env

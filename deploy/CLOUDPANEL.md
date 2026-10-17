@@ -4,10 +4,10 @@ One monorepo clone. Two CloudPanel **Reverse Proxy** sites. PostgreSQL. npm + PM
 
 | Public URL | PM2 app | Local target |
 |------------|---------|--------------|
-| `https://aminbabu.com` | `abious-web` | `http://127.0.0.1:8010` |
-| `https://api.aminbabu.com` | `abious-api` | `http://127.0.0.1:8009` |
+| `https://aminbabu.com` | `abious-web` | `http://127.0.0.1:<WEB_PORT>` |
+| `https://api.aminbabu.com` | `abious-api` | `http://127.0.0.1:<API_PORT>` |
 
-Production ports are fixed: **API `8009`**, **WEB `8010`** (in `.env.production`).
+Production ports are configured in `.env.production` during setup.
 
 ---
 
@@ -21,7 +21,7 @@ git checkout main
 # See free ports (optional)
 bash deploy/check-ports.sh
 
-# Wizard defaults: aminbabu.com + api.aminbabu.com, auto free ports
+# Interactive setup: choose or accept suggested free ports
 bash deploy/install-interactive.sh
 ```
 
@@ -34,11 +34,11 @@ postgresql://abious:PASSWORD@127.0.0.1:5432/abious_prod
 At the end the wizard prints the exact reverse-proxy targets, e.g.:
 
 ```text
-aminbabu.com     -> http://127.0.0.1:8010
-api.aminbabu.com -> http://127.0.0.1:8009
+aminbabu.com     -> http://127.0.0.1:<WEB_PORT>
+api.aminbabu.com -> http://127.0.0.1:<API_PORT>
 ```
 
-To apply/migrate ports on the server: `bash deploy/reallocate-ports.sh`
+To update or reallocate ports: `bash deploy/reallocate-ports.sh [api_port] [web_port]`
 
 ---
 
@@ -80,7 +80,7 @@ RUN_SEED=true bash deploy/deploy.sh
 | `deploy/apply-migrations.sh` | Run package SQL migrations |
 | `deploy/install-interactive.sh` | First-time setup |
 | `deploy/deploy.sh` | Production redeploy |
-| `deploy/reallocate-ports.sh` | Set ports to 8009 / 8010 |
+| `deploy/reallocate-ports.sh` | Reallocate or change production ports |
 
 ```bash
 pm2 list
@@ -95,11 +95,11 @@ If HTML loads but CSS/JS return **500**:
 ```bash
 cd ~/abious
 ls apps/web/.output/public/_build/assets/ | head
-curl -sI "http://127.0.0.1:8010/_build/assets/$(ls apps/web/.output/public/_build/assets/*.css | head -1 | xargs basename)"
+curl -sI "http://127.0.0.1:<WEB_PORT>/_build/assets/$(ls apps/web/.output/public/_build/assets/*.css | head -1 | xargs basename)"
 
 # Rebuild + clean restart (safe)
 git pull origin main
 SKIP_GIT_SYNC=1 bash deploy/deploy.sh
 ```
 
-Confirm CloudPanel `aminbabu.com` proxies to **8010** (web), not **8009** (api).
+Confirm CloudPanel `aminbabu.com` proxies to the web port, not the API port.
