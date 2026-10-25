@@ -24,6 +24,7 @@ import { For, JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
 import CommandDialog from "~/components/dashboard/command-dialog";
 import ThemeSwitcher from "~/components/theme-switcher";
 import { authClient } from "~/lib/auth-client";
+import { api } from "~/lib/api";
 
 interface NavItem {
   id: string;
@@ -191,8 +192,21 @@ export default function DashboardLayout(props: {
 
     try {
       const session = await authClient.getSession();
-      const userData = (session?.data?.user as any) || null;
+      let userData = (session?.data?.user as any) || null;
       if (userData) {
+        // In Better-Auth, if custom field 'role' is not included in the session token,
+        // fetch authoritative user profile from /api/auth/me
+        if (!userData.role || userData.role !== "admin") {
+          try {
+            const profile = await api.auth.getProfile();
+            if (profile && profile.role) {
+              userData = { ...userData, ...profile };
+            }
+          } catch {
+            // Failed to fetch profile
+          }
+        }
+
         setUser(userData);
         if (userData.role !== "admin") {
           setIsForbidden(true);
