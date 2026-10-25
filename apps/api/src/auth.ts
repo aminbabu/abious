@@ -1,6 +1,38 @@
 import { betterAuth } from 'better-auth';
 import { pool } from './db/index.js';
 
+function normalizeOrigin(value: string): string {
+  return value.trim().replace(/\/$/, '');
+}
+
+function buildTrustedOrigins(): string[] {
+  const extras = (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((v) => normalizeOrigin(v))
+    .filter(Boolean);
+
+  return Array.from(
+    new Set(
+      [
+        process.env.CLIENT_URL,
+        process.env.BETTER_AUTH_URL,
+        'https://aminbabu.com',
+        'https://www.aminbabu.com',
+        'https://api.aminbabu.com',
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'https://abious.ddev.site',
+        'https://api.abious.ddev.site',
+        'http://abious.ddev.site',
+        'http://api.abious.ddev.site',
+        ...extras,
+      ]
+        .filter(Boolean)
+        .map((v) => normalizeOrigin(String(v))),
+    ),
+  );
+}
+
 export const auth = betterAuth({
   secret:
     process.env.BETTER_AUTH_SECRET ||
@@ -8,18 +40,21 @@ export const auth = betterAuth({
   baseURL:
     process.env.BETTER_AUTH_URL ||
     (process.env.NODE_ENV === 'production'
-      ? 'https://api.abious.ddev.site'
+      ? 'https://api.aminbabu.com'
       : 'https://api.abious.ddev.site'),
-  trustedOrigins: [
-    process.env.CLIENT_URL || 'http://localhost:5173',
-    'http://localhost:3000',
-    'http://localhost:5173',
-    'https://abious.ddev.site',
-    'https://api.abious.ddev.site',
-    'http://abious.ddev.site',
-    'http://api.abious.ddev.site',
-  ],
+  trustedOrigins: buildTrustedOrigins(),
   database: pool,
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: process.env.NODE_ENV === 'production',
+      domain: '.aminbabu.com',
+    },
+    defaultCookieAttributes: {
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      partitioned: false,
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,

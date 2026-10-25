@@ -1,133 +1,105 @@
-# Deploy Abious Monorepo on CloudPanel (no sudo)
+# Production deploy — aminbabu.com (CloudPanel)
 
-NestJS API (`apps/api`) + SolidStart web (`apps/web`) as a **site user without sudo**.
+One monorepo clone. Two CloudPanel **Reverse Proxy** sites. PostgreSQL. npm + PM2 on the server.
 
-- **Server / CI:** npm + PM2  
-- **Local development:** pnpm is fine  
-- **`archive/astro`:** code archive / testing only — not deployed by CI
+| Public URL | PM2 app | Local target |
+|------------|---------|--------------|
+| `https://aminbabu.com` | `abious-web` | `http://127.0.0.1:<WEB_PORT>` |
+| `https://api.aminbabu.com` | `abious-api` | `http://127.0.0.1:<API_PORT>` |
 
----
-
-## Layout
-
-| Env | Branch | Example path | PM2 apps |
-|-----|--------|--------------|----------|
-| Production | `main` | `~/abious` | `abious-api`, `abious-web` |
-| Staging (optional) | `dev` | `~/abious-dev` | separate ports / names if needed |
+Production ports are configured in `.env.production` during setup.
 
 ---
 
-## 1. Database (PostgreSQL)
-
-CloudPanel often ships MariaDB/MySQL. This API expects **PostgreSQL** via `DATABASE_URL`.
-
-Options without sudo:
-
-1. Create Postgres in CloudPanel if available, **or**
-2. Use managed Postgres (Neon, Supabase, etc.), **or**
-3. Ask the server admin for a Postgres URL
-
-Example:
-
-```text
-postgresql://USER:PASSWORD@127.0.0.1:5432/abious_prod
-```
-
-Apply schema SQL once:
-
-```bash
-cd ~/abious
-export DATABASE_URL='postgresql://…'
-
-for f in apps/api/src/packages/*/migrations/*.sql; do
-  echo "Applying $f"
-  psql "$DATABASE_URL" -f "$f"
-done
-```
-
-If `psql` is missing, run the same `.sql` files from any SQL UI that can reach the DB.
-
----
-
-## 2. First-time install (site user SSH)
+## First-time (on server)
 
 ```bash
 git clone git@github.com:aminbabu/abious.git ~/abious
 cd ~/abious
 git checkout main
 
-# Node 24+ recommended (CloudPanel Node selector / nvm)
+# See free ports (optional)
+bash deploy/check-ports.sh
+
+# Interactive setup: choose or accept suggested free ports
 bash deploy/install-interactive.sh
 ```
 
-The wizard:
+Paste your Postgres URL when asked, e.g.:
 
-- picks free ports for API + web
-- writes `apps/api/.env.production` and `apps/web/.env.production`
-- runs `npm install` + builds both workspaces
-- starts **PM2** apps `abious-api` and `abious-web`
-- writes CloudPanel notes under `deploy/cloudpanel-<domain>.txt`
+```text
+postgresql://abious:PASSWORD@127.0.0.1:5432/abious_prod
+```
 
----
+At the end the wizard prints the exact reverse-proxy targets, e.g.:
 
-## 3. Align CloudPanel vhosts
+```text
+aminbabu.com     -> http://127.0.0.1:<WEB_PORT>
+api.aminbabu.com -> http://127.0.0.1:<API_PORT>
+```
 
-In CloudPanel UI (no sudo nginx edits):
-
-### A) Frontend site (`yourdomain.com`)
-
-1. **Sites → Add Site** (or reuse the testing vhost)
-2. Domain: `yourdomain.com`
-3. Type: **Reverse Proxy**
-4. Target: `http://127.0.0.1:<WEB_PORT>`  
-   (`PORT` in `apps/web/.env.production`)
-5. Enable SSL (Let’s Encrypt)
-
-### B) API site (`api.yourdomain.com`)
-
-1. Add site for `api.yourdomain.com`
-2. Type: **Reverse Proxy**
-3. Target: `http://127.0.0.1:<API_PORT>`  
-   (`PORT` in `apps/api/.env.production`)
-4. SSL via CloudPanel
-5. Raise max body size if uploads fail (panel UI / ask admin)
+To update or reallocate ports: `bash deploy/reallocate-ports.sh [api_port] [web_port]`
 
 ---
 
-## 4. Updates
+## CloudPanel
+
+1. Site **aminbabu.com** → Reverse Proxy → web target from the wizard  
+2. Site **api.aminbabu.com** → Reverse Proxy → API target from the wizard  
+3. Enable Let’s Encrypt on both  
+
+Do **not** clone the repo into both site document roots. One clone is enough.
+
+---
+
+## Updates / CI
 
 ```bash
 cd ~/abious
-export DEPLOY_BRANCH=main
-bash deploy/deploy.sh
+DEPLOY_BRANCH=main bash deploy/deploy.sh
 ```
 
-Or push to `main` / `dev` with `SERVER_APP_DIR` pointing at this clone.
+Or push to `main` (GitHub Action).
+
+Secrets: `SERVER_HOST`, `SERVER_USER`, `SERVER_PORT`, `SERVER_SSH_KEY`, `SERVER_APP_DIR`.
+
+Optional one-off:
+
+```bash
+RUN_MIGRATE=true bash deploy/deploy.sh
+RUN_SEED=true bash deploy/deploy.sh
+```
+
+---
+
+## Helpers
+
+| Script | Purpose |
+|--------|---------|
+| `deploy/check-ports.sh` | List free/in-use ports + configured ports |
+| `deploy/apply-migrations.sh` | Run package SQL migrations |
+| `deploy/install-interactive.sh` | First-time setup |
+| `deploy/deploy.sh` | Production redeploy |
+| `deploy/reallocate-ports.sh` | Reallocate or change production ports |
 
 ```bash
 pm2 list
 pm2 logs abious-api
 pm2 logs abious-web
-pm2 restart abious-api abious-web
-pm2 save
 ```
 
----
+## Unstyled page / `/_build` 500
 
-## 5. GitHub secrets
+If HTML loads but CSS/JS return **500**:
 
-| Secret | Value |
-|--------|--------|
-| `SERVER_HOST` / `USER` / `PORT` / `SSH_KEY` | SSH access |
-| `SERVER_APP_DIR` | Absolute path to monorepo clone |
+```bash
+cd ~/abious
+ls apps/web/.output/public/_build/assets/ | head
+curl -sI "http://127.0.0.1:<WEB_PORT>/_build/assets/$(ls apps/web/.output/public/_build/assets/*.css | head -1 | xargs basename)"
 
----
+# Rebuild + clean restart (safe)
+git pull origin main
+SKIP_GIT_SYNC=1 bash deploy/deploy.sh
+```
 
-## Checklist
-
-- [ ] Clone on `main` at `SERVER_APP_DIR`
-- [ ] Postgres `DATABASE_URL` reachable as site user
-- [ ] SQL migrations applied + optional seed
-- [ ] `pm2 list` shows `abious-api` and `abious-web`
-- [ ] CloudPanel reverse proxies for web + api
-- [ ] SSL issued in CloudPanel
+Confirm CloudPanel `aminbabu.com` proxies to the web port, not the API port.

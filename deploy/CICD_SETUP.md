@@ -1,40 +1,30 @@
-# GitHub Actions → CloudPanel site user
+# CI/CD — aminbabu.com production
 
 Workflow: `.github/workflows/deploy.yml`  
-Triggers: push to `main` / `dev`, or `workflow_dispatch`.
+Trigger: push to **`main`** or manual `workflow_dispatch`.
 
-Remote steps: SSH → `git pull` → `bash deploy/deploy.sh` (**npm** install/build + **PM2** reload).
-
-Secrets stay on the server (`apps/*/.env.production`). Nothing DB-related is stored in GitHub.
+Remote: SSH → `DEPLOY_BRANCH=main bash deploy/deploy.sh`  
+(npm install/build + PM2 reload + local health checks)
 
 ---
 
-## Repository secrets
+## Secrets
 
-| Secret | Description |
-|--------|-------------|
-| `SERVER_HOST` | Server hostname / IP |
+| Secret | Example |
+|--------|---------|
+| `SERVER_HOST` | server IP / hostname |
 | `SERVER_USER` | CloudPanel site SSH user |
-| `SERVER_PORT` | SSH port |
-| `SERVER_SSH_KEY` | Deploy private key |
-| `SERVER_APP_DIR` | Absolute path to monorepo clone (e.g. `/home/siteuser/abious`) |
+| `SERVER_PORT` | `22` |
+| `SERVER_SSH_KEY` | private deploy key |
+| `SERVER_APP_DIR` | `/home/SITEUSER/abious` |
+
+Env files and `DATABASE_URL` stay on the server only.
 
 ---
 
-## Server prerequisites
+## First time before enabling CI
 
-1. Monorepo cloned and first-time wizard completed (`install-interactive.sh`)
-2. Postgres reachable + migrations applied
-3. CloudPanel reverse-proxy sites → API/web ports
-4. `pm2` available for the site user (`npm install -g pm2`)
-
----
-
-## Test
-
-```bash
-git commit --allow-empty -m "ci: trigger monorepo deploy"
-git push origin main
-```
-
-Watch **Actions**, then on the server: `pm2 list`.
+1. `bash deploy/install-interactive.sh` on the server  
+2. CloudPanel reverse proxies → printed ports  
+3. Set GitHub secrets  
+4. Push to `main`

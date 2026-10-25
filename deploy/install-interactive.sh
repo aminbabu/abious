@@ -1,216 +1,156 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Non-Root / User-Level Interactive Setup Wizard for Abious
-# Works entirely without sudo / root permissions:
-# - Uses PM2 (CloudPanel-friendly)
-# - Checks local ports, Node.js & npm in user PATH
-# - Generates production envs, builds, seeds, and launches Nest + web apps
-# - Prints CloudPanel reverse-proxy vhost settings (no nginx root access needed)
+# First-time production setup for aminbabu.com (CloudPanel reverse proxy)
+# - Auto-selects free local ports (locked into .env.production)
+# - npm + PM2 (pnpm is for local development only)
 # ==============================================================================
 
 set -euo pipefail
 
-# ANSI color codes
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "$SCRIPT_DIR/lib/common.sh"
+
 BOLD='\033[1m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 echo -e "${CYAN}${BOLD}"
 cat << "EOF"
     ___    ____  ________  __  _______
    /   |  / __ )/  _/ __ \/ / / / ___/
-  / /| | / __  |/ // / / / / / /\__ \ 
- / ___ |/ /_/ // // /_/ / /_/ /___/ / 
-/_/  |_/_____/___/\____/\____//____/  
-   CloudPanel / User-Mode Setup (npm + PM2, no sudo)
+  / /| | / __  |/ // / / / / / /\__ \
+ / ___ |/ /_/ // // /_/ / /_/ /___/ /
+/_/  |_/_____/___/\____/\____//____/
+   Production setup — aminbabu.com (npm + PM2)
 EOF
 echo -e "${NC}"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-CURRENT_USER="$(whoami)"
-USER_HOME="$HOME"
+cd "$APP_DIR"
+ensure_runtime
+print_runtime
 
 # ------------------------------------------------------------------------------
-# Utility: Check if a port is in use
+# 1) Ports (interactive prompt or defaults)
 # ------------------------------------------------------------------------------
-is_port_in_use() {
-    local port="$1"
-    if command -v ss >/dev/null 2>&1; then
-        ss -tuln 2>/dev/null | grep -q ":${port} " && return 0
-    fi
-    if command -v netstat >/dev/null 2>&1; then
-        netstat -tuln 2>/dev/null | grep -q ":${port} " && return 0
-    fi
-    if command -v lsof >/dev/null 2>&1; then
-        lsof -i ":${port}" >/dev/null 2>&1 && return 0
-    fi
-    # Fallback to test binding with node
-    if command -v node >/dev/null 2>&1; then
-        if node -e "const net = require('net'); const s = net.createServer(); s.once('error', () => process.exit(1)); s.listen($port, '0.0.0.0', () => { s.close(); process.exit(0); });" >/dev/null 2>&1; then
-            return 1 # Available
-        else
-            return 0 # In use
-        fi
-    fi
-    return 1
+echo -e "\n${BOLD}${BLUE}[1/5] Production ports...${NC}"
+echo "Tip: bash deploy/check-ports.sh"
+
+read -r SUGGESTED_API_PORT SUGGESTED_WEB_PORT <<<"$(allocate_production_port_pair)"
+
+validate_port() {
+  local port="$1"
+  if [[ "$port" =~ ^[0-9]+$ ]] && [ "$port" -ge 1 ] && [ "$port" -le 65535 ]; then
+    return 0
+  fi
+  return 1
 }
 
-find_next_available_port() {
-    local candidate="$1"
-    while is_port_in_use "$candidate"; do
-        candidate=$((candidate + 1))
-    done
-    echo "$candidate"
-}
-
-# ------------------------------------------------------------------------------
-# 1. Environment & Runtime Verification
-# ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[Step 1/6] Checking User Environment & Node Runtime...${NC}"
-
-if ! command -v node >/dev/null 2>&1; then
-    echo -e "${RED}[ERROR] Node.js is not found in your PATH.${NC}"
-    echo "If installed via NVM, run: nvm use 24 (or ensure ~/.bashrc has NVM configured)."
-    exit 1
-fi
-
-NODE_BIN="$(command -v node)"
-NODE_VER=$(node -v)
-echo -e "${GREEN}✓ Node.js found: ${NODE_VER} (${NODE_BIN})${NC}"
-
-if ! command -v npm >/dev/null 2>&1; then
-    echo -e "${RED}[ERROR] npm is not found in your PATH (required for server deploys).${NC}"
-    exit 1
-fi
-echo -e "${GREEN}✓ npm found: $(npm -v)${NC}"
-
-if ! command -v pm2 >/dev/null 2>&1; then
-    echo -e "${YELLOW}--> Installing pm2 for current user...${NC}"
-    npm install -g pm2 >/dev/null 2>&1 || true
-    export PATH="$(npm prefix -g)/bin:$PATH"
-fi
-if ! command -v pm2 >/dev/null 2>&1; then
-    echo -e "${RED}[ERROR] Could not install pm2. Run: npm install -g pm2${NC}"
-    exit 1
-fi
-echo -e "${GREEN}✓ pm2 found: $(pm2 -v)${NC}"
-
-# ------------------------------------------------------------------------------
-# 2. Port Availability Checks & Selection
-# ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[Step 2/6] Detecting Available Network Ports...${NC}"
-
-DEFAULT_API_PORT=3000
-if is_port_in_use "$DEFAULT_API_PORT"; then
-    NEXT_API=$(find_next_available_port "$DEFAULT_API_PORT")
-    echo -e "${YELLOW}⚠ Port $DEFAULT_API_PORT is in use. Recommended free port: $NEXT_API${NC}"
-    DEFAULT_API_PORT="$NEXT_API"
-else
-    echo -e "${GREEN}✓ Port $DEFAULT_API_PORT is available for API.${NC}"
-fi
-
-read -rp "$(echo -e "${CYAN}Backend API Port [default: ${DEFAULT_API_PORT}]: ${NC}")" API_PORT
-API_PORT=${API_PORT:-$DEFAULT_API_PORT}
-
-while is_port_in_use "$API_PORT"; do
-    echo -e "${RED}[ERROR] Port $API_PORT is already bound to another service!${NC}"
-    API_PORT=$(find_next_available_port "$API_PORT")
-    read -rp "$(echo -e "${CYAN}Please enter a free port [suggested: ${API_PORT}]: ${NC}")" USER_INPUT_PORT
-    API_PORT=${USER_INPUT_PORT:-$API_PORT}
+# Prompt API port
+while true; do
+  read -rp "$(echo -e "${CYAN}API port [${SUGGESTED_API_PORT}]: ${NC}")" INPUT_API_PORT
+  API_PORT="${INPUT_API_PORT:-$SUGGESTED_API_PORT}"
+  if validate_port "$API_PORT"; then
+    break
+  fi
+  echo -e "${RED}Invalid port number. Must be between 1 and 65535.${NC}"
 done
 
-DEFAULT_WEB_PORT=4000
-if [ "$DEFAULT_WEB_PORT" -eq "$API_PORT" ] || is_port_in_use "$DEFAULT_WEB_PORT"; then
-    NEXT_WEB=$(find_next_available_port $((API_PORT + 1)))
-    DEFAULT_WEB_PORT="$NEXT_WEB"
-    echo -e "${YELLOW}⚠ Port $DEFAULT_WEB_PORT is unavailable. Recommended free port: $NEXT_WEB${NC}"
-else
-    echo -e "${GREEN}✓ Port $DEFAULT_WEB_PORT is available for Web Frontend.${NC}"
+# Prompt WEB port
+while true; do
+  read -rp "$(echo -e "${CYAN}WEB port [${SUGGESTED_WEB_PORT}]: ${NC}")" INPUT_WEB_PORT
+  WEB_PORT="${INPUT_WEB_PORT:-$SUGGESTED_WEB_PORT}"
+  if ! validate_port "$WEB_PORT"; then
+    echo -e "${RED}Invalid port number. Must be between 1 and 65535.${NC}"
+    continue
+  fi
+  if [ "$WEB_PORT" -eq "$API_PORT" ]; then
+    echo -e "${RED}WEB port cannot be the same as API port (${API_PORT}).${NC}"
+    continue
+  fi
+  break
+done
+
+echo -e "${GREEN}✓ API port: ${API_PORT}${NC}"
+echo -e "${GREEN}✓ WEB port: ${WEB_PORT}${NC}"
+echo -e "${YELLOW}Configured for CloudPanel: api.aminbabu.com -> :${API_PORT}, aminbabu.com -> :${WEB_PORT}${NC}"
+
+if is_port_in_use "$API_PORT" || is_port_in_use "$WEB_PORT"; then
+  echo -e "${YELLOW}Warning: ${API_PORT} and/or ${WEB_PORT} currently in use.${NC}"
+  echo -e "${YELLOW}Stop conflicting PM2 apps first, or run: bash deploy/reallocate-ports.sh <api-port> <web-port>${NC}"
 fi
 
-read -rp "$(echo -e "${CYAN}Web Frontend Port [default: ${DEFAULT_WEB_PORT}]: ${NC}")" WEB_PORT
-WEB_PORT=${WEB_PORT:-$DEFAULT_WEB_PORT}
-
-while [ "$WEB_PORT" -eq "$API_PORT" ] || is_port_in_use "$WEB_PORT"; do
-    echo -e "${RED}[ERROR] Port $WEB_PORT conflicts with API or is in use!${NC}"
-    WEB_PORT=$(find_next_available_port $((API_PORT + 1)))
-    read -rp "$(echo -e "${CYAN}Please enter a free port [suggested: ${WEB_PORT}]: ${NC}")" USER_INPUT_PORT
-    WEB_PORT=${USER_INPUT_PORT:-$WEB_PORT}
-done
-
-echo -e "${GREEN}✓ Bound Ports: API -> ${API_PORT}, Web -> ${WEB_PORT}${NC}"
-
 # ------------------------------------------------------------------------------
-# 3. Domain & Public URLs
+# 2) Domains (defaults for production)
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[Step 3/6] Domain & URL Configuration...${NC}"
-read -rp "$(echo -e "${CYAN}Frontend Public Domain/URL (e.g. yourdomain.com or https://yourdomain.com): ${NC}")" RAW_DOMAIN_WEB
-while [ -z "$RAW_DOMAIN_WEB" ]; do
-    echo -e "${RED}Domain cannot be empty.${NC}"
-    read -rp "$(echo -e "${CYAN}Frontend Public Domain/URL: ${NC}")" RAW_DOMAIN_WEB
-done
-
-# Format clean URL
+echo -e "\n${BOLD}${BLUE}[2/5] Domains...${NC}"
+read -rp "$(echo -e "${CYAN}Frontend domain [${DEFAULT_WEB_DOMAIN}]: ${NC}")" RAW_DOMAIN_WEB
+RAW_DOMAIN_WEB=${RAW_DOMAIN_WEB:-$DEFAULT_WEB_DOMAIN}
 CLEAN_WEB_DOMAIN=$(echo "$RAW_DOMAIN_WEB" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
 CLIENT_URL="https://${CLEAN_WEB_DOMAIN}"
 
-SUGGESTED_API_DOMAIN="api.${CLEAN_WEB_DOMAIN}"
-read -rp "$(echo -e "${CYAN}Backend Public Domain [default: ${SUGGESTED_API_DOMAIN}]: ${NC}")" RAW_DOMAIN_API
-RAW_DOMAIN_API=${RAW_DOMAIN_API:-$SUGGESTED_API_DOMAIN}
+read -rp "$(echo -e "${CYAN}API domain [${DEFAULT_API_DOMAIN}]: ${NC}")" RAW_DOMAIN_API
+RAW_DOMAIN_API=${RAW_DOMAIN_API:-$DEFAULT_API_DOMAIN}
 CLEAN_API_DOMAIN=$(echo "$RAW_DOMAIN_API" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
 BETTER_AUTH_URL="https://${CLEAN_API_DOMAIN}"
 
-echo -e "${GREEN}✓ Client URL:     ${CLIENT_URL}${NC}"
-echo -e "${GREEN}✓ Better Auth URL: ${BETTER_AUTH_URL}${NC}"
+echo -e "${GREEN}✓ CLIENT_URL=${CLIENT_URL}${NC}"
+echo -e "${GREEN}✓ BETTER_AUTH_URL=${BETTER_AUTH_URL}${NC}"
 
 # ------------------------------------------------------------------------------
-# 4. Database & Auth Secret
+# 3) Database + secrets
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[Step 4/6] Database & Authentication Secret...${NC}"
-
-read -rp "$(echo -e "${CYAN}Enter PostgreSQL DATABASE_URL: ${NC}")" DATABASE_URL
+echo -e "\n${BOLD}${BLUE}[3/5] Database & secrets...${NC}"
+read -rp "$(echo -e "${CYAN}PostgreSQL DATABASE_URL: ${NC}")" DATABASE_URL
 while [ -z "$DATABASE_URL" ]; do
-    echo -e "${RED}DATABASE_URL is required.${NC}"
-    read -rp "$(echo -e "${CYAN}Enter PostgreSQL DATABASE_URL: ${NC}")" DATABASE_URL
+  echo -e "${RED}DATABASE_URL is required.${NC}"
+  read -rp "$(echo -e "${CYAN}PostgreSQL DATABASE_URL: ${NC}")" DATABASE_URL
 done
 
+if command -v psql >/dev/null 2>&1; then
+  echo "--> Testing DATABASE_URL..."
+  psql "$DATABASE_URL" -c 'SELECT current_database(), current_user;' >/dev/null
+  echo -e "${GREEN}✓ Database connection OK${NC}"
+else
+  echo -e "${YELLOW}psql not found — skipping live DB test (install postgresql-client if needed).${NC}"
+fi
+
 DEFAULT_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
-read -rp "$(echo -e "${CYAN}Better Auth Secret (min 32 chars) [press Enter to auto-generate]: ${NC}")" BETTER_AUTH_SECRET
+read -rp "$(echo -e "${CYAN}Better Auth Secret [auto-generate]: ${NC}")" BETTER_AUTH_SECRET
 BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-$DEFAULT_SECRET}
 
-echo -e "\n${YELLOW}Social OAuth Providers (Optional - press Enter to skip):${NC}"
+echo -e "\n${YELLOW}OAuth (optional — Enter to skip)${NC}"
 read -rp "$(echo -e "${CYAN}Google Client ID: ${NC}")" GOOGLE_CLIENT_ID
 read -rp "$(echo -e "${CYAN}Google Client Secret: ${NC}")" GOOGLE_CLIENT_SECRET
 read -rp "$(echo -e "${CYAN}GitHub Client ID: ${NC}")" GITHUB_CLIENT_ID
 read -rp "$(echo -e "${CYAN}GitHub Client Secret: ${NC}")" GITHUB_CLIENT_SECRET
 
-echo -e "\n${YELLOW}SMTP Email Configuration (For contact form & password reset):${NC}"
-read -rp "$(echo -e "${CYAN}SMTP Host [default: smtp.gmail.com]: ${NC}")" SMTP_HOST
+echo -e "\n${YELLOW}SMTP (contact / password reset)${NC}"
+read -rp "$(echo -e "${CYAN}SMTP Host [smtp.gmail.com]: ${NC}")" SMTP_HOST
 SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
-read -rp "$(echo -e "${CYAN}SMTP Port [default: 465]: ${NC}")" SMTP_PORT
+read -rp "$(echo -e "${CYAN}SMTP Port [465]: ${NC}")" SMTP_PORT
 SMTP_PORT=${SMTP_PORT:-465}
-read -rp "$(echo -e "${CYAN}SMTP Secure (true/false) [default: true]: ${NC}")" SMTP_SECURE
+read -rp "$(echo -e "${CYAN}SMTP Secure true/false [true]: ${NC}")" SMTP_SECURE
 SMTP_SECURE=${SMTP_SECURE:-true}
-read -rp "$(echo -e "${CYAN}SMTP Username / Email: ${NC}")" SMTP_USER
-read -rsp "$(echo -e "${CYAN}SMTP Password / App Password: ${NC}")" SMTP_PASS
+read -rp "$(echo -e "${CYAN}SMTP User: ${NC}")" SMTP_USER
+read -rsp "$(echo -e "${CYAN}SMTP Pass: ${NC}")" SMTP_PASS
 echo ""
-read -rp "$(echo -e "${CYAN}Sender From [default: \"Abious\" <${SMTP_USER:-noreply@${CLEAN_WEB_DOMAIN}}>]: ${NC}")" SMTP_FROM
-SMTP_FROM=${SMTP_FROM:-"\"Abious\" <${SMTP_USER:-noreply@${CLEAN_WEB_DOMAIN}}>"}
-read -rp "$(echo -e "${CYAN}Contact Receiver Email [default: ${SMTP_USER:-admin@${CLEAN_WEB_DOMAIN}}]: ${NC}")" CONTACT_RECEIVER_EMAIL
-CONTACT_RECEIVER_EMAIL=${CONTACT_RECEIVER_EMAIL:-${SMTP_USER:-admin@${CLEAN_WEB_DOMAIN}}}
+read -rp "$(echo -e "${CYAN}SMTP From [\"Amin Babu\" <${SMTP_USER:-noreply@${CLEAN_WEB_DOMAIN}}>]: ${NC}")" SMTP_FROM
+SMTP_FROM=${SMTP_FROM:-"\"Amin Babu\" <${SMTP_USER:-noreply@${CLEAN_WEB_DOMAIN}}>"}
+read -rp "$(echo -e "${CYAN}Contact receiver [${SMTP_USER:-hello@${CLEAN_WEB_DOMAIN}}]: ${NC}")" CONTACT_RECEIVER_EMAIL
+CONTACT_RECEIVER_EMAIL=${CONTACT_RECEIVER_EMAIL:-${SMTP_USER:-hello@${CLEAN_WEB_DOMAIN}}}
 
 # ------------------------------------------------------------------------------
-# 5. Write Env Files & CloudPanel notes
+# 4) Write env + CloudPanel notes
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[Step 5/6] Generating Environment Files...${NC}"
+echo -e "\n${BOLD}${BLUE}[4/5] Writing env files...${NC}"
 
-# 1. API env
 cat > "$APP_DIR/apps/api/.env.production" << EOF
+HOST=127.0.0.1
 PORT=${API_PORT}
 NODE_ENV=production
 
@@ -233,98 +173,89 @@ SMTP_PASS=${SMTP_PASS}
 SMTP_FROM=${SMTP_FROM}
 CONTACT_RECEIVER_EMAIL=${CONTACT_RECEIVER_EMAIL}
 EOF
-echo -e "${GREEN}✓ Created apps/api/.env.production${NC}"
 
-# 2. Web env
 cat > "$APP_DIR/apps/web/.env.production" << EOF
-PORT=${WEB_PORT}
 HOST=127.0.0.1
+PORT=${WEB_PORT}
 NODE_ENV=production
 VITE_API_URL=${BETTER_AUTH_URL}
 INTERNAL_API_URL=http://127.0.0.1:${API_PORT}
 EOF
-echo -e "${GREEN}✓ Created apps/web/.env.production${NC}"
 
 mkdir -p "$APP_DIR/apps/api/uploads"
 
-CLOUDPANEL_NOTES="$APP_DIR/deploy/cloudpanel-${CLEAN_WEB_DOMAIN}.txt"
-cat > "$CLOUDPANEL_NOTES" << EOF
-CloudPanel reverse-proxy targets for ${CLEAN_WEB_DOMAIN}
-=======================================================
-Monorepo root: ${APP_DIR}
+NOTES="$APP_DIR/deploy/cloudpanel-aminbabu.com.txt"
+cat > "$NOTES" << EOF
+CloudPanel reverse proxy — aminbabu.com
+=======================================
+Monorepo path: ${APP_DIR}
+Clone once. Do NOT clone into both site document roots.
 
-1) Site for frontend (${CLEAN_WEB_DOMAIN})
-   - Type: Reverse Proxy (or Node.js app pointing to custom port)
-   - Proxy URL / App Port: http://127.0.0.1:${WEB_PORT}
-   - SSL: enable Let's Encrypt in CloudPanel
+1) Site: aminbabu.com
+   Type: Reverse Proxy
+   Target: http://127.0.0.1:${WEB_PORT}
+   SSL: Let's Encrypt
 
-2) Site for API (${CLEAN_API_DOMAIN})
-   - Type: Reverse Proxy
-   - Proxy URL / App Port: http://127.0.0.1:${API_PORT}
-   - SSL: enable Let's Encrypt in CloudPanel
-   - Increase body size if needed for uploads (e.g. 15M)
+2) Site: api.aminbabu.com
+   Type: Reverse Proxy
+   Target: http://127.0.0.1:${API_PORT}
+   SSL: Let's Encrypt
+   Raise upload body size if needed (15M)
 
-3) Database
-   - Prefer CloudPanel MariaDB/MySQL only if you migrate the app.
-   - This monorepo expects PostgreSQL via DATABASE_URL.
-   - Create a Postgres DB in CloudPanel (if available) or use a
-     managed Postgres URL, then put it in apps/api/.env.production.
+Ports are locked in:
+  apps/api/.env.production  PORT=${API_PORT}
+  apps/web/.env.production  PORT=${WEB_PORT}
 
-4) Process manager
-   - Apps run under PM2 as your site user (no sudo):
-       pm2 list
-       pm2 logs abious-api
-       pm2 logs abious-web
+After first setup, CI/redeploy must keep these ports.
 EOF
-echo -e "${GREEN}✓ Wrote CloudPanel notes: ${CLOUDPANEL_NOTES}${NC}"
+
+echo -e "${GREEN}✓ Wrote apps/api/.env.production${NC}"
+echo -e "${GREEN}✓ Wrote apps/web/.env.production${NC}"
+echo -e "${GREEN}✓ Wrote ${NOTES}${NC}"
 
 # ------------------------------------------------------------------------------
-# 6. Build, Seed & Start with npm + PM2
+# 5) Migrate, build, start
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[Step 6/6] Building & Starting Applications (npm + PM2)...${NC}"
+echo -e "\n${BOLD}${BLUE}[5/5] Migrate, build, start...${NC}"
 
-cd "$APP_DIR"
-echo "--> Installing dependencies via npm..."
-npm install --no-package-lock --workspaces --include-workspace-root
-
-echo "--> Compiling NestJS API..."
-npm run build -w api
-
-echo "--> Compiling SolidStart / Nitro Web..."
-VITE_API_URL="${BETTER_AUTH_URL}" npm run build -w web
-
-read -rp "$(echo -e "${CYAN}Run database seed now? (y/n) [default: y]: ${NC}")" RUN_SEED
-RUN_SEED=${RUN_SEED:-y}
-if [[ "$RUN_SEED" =~ ^[Yy]$ ]]; then
-    echo "--> Running database seed..."
-    npm run db:seed -w api || echo -e "${YELLOW}Seed note: apply SQL migrations first, then re-run seed.${NC}"
+read -rp "$(echo -e "${CYAN}Apply SQL migrations now? (Y/n): ${NC}")" DO_MIGRATE
+DO_MIGRATE=${DO_MIGRATE:-Y}
+if [[ "$DO_MIGRATE" =~ ^[Yy]$ ]]; then
+  bash "$APP_DIR/deploy/apply-migrations.sh" || echo -e "${YELLOW}Migration failed — fix DB then re-run apply-migrations.sh${NC}"
 fi
 
-echo "--> Starting PM2 processes..."
-if pm2 describe abious-api >/dev/null 2>&1 || pm2 describe abious-web >/dev/null 2>&1; then
-    pm2 reload "$APP_DIR/deploy/ecosystem.config.cjs" --update-env
-else
-    pm2 start "$APP_DIR/deploy/ecosystem.config.cjs"
+npm_install_apps
+export VITE_API_URL="${BETTER_AUTH_URL}"
+npm_build_apps
+
+read -rp "$(echo -e "${CYAN}Run DB seed now? (Y/n): ${NC}")" DO_SEED
+DO_SEED=${DO_SEED:-Y}
+if [[ "$DO_SEED" =~ ^[Yy]$ ]]; then
+  (cd "$APP_DIR/apps/api" && npm run db:seed) || echo -e "${YELLOW}Seed failed — ensure migrations succeeded first.${NC}"
 fi
+
+pm2 delete abious-api >/dev/null 2>&1 || true
+pm2 delete abious-web >/dev/null 2>&1 || true
+pm2 start "$APP_DIR/deploy/ecosystem.config.cjs"
 pm2 save
 
 sleep 2
-pm2 describe abious-api >/dev/null 2>&1 && echo -e "${GREEN}✓ abious-api is managed by PM2 (port ${API_PORT})!${NC}" || echo -e "${RED}✗ abious-api failed (pm2 logs abious-api)${NC}"
-pm2 describe abious-web >/dev/null 2>&1 && echo -e "${GREEN}✓ abious-web is managed by PM2 (port ${WEB_PORT})!${NC}" || echo -e "${RED}✗ abious-web failed (pm2 logs abious-web)${NC}"
+set +e
+health_check "abious-api" "http://127.0.0.1:${API_PORT}/" 20
+health_check "abious-web" "http://127.0.0.1:${WEB_PORT}/" 20
+set -e
 
 echo -e "\n${GREEN}${BOLD}============================================================${NC}"
-echo -e "${GREEN}${BOLD} Setup Complete (CloudPanel / User Mode)!${NC}"
+echo -e "${GREEN}${BOLD} Setup complete${NC}"
 echo -e "${GREEN}${BOLD}============================================================${NC}"
-echo -e "API (local):  http://127.0.0.1:${API_PORT}"
-echo -e "Web (local):  http://127.0.0.1:${WEB_PORT}"
-echo -e "\nCloudPanel: create two Reverse Proxy sites → those ports."
-echo -e "Details: ${CLOUDPANEL_NOTES}"
-echo -e "Guide:   ${APP_DIR}/deploy/CLOUDPANEL.md"
-echo -e "\nManagement (no sudo):"
-echo -e "  pm2 list"
-echo -e "  pm2 logs abious-api"
-echo -e "  pm2 logs abious-web"
-echo -e "  pm2 restart abious-api abious-web"
-echo -e "\nFuture updates:"
-echo -e "  bash deploy/deploy.sh"
+echo -e "API local:  http://127.0.0.1:${API_PORT}"
+echo -e "WEB local:  http://127.0.0.1:${WEB_PORT}"
+echo -e ""
+echo -e "CloudPanel reverse proxy:"
+echo -e "  aminbabu.com     -> http://127.0.0.1:${WEB_PORT}"
+echo -e "  api.aminbabu.com -> http://127.0.0.1:${API_PORT}"
+echo -e ""
+echo -e "Notes: ${NOTES}"
+echo -e "Updates: DEPLOY_BRANCH=main bash deploy/deploy.sh"
+echo -e "Ports:   bash deploy/check-ports.sh"
 echo -e "============================================================\n"
