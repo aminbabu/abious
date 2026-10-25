@@ -5,13 +5,10 @@ import {
   RiLogosGithubLine,
   RiLogosLinkedinLine,
   RiEditorTextWrap,
-  RiUserFacesUserLine,
   RiSystemDashboardLine,
-  RiSystemLoginBoxLine,
   RiSystemLogoutBoxRLine,
   RiArrowsArrowDownSLine,
   RiSystemShieldCheckLine,
-  RiSystemShieldKeyholeLine,
   RiSystemSettings3Line,
   RiDesignEditLine,
 } from "solid-icons/ri";
@@ -221,25 +218,8 @@ export default function Header() {
             </li>
 
             {/* Auth Action Controls (Desktop & Tablet) */}
-            <Show when={authChecked()}>
-              <Show
-                when={user()}
-                fallback={
-                  <li class="hidden sm:block">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      href="/auth/login"
-                      aria-label="Admin Portal"
-                      title="Admin Portal"
-                      class="text-muted-foreground hover:text-foreground cursor-pointer"
-                    >
-                      <RiSystemShieldKeyholeLine class="size-5" />
-                    </Button>
-                  </li>
-                }
-              >
-                {(u) => (
+            <Show when={authChecked() && user()}>
+              {(u) => (
                   <li class="relative hidden sm:block">
                     <button
                       type="button"
@@ -328,7 +308,6 @@ export default function Header() {
                     </Show>
                   </li>
                 )}
-              </Show>
             </Show>
 
             {/* Mobile Menu Trigger button - visible under 1024px (< lg) */}
@@ -419,27 +398,9 @@ export default function Header() {
                 </ul>
 
                 {/* Mobile Auth Management Card */}
-                <div class="mt-3 p-3 rounded-xl border border-dashed border-border bg-secondary/40">
-                  <Show
-                    when={user()}
-                    fallback={
-                      <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                          <RiUserFacesUserLine class="size-4 text-muted-foreground" />
-                          <span class="text-xs text-muted-foreground">Portal Access</span>
-                        </div>
-                        <A
-                          href="/auth/login"
-                          onClick={() => setSheetOpen(false)}
-                          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-primary/50 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
-                        >
-                          <RiSystemLoginBoxLine class="size-3.5" />
-                          <span>Admin Login</span>
-                        </A>
-                      </div>
-                    }
-                  >
-                    {(u) => (
+                <Show when={user()}>
+                  {(u) => (
+                    <div class="mt-3 p-3 rounded-xl border border-dashed border-border bg-secondary/40">
                       <div class="space-y-2">
                         <div class="flex items-center justify-between">
                           <span class="text-[11px] text-muted-foreground uppercase">Logged in as</span>
@@ -468,9 +429,9 @@ export default function Header() {
                           </button>
                         </div>
                       </div>
-                    )}
-                  </Show>
-                </div>
+                    </div>
+                  )}
+                </Show>
               </nav>
 
               {/* Drawer Footer with Book a Call and Socials on Mobile */}
