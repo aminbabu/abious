@@ -16,6 +16,7 @@
     "start:prod": "node dist/main",
     "lint": "oxlint --type-aware src/ test/",
     "db:seed": "node dist/db/seed.js --run",
+    "admin:manage": "node dist/scripts/manage-admin.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
