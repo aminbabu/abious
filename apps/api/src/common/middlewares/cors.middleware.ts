@@ -41,7 +41,9 @@ export class CorsMiddleware implements NestMiddleware {
       (allowedOrigins.includes(normalizeOrigin(origin)) ||
         /\.ddev\.site(:\d+)?$/.test(origin.replace(/^https?:\/\//, '')) ||
         /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
-        /^https?:\/\/([a-z0-9-]+\.)*aminbabu\.com$/.test(origin));
+        /^https?:\/\/([a-z0-9-]+\.)*aminbabu\.com$/.test(origin) ||
+        process.env.NODE_ENV !== 'production' ||
+        (process.env.ALLOWED_ORIGINS && process.env.ALLOWED_ORIGINS.includes('*')));
 
     if (origin && isAllowed) {
       res.setHeader('Access-Control-Allow-Origin', origin);
@@ -64,7 +66,7 @@ export class CorsMiddleware implements NestMiddleware {
           'cookie',
         ].join(', '),
       );
-      res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie');
+      res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie, x-request-id, x-correlation-id');
     }
 
     if (req.method === 'OPTIONS') {
