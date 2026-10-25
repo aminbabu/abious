@@ -61,23 +61,12 @@ export async function manageAdmin() {
     process.exit(1);
   }
 
-  // Check if user already exists
-  const checkRes = await pool.query('SELECT id, email, role FROM "user" WHERE email = $1;', [options.email]);
-
+  // If user already exists, remove that user so we can cleanly register fresh credentials with Better Auth
+  const checkRes = await pool.query('SELECT id FROM "user" WHERE email = $1;', [options.email]);
   if (checkRes.rows.length > 0) {
-    const existing = checkRes.rows[0];
-    console.log(`ℹ️  User '${options.email}' already exists (ID: ${existing.id}). Updating password and ensuring admin role...`);
-    
-    await auth.api.setPassword({
-      body: {
-        userId: existing.id,
-        newPassword: options.password,
-      },
-    });
-
-    await pool.query('UPDATE "user" SET role = $1, "emailVerified" = true, "updatedAt" = NOW() WHERE id = $2;', ['admin', existing.id]);
-    console.log(`🎉 User '${options.email}' successfully updated to admin with the new password!`);
-  } else {
+    console.log(`ℹ️  User '${options.email}' already exists. Deleting prior record to recreate cleanly...`);
+    await pool.query('DELETE FROM "user" WHERE email = $1;', [options.email]);
+  }
     console.log(`👤 Creating new admin account for '${options.email}'...`);
     const signupRes = await auth.api.signUpEmail({
       body: {
@@ -101,7 +90,6 @@ export async function manageAdmin() {
     console.log(`   - Email: ${options.email}`);
     console.log(`   - Role: admin`);
   }
-}
 
 if (process.argv[1]?.includes('manage-admin')) {
   manageAdmin()
