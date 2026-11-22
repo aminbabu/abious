@@ -25,10 +25,10 @@ bash deploy/check-ports.sh
 bash deploy/install-interactive.sh
 ```
 
-Paste your Postgres URL when asked, e.g.:
+Accept the default SQLite path when asked (or enter a custom path), e.g.:
 
 ```text
-postgresql://abious:PASSWORD@127.0.0.1:5432/abious_prod
+file:./data/abious.db
 ```
 
 At the end the wizard prints the exact reverse-proxy targets, e.g.:
