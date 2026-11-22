@@ -75,13 +75,7 @@ if ! port_usable_by_pm2_app "$WEB_PORT" "abious-web"; then
   exit 1
 fi
 
-if [ -n "${DATABASE_URL:-}" ] && command -v psql >/dev/null 2>&1; then
-  echo "--> Checking database connectivity..."
-  psql "$DATABASE_URL" -c 'SELECT 1;' >/dev/null
-  echo "[OK] Database reachable"
-fi
-
-mkdir -p "$APP_DIR/apps/api/uploads"
+mkdir -p "$APP_DIR/apps/api/uploads" "$APP_DIR/apps/api/data"
 
 # 2. Stop web before rebuilding .output (avoids 500 on /_build assets mid-deploy)
 echo "--> Stopping PM2 apps before rebuild..."
