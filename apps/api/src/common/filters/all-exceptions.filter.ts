@@ -35,6 +35,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     const correlationId = request.headers['x-request-id'] || null;
+    const origin = request.headers.origin;
+
+    if (origin) {
+      response.setHeader('Access-Control-Allow-Origin', origin);
+      response.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
 
     if (status >= 500) {
       this.logger.error(

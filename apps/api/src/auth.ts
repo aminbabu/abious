@@ -55,6 +55,15 @@ export const auth = betterAuth({
       partitioned: false,
     },
   },
+  user: {
+    additionalFields: {
+      role: {
+        type: 'string',
+        defaultValue: 'user',
+        required: false,
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,

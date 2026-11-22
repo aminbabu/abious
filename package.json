@@ -1,12 +1,17 @@
 {
   "name": "abious-monorepo",
   "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "dev": "pnpm --filter \"*\" --parallel run dev",
     "dev:web": "pnpm --filter web run dev",
     "dev:api": "pnpm --filter api run start:dev",
     "build": "pnpm --filter \"*\" run build",
-    "lint": "pnpm --filter \"*\" run lint"
+    "lint": "pnpm --filter \"*\" run lint",
+    "build:prod": "npm run build -w api && npm run build -w web",
+    "seed:prod": "npm run db:seed -w api"
   },
   "devDependencies": {
     "prettier": "^3.5.3",

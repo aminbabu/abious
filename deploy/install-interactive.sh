@@ -35,20 +35,53 @@ ensure_runtime
 print_runtime
 
 # ------------------------------------------------------------------------------
-# 1) Auto free ports (no manual guessing)
+# 1) Ports (interactive prompt or defaults)
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[1/5] Production ports (fixed)...${NC}"
+echo -e "\n${BOLD}${BLUE}[1/5] Production ports...${NC}"
 echo "Tip: bash deploy/check-ports.sh"
 
-read -r API_PORT WEB_PORT <<<"$(allocate_production_port_pair)"
+read -r SUGGESTED_API_PORT SUGGESTED_WEB_PORT <<<"$(allocate_production_port_pair)"
+
+validate_port() {
+  local port="$1"
+  if [[ "$port" =~ ^[0-9]+$ ]] && [ "$port" -ge 1 ] && [ "$port" -le 65535 ]; then
+    return 0
+  fi
+  return 1
+}
+
+# Prompt API port
+while true; do
+  read -rp "$(echo -e "${CYAN}API port [${SUGGESTED_API_PORT}]: ${NC}")" INPUT_API_PORT
+  API_PORT="${INPUT_API_PORT:-$SUGGESTED_API_PORT}"
+  if validate_port "$API_PORT"; then
+    break
+  fi
+  echo -e "${RED}Invalid port number. Must be between 1 and 65535.${NC}"
+done
+
+# Prompt WEB port
+while true; do
+  read -rp "$(echo -e "${CYAN}WEB port [${SUGGESTED_WEB_PORT}]: ${NC}")" INPUT_WEB_PORT
+  WEB_PORT="${INPUT_WEB_PORT:-$SUGGESTED_WEB_PORT}"
+  if ! validate_port "$WEB_PORT"; then
+    echo -e "${RED}Invalid port number. Must be between 1 and 65535.${NC}"
+    continue
+  fi
+  if [ "$WEB_PORT" -eq "$API_PORT" ]; then
+    echo -e "${RED}WEB port cannot be the same as API port (${API_PORT}).${NC}"
+    continue
+  fi
+  break
+done
 
 echo -e "${GREEN}✓ API port: ${API_PORT}${NC}"
 echo -e "${GREEN}✓ WEB port: ${WEB_PORT}${NC}"
-echo -e "${YELLOW}Locked for CloudPanel: api.aminbabu.com -> :${API_PORT}, aminbabu.com -> :${WEB_PORT}${NC}"
+echo -e "${YELLOW}Configured for CloudPanel: api.aminbabu.com -> :${API_PORT}, aminbabu.com -> :${WEB_PORT}${NC}"
 
 if is_port_in_use "$API_PORT" || is_port_in_use "$WEB_PORT"; then
   echo -e "${YELLOW}Warning: ${API_PORT} and/or ${WEB_PORT} currently in use.${NC}"
-  echo -e "${YELLOW}Stop conflicting PM2 apps first, or run: bash deploy/reallocate-ports.sh${NC}"
+  echo -e "${YELLOW}Stop conflicting PM2 apps first, or run: bash deploy/reallocate-ports.sh <api-port> <web-port>${NC}"
 fi
 
 # ------------------------------------------------------------------------------

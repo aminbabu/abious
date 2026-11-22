@@ -215,10 +215,7 @@ export default function LoginPage() {
           </Form>
 
           <div class="text-center pt-2 text-xs text-muted-foreground">
-            Need an account?{" "}
-            <A href="/auth/register" class="text-primary hover:underline font-medium">
-              Register here
-            </A>
+            Personal administrative portal · Author access only
           </div>
         </CardContent>
       </Card>

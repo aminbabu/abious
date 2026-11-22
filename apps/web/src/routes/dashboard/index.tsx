@@ -5,7 +5,8 @@ export default function DashboardIndex() {
   onMount(async () => {
     try {
       const session = await authClient.getSession();
-      if (session?.data?.user) {
+      const user = (session?.data?.user as any) || null;
+      if (user && user.role === "admin") {
         window.location.replace("/dashboard/overview");
       } else {
         window.location.replace("/auth/login");

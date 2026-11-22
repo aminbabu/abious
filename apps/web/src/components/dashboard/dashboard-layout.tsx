@@ -24,6 +24,7 @@ import { For, JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
 import CommandDialog from "~/components/dashboard/command-dialog";
 import ThemeSwitcher from "~/components/theme-switcher";
 import { authClient } from "~/lib/auth-client";
+import { api } from "~/lib/api";
 
 interface NavItem {
   id: string;
@@ -162,8 +163,10 @@ export default function DashboardLayout(props: {
   const [user, setUser] = createSignal<{
     name?: string;
     email?: string;
+    role?: string;
   } | null>(null);
   const [checkingAuth, setCheckingAuth] = createSignal<boolean>(true);
+  const [isForbidden, setIsForbidden] = createSignal<boolean>(false);
   const [quickFilter, setQuickFilter] = createSignal<string>("");
 
   onMount(async () => {
@@ -189,14 +192,34 @@ export default function DashboardLayout(props: {
 
     try {
       const session = await authClient.getSession();
-      if (session?.data?.user) {
-        setUser(session.data.user);
-        setCheckingAuth(false);
+      let userData = (session?.data?.user as any) || null;
+      if (userData) {
+        // In Better-Auth, if custom field 'role' is not included in the session token,
+        // fetch authoritative user profile from /api/auth/me
+        if (!userData.role || userData.role !== "admin") {
+          try {
+            const profile = await api.auth.getProfile();
+            if (profile && profile.role) {
+              userData = { ...userData, ...profile };
+            }
+          } catch {
+            // Failed to fetch profile
+          }
+        }
+
+        setUser(userData);
+        if (userData.role !== "admin") {
+          setIsForbidden(true);
+        }
       } else {
         window.location.replace("/auth/login");
+        return;
       }
     } catch {
       window.location.replace("/auth/login");
+      return;
+    } finally {
+      setCheckingAuth(false);
     }
   });
 
@@ -255,7 +278,7 @@ export default function DashboardLayout(props: {
 
   return (
     <Show
-      when={!checkingAuth() && user()}
+      when={!checkingAuth()}
       fallback={
         <div class="min-h-screen bg-background flex flex-col items-center justify-center font-mono text-xs text-muted-foreground">
           <div class="size-6 animate-spin rounded-full border-2 border-primary border-t-transparent mb-3" />
@@ -263,6 +286,37 @@ export default function DashboardLayout(props: {
         </div>
       }
     >
+      <Show
+        when={!isForbidden()}
+        fallback={
+          <div class="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 text-center antialiased">
+            <div class="max-w-md w-full border border-dashed border-destructive/40 bg-card/60 rounded-xl p-8 backdrop-blur-md flex flex-col items-center">
+              <div class="size-12 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center mb-4">
+                <RiSystemShieldCheckLine class="size-6" />
+              </div>
+              <h2 class="text-xl font-bold tracking-tight mb-2">Access Restricted</h2>
+              <p class="text-xs text-muted-foreground mb-6 leading-relaxed">
+                You are authenticated as <span class="font-mono text-foreground font-semibold">{user()?.email}</span>, but your account does not have administrative privileges for this dashboard.
+              </p>
+              <div class="flex items-center gap-3 w-full">
+                <A
+                  href="/"
+                  class="flex-1 py-2 text-xs font-mono font-medium rounded-md border border-dashed border-border hover:bg-secondary/60 transition-colors text-foreground"
+                >
+                  Return to Site
+                </A>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  class="flex-1 py-2 text-xs font-mono font-medium rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors cursor-pointer"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      >
       <div class="min-h-screen bg-background text-foreground flex antialiased">
         {/* Mobile Backdrop */}
         <Show when={mobileDrawerOpen()}>
@@ -690,6 +744,7 @@ export default function DashboardLayout(props: {
           onClose={() => setCommandDialogOpen(false)}
         />
       </div>
+      </Show>
     </Show>
   );
 }
