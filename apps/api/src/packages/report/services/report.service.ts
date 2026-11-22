@@ -12,8 +12,8 @@ export class ReportService {
       // Query table counts with safe fallbacks if some tables haven't been migrated yet
       const safeCount = async (tableName: string): Promise<number> => {
         try {
-          const res = await this.db.execute(sql.raw(`SELECT count(*) as count FROM "${tableName}"`));
-          return parseInt(String(res.rows[0]?.count ?? '0'), 10);
+          const res = this.db.get<{ count: number }>(sql.raw(`SELECT count(*) as count FROM "${tableName}"`));
+          return Number(res?.count ?? 0);
         } catch {
           return 0;
         }
@@ -21,10 +21,10 @@ export class ReportService {
 
       const safeCountUnread = async (): Promise<number> => {
         try {
-          const res = await this.db.execute(
-            sql.raw(`SELECT count(*) as count FROM "contact_inquiries" WHERE is_read = false`),
+          const res = this.db.get<{ count: number }>(
+            sql.raw(`SELECT count(*) as count FROM "contact_inquiries" WHERE is_read = 0`),
           );
-          return parseInt(String(res.rows[0]?.count ?? '0'), 10);
+          return Number(res?.count ?? 0);
         } catch {
           return 0;
         }

@@ -1,5 +1,7 @@
+import { eq } from 'drizzle-orm';
 import { auth } from '../auth.js';
-import { pool } from '../db/index.js';
+import { sqlite, db } from '../db/index.js';
+import { users, verifications } from '../packages/auth/entities/auth.entity.js';
 
 interface AdminOptions {
   email: string;
@@ -40,8 +42,8 @@ export async function manageAdmin() {
   if (options.resetAllUsers) {
     console.log('🗑️  Deleting all existing users, sessions, and accounts...');
     // Foreign keys to session and account have ON DELETE CASCADE
-    await pool.query('DELETE FROM "user";');
-    await pool.query('DELETE FROM "verification";');
+    await db.delete(users);
+    await db.delete(verifications);
     console.log('✅ All existing users and sessions removed.');
   }
 
@@ -62,44 +64,45 @@ export async function manageAdmin() {
   }
 
   // If user already exists, remove that user so we can cleanly register fresh credentials with Better Auth
-  const checkRes = await pool.query('SELECT id FROM "user" WHERE email = $1;', [options.email]);
-  if (checkRes.rows.length > 0) {
+  const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, options.email)).limit(1);
+  if (existing.length > 0) {
     console.log(`ℹ️  User '${options.email}' already exists. Deleting prior record to recreate cleanly...`);
-    await pool.query('DELETE FROM "user" WHERE email = $1;', [options.email]);
+    await db.delete(users).where(eq(users.email, options.email));
   }
-    console.log(`👤 Creating new admin account for '${options.email}'...`);
-    const signupRes = await auth.api.signUpEmail({
-      body: {
-        email: options.email,
-        password: options.password,
-        name: options.name || 'Admin',
-      },
-    });
 
-    if (!signupRes || !signupRes.user) {
-      throw new Error('Failed to create user via Better Auth');
-    }
+  console.log(`👤 Creating new admin account for '${options.email}'...`);
+  const signupRes = await auth.api.signUpEmail({
+    body: {
+      email: options.email,
+      password: options.password,
+      name: options.name || 'Admin',
+    },
+  });
 
-    await pool.query('UPDATE "user" SET role = $1, "emailVerified" = true, "updatedAt" = NOW() WHERE id = $2;', [
-      'admin',
-      signupRes.user.id,
-    ]);
-
-    console.log(`🎉 New Admin created successfully!`);
-    console.log(`   - ID: ${signupRes.user.id}`);
-    console.log(`   - Email: ${options.email}`);
-    console.log(`   - Role: admin`);
+  if (!signupRes || !signupRes.user) {
+    throw new Error('Failed to create user via Better Auth');
   }
+
+  await db
+    .update(users)
+    .set({ role: 'admin', emailVerified: true, updatedAt: new Date() })
+    .where(eq(users.id, signupRes.user.id));
+
+  console.log(`🎉 New Admin created successfully!`);
+  console.log(`   - ID: ${signupRes.user.id}`);
+  console.log(`   - Email: ${options.email}`);
+  console.log(`   - Role: admin`);
+}
 
 if (process.argv[1]?.includes('manage-admin')) {
   manageAdmin()
-    .then(async () => {
-      await pool.end();
+    .then(() => {
+      sqlite.close();
       process.exit(0);
     })
-    .catch(async (err) => {
+    .catch((err) => {
       console.error('❌ Error running manage-admin:', err);
-      await pool.end();
+      sqlite.close();
       process.exit(1);
     });
 }
