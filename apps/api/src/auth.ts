@@ -1,5 +1,5 @@
 import { betterAuth } from 'better-auth';
-import { pool } from './db/index.js';
+import { sqlite } from './db/index.js';
 
 function normalizeOrigin(value: string): string {
   return value.trim().replace(/\/$/, '');
@@ -43,7 +43,7 @@ export const auth = betterAuth({
       ? 'https://api.aminbabu.com'
       : 'https://api.abious.ddev.site'),
   trustedOrigins: buildTrustedOrigins(),
-  database: pool,
+  database: sqlite,
   advanced: {
     crossSubDomainCookies: {
       enabled: process.env.NODE_ENV === 'production',

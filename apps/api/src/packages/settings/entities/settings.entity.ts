@@ -1,9 +1,11 @@
-import { pgTable, text, timestamp, jsonb } from 'drizzle-orm/pg-core';
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-export const siteSettings = pgTable('site_settings', {
+export const siteSettings = sqliteTable('site_settings', {
   key: text('key').primaryKey(),
-  value: jsonb('value').notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  value: text('value', { mode: 'json' }).notNull(),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export type SiteSetting = typeof siteSettings.$inferSelect;

@@ -17,7 +17,7 @@ APP_USER="abious"
 echo "--> Updating APT packages..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y && apt-get upgrade -y
-apt-get install -y curl wget git build-essential ufw nginx certbot python3-certbot-nginx postgresql postgresql-contrib
+apt-get install -y curl wget git build-essential ufw nginx certbot python3-certbot-nginx sqlite3
 
 # 2. Install Node.js 24.x LTS & pnpm
 echo "--> Installing Node.js 24..."
@@ -49,21 +49,10 @@ ufw allow OpenSSH
 ufw allow 'Nginx Full'
 ufw --force enable
 
-# 6. Configure PostgreSQL Service
-echo "--> Starting & enabling PostgreSQL..."
-systemctl start postgresql
-systemctl enable postgresql
-
 echo "============================================================"
 echo " Basic VPS dependencies successfully installed!"
 echo " Next steps:"
-echo " 1. Create your PostgreSQL database and user:"
-echo "    sudo -u postgres psql"
-echo "    CREATE USER abious WITH PASSWORD 'your_strong_db_password';"
-echo "    CREATE DATABASE abious_prod OWNER abious;"
-echo "    \q"
-echo ""
-echo " 2. Clone or copy your project repository to $APP_DIR"
-echo " 3. Copy .env.production files into apps/api/ and apps/web/"
-echo " 4. Run 'sudo bash $APP_DIR/deploy/deploy.sh' to build and run systemd services."
+echo " 1. Clone or copy your project repository to $APP_DIR"
+echo " 2. Copy .env.production files into apps/api/ and apps/web/"
+echo " 3. Run 'sudo bash $APP_DIR/deploy/deploy.sh' to build and run systemd services."
 echo "============================================================"

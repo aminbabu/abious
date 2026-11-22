@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Apply package SQL migrations to PostgreSQL.
+# Apply package SQL migrations to SQLite.
 # Usage:
-#   export DATABASE_URL='postgresql://...'
+#   export DATABASE_URL='file:./data/abious.db'
 #   bash deploy/apply-migrations.sh
-# Or reads DATABASE_URL from apps/api/.env.production
+# Or reads DATABASE_URL from apps/api/.env.production (defaults to file:./data/abious.db)
 
 set -euo pipefail
 
@@ -14,19 +14,7 @@ source "$SCRIPT_DIR/lib/common.sh"
 if [ -z "${DATABASE_URL:-}" ]; then
   DATABASE_URL="$(read_env_value "$APP_DIR/apps/api/.env.production" DATABASE_URL || true)"
 fi
-
-if [ -z "${DATABASE_URL:-}" ]; then
-  echo "ERROR: DATABASE_URL is not set and not found in apps/api/.env.production"
-  exit 1
-fi
-
-if ! command -v psql >/dev/null 2>&1; then
-  echo "ERROR: psql not found. As root: apt install -y postgresql-client"
-  exit 1
-fi
-
-echo "--> Testing database connection..."
-psql "$DATABASE_URL" -c 'SELECT current_database(), current_user;' >/dev/null
+DATABASE_URL="${DATABASE_URL:-file:./data/abious.db}"
 
 shopt -s nullglob
 files=("$APP_DIR"/apps/api/src/packages/*/migrations/*.sql)
@@ -35,9 +23,26 @@ if [ "${#files[@]}" -eq 0 ]; then
   exit 1
 fi
 
-for f in "${files[@]}"; do
-  echo "--> Applying $f"
-  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
-done
+echo "--> Applying SQLite migrations to $DATABASE_URL..."
+NODE_PATH="$APP_DIR/apps/api/node_modules" DATABASE_URL="$DATABASE_URL" node -e '
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const Database = require("better-sqlite3");
+
+  const rawUrl = process.env.DATABASE_URL || "file:./data/abious.db";
+  const filePath = rawUrl.startsWith("file:") ? rawUrl.slice("file:".length) : rawUrl;
+  const resolved = path.resolve(process.argv[1], filePath);
+  fs.mkdirSync(path.dirname(resolved), { recursive: true });
+
+  const db = new Database(resolved);
+  db.pragma("journal_mode = WAL");
+  db.pragma("foreign_keys = ON");
+
+  for (const file of process.argv.slice(2)) {
+    console.log("--> Applying " + file);
+    db.exec(fs.readFileSync(file, "utf8"));
+  }
+  db.close();
+' "$APP_DIR/apps/api" "${files[@]}"
 
 echo "--> Migrations applied successfully."

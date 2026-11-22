@@ -1,47 +1,51 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  boolean,
-  integer,
-  jsonb,
-  uuid,
-  index,
-} from 'drizzle-orm/pg-core';
+import { randomUUID } from 'node:crypto';
+import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 
-export const categories = pgTable('categories', {
-  id: uuid('id').defaultRandom().primaryKey(),
+export const categories = sqliteTable('categories', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
   slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
   description: text('description'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
-export const tags = pgTable('tags', {
-  id: uuid('id').defaultRandom().primaryKey(),
+export const tags = sqliteTable('tags', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
   slug: text('slug').notNull().unique(),
   name: text('name').notNull(),
 });
 
-export const blogPosts = pgTable(
+export const blogPosts = sqliteTable(
   'blog_posts',
   {
-    id: uuid('id').defaultRandom().primaryKey(),
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => randomUUID()),
     slug: text('slug').notNull().unique(),
     title: text('title').notNull(),
     summary: text('summary').notNull(),
     content: text('content').notNull(),
     coverImage: text('cover_image'),
-    categoryId: uuid('category_id').references(() => categories.id, {
+    categoryId: text('category_id').references(() => categories.id, {
       onDelete: 'set null',
     }),
-    tags: jsonb('tags').$type<string[]>().default([]).notNull(),
+    tags: text('tags', { mode: 'json' }).$type<string[]>().default([]).notNull(),
     readTimeMinutes: integer('read_time_minutes').default(3).notNull(),
-    isDraft: boolean('is_draft').default(false).notNull(),
-    publishedAt: timestamp('published_at', { withTimezone: true }).defaultNow(),
+    isDraft: integer('is_draft', { mode: 'boolean' }).default(false).notNull(),
+    publishedAt: integer('published_at', { mode: 'timestamp_ms' }).$defaultFn(() => new Date()),
     authorId: text('author_id'),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .$defaultFn(() => new Date())
+      .notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (table) => [
     index('idx_blog_posts_slug').on(table.slug),

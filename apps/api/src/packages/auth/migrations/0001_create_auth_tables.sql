@@ -5,22 +5,22 @@ CREATE TABLE IF NOT EXISTS "user" (
   "id" TEXT PRIMARY KEY,
   "name" TEXT NOT NULL,
   "email" TEXT NOT NULL UNIQUE,
-  "emailVerified" BOOLEAN NOT NULL DEFAULT FALSE,
+  "emailVerified" INTEGER NOT NULL DEFAULT 0,
   "image" TEXT,
   "role" TEXT NOT NULL DEFAULT 'user',
-  "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  "createdAt" INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
+  "updatedAt" INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 );
 
 CREATE TABLE IF NOT EXISTS "session" (
   "id" TEXT PRIMARY KEY,
   "userId" TEXT NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
   "token" TEXT NOT NULL UNIQUE,
-  "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+  "expiresAt" INTEGER NOT NULL,
   "ipAddress" TEXT,
   "userAgent" TEXT,
-  "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  "createdAt" INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
+  "updatedAt" INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 );
 
 CREATE TABLE IF NOT EXISTS "account" (
@@ -30,20 +30,20 @@ CREATE TABLE IF NOT EXISTS "account" (
   "providerId" TEXT NOT NULL,
   "accessToken" TEXT,
   "refreshToken" TEXT,
-  "accessTokenExpiresAt" TIMESTAMP WITH TIME ZONE,
-  "refreshTokenExpiresAt" TIMESTAMP WITH TIME ZONE,
+  "accessTokenExpiresAt" INTEGER,
+  "refreshTokenExpiresAt" INTEGER,
   "scope" TEXT,
   "idToken" TEXT,
   "password" TEXT,
-  "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  "createdAt" INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
+  "updatedAt" INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 );
 
 CREATE TABLE IF NOT EXISTS "verification" (
   "id" TEXT PRIMARY KEY,
   "identifier" TEXT NOT NULL,
   "value" TEXT NOT NULL,
-  "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
-  "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  "expiresAt" INTEGER NOT NULL,
+  "createdAt" INTEGER DEFAULT (unixepoch() * 1000),
+  "updatedAt" INTEGER DEFAULT (unixepoch() * 1000)
 );

@@ -72,19 +72,9 @@ echo -e "${GREEN}✓ BETTER_AUTH_URL=${BETTER_AUTH_URL}${NC}"
 # 3) Database + secrets
 # ------------------------------------------------------------------------------
 echo -e "\n${BOLD}${BLUE}[3/5] Database & secrets...${NC}"
-read -rp "$(echo -e "${CYAN}PostgreSQL DATABASE_URL: ${NC}")" DATABASE_URL
-while [ -z "$DATABASE_URL" ]; do
-  echo -e "${RED}DATABASE_URL is required.${NC}"
-  read -rp "$(echo -e "${CYAN}PostgreSQL DATABASE_URL: ${NC}")" DATABASE_URL
-done
-
-if command -v psql >/dev/null 2>&1; then
-  echo "--> Testing DATABASE_URL..."
-  psql "$DATABASE_URL" -c 'SELECT current_database(), current_user;' >/dev/null
-  echo -e "${GREEN}✓ Database connection OK${NC}"
-else
-  echo -e "${YELLOW}psql not found — skipping live DB test (install postgresql-client if needed).${NC}"
-fi
+read -rp "$(echo -e "${CYAN}SQLite DATABASE_URL [file:./data/abious.db]: ${NC}")" DATABASE_URL
+DATABASE_URL=${DATABASE_URL:-file:./data/abious.db}
+echo -e "${GREEN}✓ DATABASE_URL=${DATABASE_URL}${NC}"
 
 DEFAULT_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
 read -rp "$(echo -e "${CYAN}Better Auth Secret [auto-generate]: ${NC}")" BETTER_AUTH_SECRET

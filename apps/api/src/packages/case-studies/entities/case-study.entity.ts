@@ -1,6 +1,6 @@
-import { pgTable, text, timestamp, boolean, integer, jsonb, index } from 'drizzle-orm/pg-core';
+import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 
-export const caseStudies = pgTable(
+export const caseStudies = sqliteTable(
   'case_studies',
   {
     id: text('id').primaryKey(),
@@ -9,11 +9,13 @@ export const caseStudies = pgTable(
     banner: text('banner').notNull(),
     type: text('type').notNull(),
     liveUrl: text('live_url'),
-    stack: jsonb('stack').$type<string[]>().default([]).notNull(),
+    stack: text('stack', { mode: 'json' }).$type<string[]>().default([]).notNull(),
     body: text('body').notNull(),
-    isPublished: boolean('is_published').default(true).notNull(),
+    isPublished: integer('is_published', { mode: 'boolean' }).default(true).notNull(),
     sortOrder: integer('sort_order').default(0).notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (table) => [
     index('idx_case_studies_type').on(table.type),

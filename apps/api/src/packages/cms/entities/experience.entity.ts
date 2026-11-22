@@ -1,17 +1,24 @@
-import { pgTable, text, timestamp, integer, uuid } from 'drizzle-orm/pg-core';
+import { randomUUID } from 'node:crypto';
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-export const experiences = pgTable('experiences', {
-  id: uuid('id').defaultRandom().primaryKey(),
+export const experiences = sqliteTable('experiences', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
   company: text('company').notNull(),
   location: text('location').notNull(),
   logo: text('logo').notNull(),
   sortOrder: integer('sort_order').default(0).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
-export const experiencePositions = pgTable('experience_positions', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  experienceId: uuid('experience_id')
+export const experiencePositions = sqliteTable('experience_positions', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
+  experienceId: text('experience_id')
     .notNull()
     .references(() => experiences.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),

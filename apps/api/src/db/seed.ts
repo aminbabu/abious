@@ -1,4 +1,4 @@
-import { pool, db } from './index.js';
+import { sqlite, db } from './index.js';
 import { services } from '../packages/cms/entities/service.entity.js';
 import { experiences, experiencePositions } from '../packages/cms/entities/experience.entity.js';
 import { testimonials } from '../packages/cms/entities/testimonial.entity.js';
@@ -697,13 +697,13 @@ pnpm --filter ...[origin/main] test
 
 if (process.argv.includes('--run')) {
   seedDatabase()
-    .then(async () => {
-      await pool.end();
+    .then(() => {
+      sqlite.close();
       process.exit(0);
     })
-    .catch(async (err) => {
+    .catch((err) => {
       console.error('❌ Seeder failed:', err);
-      await pool.end();
+      sqlite.close();
       process.exit(1);
     });
 }

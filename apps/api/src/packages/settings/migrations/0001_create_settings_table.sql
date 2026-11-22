@@ -1,8 +1,8 @@
 -- Migration: 0001_create_settings_table
 CREATE TABLE IF NOT EXISTS "site_settings" (
   "key" TEXT PRIMARY KEY,
-  "value" JSONB NOT NULL,
-  "updated_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  "value" TEXT NOT NULL,
+  "updated_at" INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 );
 
 -- Seed initial default public settings
@@ -21,6 +21,6 @@ INSERT INTO "site_settings" ("key", "value") VALUES
       { "id": "github", "title": "GitHub", "url": "https://github.com/aminbabu" },
       { "id": "linkedin", "title": "LinkedIn", "url": "https://www.linkedin.com/in/aminbabu" }
     ]
-  }'::jsonb
+  }'
 )
 ON CONFLICT ("key") DO NOTHING;

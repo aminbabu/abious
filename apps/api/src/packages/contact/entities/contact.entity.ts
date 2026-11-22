@@ -1,16 +1,21 @@
-import { pgTable, text, timestamp, boolean, uuid, index } from 'drizzle-orm/pg-core';
+import { randomUUID } from 'node:crypto';
+import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 
-export const contactInquiries = pgTable(
+export const contactInquiries = sqliteTable(
   'contact_inquiries',
   {
-    id: uuid('id').defaultRandom().primaryKey(),
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => randomUUID()),
     name: text('name').notNull(),
     email: text('email').notNull(),
     subject: text('subject'),
     message: text('message').notNull(),
-    isRead: boolean('is_read').default(false).notNull(),
+    isRead: integer('is_read', { mode: 'boolean' }).default(false).notNull(),
     ipAddress: text('ip_address'),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (table) => [
     index('idx_contact_inquiries_is_read').on(table.isRead),

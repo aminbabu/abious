@@ -1,18 +1,23 @@
-import { pgTable, text, timestamp, uuid, jsonb, index } from 'drizzle-orm/pg-core';
+import { randomUUID } from 'node:crypto';
+import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
 
-export const auditLogs = pgTable(
+export const auditLogs = sqliteTable(
   'audit_logs',
   {
-    id: uuid('id').defaultRandom().primaryKey(),
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => randomUUID()),
     actorId: text('actor_id'),
     action: text('action').notNull(), // 'CREATE', 'UPDATE', 'DELETE', 'LOGIN', etc.
     entityType: text('entity_type').notNull(), // 'CaseStudy', 'Setting', 'Service', etc.
     entityId: text('entity_id'),
-    oldValues: jsonb('old_values'),
-    newValues: jsonb('new_values'),
+    oldValues: text('old_values', { mode: 'json' }),
+    newValues: text('new_values', { mode: 'json' }),
     ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .$defaultFn(() => new Date())
+      .notNull(),
   },
   (table) => [
     index('idx_audit_logs_entity').on(table.entityType, table.entityId),

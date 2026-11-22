@@ -7,11 +7,11 @@ CREATE TABLE IF NOT EXISTS "case_studies" (
   "banner" TEXT NOT NULL,
   "type" TEXT NOT NULL,
   "live_url" TEXT,
-  "stack" JSONB NOT NULL DEFAULT '[]'::jsonb,
+  "stack" TEXT NOT NULL DEFAULT '[]',
   "body" TEXT NOT NULL,
-  "is_published" BOOLEAN NOT NULL DEFAULT TRUE,
+  "is_published" INTEGER NOT NULL DEFAULT 1,
   "sort_order" INTEGER NOT NULL DEFAULT 0,
-  "created_at" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+  "created_at" INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 );
 
 CREATE INDEX IF NOT EXISTS "idx_case_studies_type" ON "case_studies"("type");

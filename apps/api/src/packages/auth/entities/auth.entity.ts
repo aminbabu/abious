@@ -1,30 +1,38 @@
-import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-export const users = pgTable('user', {
+export const users = sqliteTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
-  emailVerified: boolean('emailVerified').notNull().default(false),
+  emailVerified: integer('emailVerified', { mode: 'boolean' }).notNull().default(false),
   image: text('image'),
   role: text('role').notNull().default('user'),
-  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer('updatedAt', { mode: 'timestamp_ms' })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });
 
-export const sessions = pgTable('session', {
+export const sessions = sqliteTable('session', {
   id: text('id').primaryKey(),
   userId: text('userId')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   token: text('token').notNull().unique(),
-  expiresAt: timestamp('expiresAt', { withTimezone: true }).notNull(),
+  expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
   ipAddress: text('ipAddress'),
   userAgent: text('userAgent'),
-  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer('updatedAt', { mode: 'timestamp_ms' })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });
 
-export const accounts = pgTable('account', {
+export const accounts = sqliteTable('account', {
   id: text('id').primaryKey(),
   userId: text('userId')
     .notNull()
@@ -33,20 +41,24 @@ export const accounts = pgTable('account', {
   providerId: text('providerId').notNull(),
   accessToken: text('accessToken'),
   refreshToken: text('refreshToken'),
-  accessTokenExpiresAt: timestamp('accessTokenExpiresAt', { withTimezone: true }),
-  refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt', { withTimezone: true }),
+  accessTokenExpiresAt: integer('accessTokenExpiresAt', { mode: 'timestamp_ms' }),
+  refreshTokenExpiresAt: integer('refreshTokenExpiresAt', { mode: 'timestamp_ms' }),
   scope: text('scope'),
   idToken: text('idToken'),
   password: text('password'),
-  createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: integer('createdAt', { mode: 'timestamp_ms' })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer('updatedAt', { mode: 'timestamp_ms' })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });
 
-export const verifications = pgTable('verification', {
+export const verifications = sqliteTable('verification', {
   id: text('id').primaryKey(),
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
-  expiresAt: timestamp('expiresAt', { withTimezone: true }).notNull(),
-  createdAt: timestamp('createdAt', { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp('updatedAt', { withTimezone: true }).defaultNow(),
+  expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
+  createdAt: integer('createdAt', { mode: 'timestamp_ms' }).$defaultFn(() => new Date()),
+  updatedAt: integer('updatedAt', { mode: 'timestamp_ms' }).$defaultFn(() => new Date()),
 });

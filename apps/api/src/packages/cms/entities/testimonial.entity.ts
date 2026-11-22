@@ -1,6 +1,6 @@
-import { pgTable, text, timestamp, boolean, integer } from 'drizzle-orm/pg-core';
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-export const testimonials = pgTable('testimonials', {
+export const testimonials = sqliteTable('testimonials', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   role: text('role').notNull(),
@@ -8,9 +8,11 @@ export const testimonials = pgTable('testimonials', {
   avatar: text('avatar').notNull(),
   body: text('body').notNull(),
   rating: integer('rating').default(5).notNull(),
-  isPublished: boolean('is_published').default(true).notNull(),
+  isPublished: integer('is_published', { mode: 'boolean' }).default(true).notNull(),
   sortOrder: integer('sort_order').default(0).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .$defaultFn(() => new Date())
+    .notNull(),
 });
 
 export type Testimonial = typeof testimonials.$inferSelect;
