@@ -1,6 +1,14 @@
-import { createResource, onMount, onCleanup, Show, createEffect, For } from "solid-js";
+import {
+  createResource,
+  onMount,
+  onCleanup,
+  Show,
+  createEffect,
+  For,
+} from "solid-js";
 import { RiEditorDoubleQuotesL, RiSystemStarFill } from "solid-icons/ri";
 import DecoratorUI from "~/components/decorator-ui";
+import EmptyState from "~/components/ui/empty-state";
 import Section from "~/components/section";
 import Image from "~/components/ui/image";
 import {
@@ -19,7 +27,9 @@ import { api, type ITestimonialItem } from "~/lib/api";
 export type ITestimonial = ITestimonialItem;
 
 export default function Testimonials() {
-  const [data] = createResource<ITestimonialItem[]>(() => api.testimonials.list());
+  const [data] = createResource<ITestimonialItem[]>(() =>
+    api.testimonials.list(),
+  );
   let splideEl: HTMLDivElement | undefined;
   let splideInstance: Splide | null = null;
 
@@ -71,7 +81,6 @@ export default function Testimonials() {
     destroySplide();
   });
 
-
   return (
     <Section id="testimonials">
       <Paragraph class="mb-3 font-mono text-xs sm:text-sm font-semibold tracking-wider text-muted-foreground/80 md:text-right">
@@ -96,36 +105,34 @@ export default function Testimonials() {
         <Show
           when={!data.error}
           fallback={
-            <DecoratorUI class="-mt-5 before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed">
-              <div class="-mx-3 bg-secondary p-3">{data.error?.message}</div>
-            </DecoratorUI>
+            <EmptyState
+              isError
+              message={data.error?.message || "Failed to load testimonials."}
+            />
           }
         >
           <Show
             when={data()?.length}
-            fallback={
-              <DecoratorUI class="-mt-5 before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed">
-                <div class="-mx-3 bg-secondary p-3">
-                  <p class="text-muted-foreground">No testimonials found.</p>
-                </div>
-              </DecoratorUI>
-            }
+            fallback={<EmptyState message="No testimonials found." />}
           >
-            <div
-              ref={splideEl}
-              class="splide -mt-3"
-              aria-label="Testimonials"
-            >
-
+            <div ref={splideEl} class="splide -mt-3" aria-label="Testimonials">
               <DecoratorUI class="py-px before:bg-[image:repeating-linear-gradient(315deg,_var(--border)_0,_var(--border)_1px,_transparent_0,_transparent_50%)] before:bg-[size:10px_10px] before:bg-fixed">
                 <div class="-mx-3 bg-secondary px-3">
                   <div class="splide__track">
                     <ul class="splide__list">
                       {data()?.map((testimonial) => {
-                        const name = testimonial.name || testimonial.data?.name || "";
-                        const role = testimonial.role || testimonial.data?.role || "";
-                        const company = testimonial.company || testimonial.data?.company || "";
-                        const avatar = testimonial.avatar || testimonial.data?.avatar || "/images/testimonials/default.png";
+                        const name =
+                          testimonial.name || testimonial.data?.name || "";
+                        const role =
+                          testimonial.role || testimonial.data?.role || "";
+                        const company =
+                          testimonial.company ||
+                          testimonial.data?.company ||
+                          "";
+                        const avatar =
+                          testimonial.avatar ||
+                          testimonial.data?.avatar ||
+                          "/images/testimonials/default.png";
 
                         return (
                           <li class="splide__slide py-3">
@@ -167,7 +174,6 @@ export default function Testimonials() {
                         );
                       })}
                     </ul>
-
                   </div>
                 </div>
               </DecoratorUI>

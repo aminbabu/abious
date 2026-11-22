@@ -1,5 +1,6 @@
 import { For, Show } from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
+import EmptyState from "~/components/ui/empty-state";
 import BlogCard from "~/components/global/blog-card";
 import BlogsLoader from "~/components/ui/loaders/blogs";
 import type { IBlogPostItem } from "~/lib/api";
@@ -24,22 +25,15 @@ export default function BlogsList(props: {
       <Show
         when={!props.error}
         fallback={
-          <DecoratorUI>
-            <div class="bg-secondary -mx-3 p-3">
-              {props.error?.message ?? "Error loading articles"}
-            </div>
-          </DecoratorUI>
+          <EmptyState
+            isError
+            message={props.error?.message ?? "Error loading articles."}
+          />
         }
       >
         <Show
           when={props.blogs?.length}
-          fallback={
-            <DecoratorUI>
-              <div class="bg-secondary -mx-3 p-3">
-                <p class="text-muted-foreground font-mono text-xs">No articles published yet.</p>
-              </div>
-            </DecoratorUI>
-          }
+          fallback={<EmptyState message="No articles published yet." />}
         >
           <DecoratorUI class="-mt-3">
             <div class="bg-secondary -mx-3 p-3">

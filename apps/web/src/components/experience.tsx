@@ -1,8 +1,15 @@
 import { Splide } from "@splidejs/splide";
 import { AutoScroll } from "@splidejs/splide-extension-auto-scroll";
 import dayjs from "dayjs";
-import { createResource, onCleanup, onMount, Show, createEffect } from "solid-js";
+import {
+  createResource,
+  onCleanup,
+  onMount,
+  Show,
+  createEffect,
+} from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
+import EmptyState from "~/components/ui/empty-state";
 import Section from "~/components/section";
 import Image from "~/components/ui/image";
 import { Heading } from "~/components/ui/global/heading";
@@ -70,7 +77,6 @@ export default function Experience() {
     destroySplide();
   });
 
-
   return (
     <Section id="experience">
       <Paragraph class="mb-3 font-mono text-xs sm:text-sm font-semibold tracking-wider text-muted-foreground/80 md:text-right">
@@ -95,19 +101,17 @@ export default function Experience() {
         <Show
           when={!data.error && data()?.length}
           fallback={
-            <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
-              <div class="-mx-3 bg-secondary p-6 text-center text-muted-foreground">
-                <p>{data.error ? "Failed to load experiences." : "No experience entries found."}</p>
-              </div>
-            </DecoratorUI>
+            <EmptyState
+              isError={!!data.error}
+              message={
+                data.error
+                  ? "Failed to load experiences."
+                  : "No experience entries found."
+              }
+            />
           }
         >
-          <div
-            ref={splideEl}
-            class="splide -mt-3"
-            aria-label="Experiences"
-          >
-
+          <div ref={splideEl} class="splide -mt-3" aria-label="Experiences">
             <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
               <div class="-mx-3 bg-secondary p-3">
                 <div class="splide__track">
@@ -124,7 +128,9 @@ export default function Experience() {
                           />
                         </figure>
                         <div class="min-w-0 flex-1">
-                          <h3 class="font-bold text-foreground">{work.company}</h3>
+                          <h3 class="font-bold text-foreground">
+                            {work.company}
+                          </h3>
                           <p class="text-xs sm:text-sm font-medium text-muted-foreground">
                             {work.location}
                           </p>
@@ -144,7 +150,9 @@ export default function Experience() {
                                   {position.title}
                                 </p>
                                 <p class="text-xs sm:text-sm text-muted-foreground">
-                                  {dayjs(position.startDate).format("MMM DD, YYYY")}{" "}
+                                  {dayjs(position.startDate).format(
+                                    "MMM DD, YYYY",
+                                  )}{" "}
                                   -{" "}
                                   {position.endDate === "present"
                                     ? "Present"
@@ -184,4 +192,3 @@ export default function Experience() {
     </Section>
   );
 }
-

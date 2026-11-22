@@ -1,5 +1,6 @@
 import { For, Show } from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
+import EmptyState from "~/components/ui/empty-state";
 import CaseStudy, { type ICaseStudy } from "~/components/global/case-study";
 import CaseStudiesLoader from "~/components/ui/loaders/case-studies";
 
@@ -31,20 +32,15 @@ export default function CaseStudiesList(props: {
       <Show
         when={!props.error}
         fallback={
-          <DecoratorUI>
-            <div class="bg-secondary -mx-3 p-3">{props.error?.message ?? "Error loading case studies"}</div>
-          </DecoratorUI>
+          <EmptyState
+            isError
+            message={props.error?.message ?? "Error loading case studies."}
+          />
         }
       >
         <Show
           when={displayedStudies().length}
-          fallback={
-            <DecoratorUI>
-              <div class="bg-secondary -mx-3 p-3">
-                <p class="text-muted-foreground">No case studies found.</p>
-              </div>
-            </DecoratorUI>
-          }
+          fallback={<EmptyState message="No case studies found." />}
         >
           <DecoratorUI class="-mt-3">
             <div class="bg-secondary -mx-3 p-3">

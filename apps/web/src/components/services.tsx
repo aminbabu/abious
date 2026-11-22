@@ -2,6 +2,7 @@ import { Splide } from "@splidejs/splide";
 import { AutoScroll } from "@splidejs/splide-extension-auto-scroll";
 import { createResource, Show, createEffect, onCleanup } from "solid-js";
 import DecoratorUI from "~/components/decorator-ui";
+import EmptyState from "~/components/ui/empty-state";
 import CalCom from "~/components/global/calcom";
 import Section from "~/components/section";
 import {
@@ -97,7 +98,9 @@ export default function Services() {
       </DecoratorUI>
       <DecoratorUI class="mb-16 before:-bottom-2 before:border-t-0 lg:mb-20">
         <Paragraph class="max-w-2xl text-muted-foreground text-base sm:text-lg">
-          {"Building fast, scalable, and intuitive solutions—whether it's web development, backend APIs, WordPress, or debugging, I ensure performance and innovation in every project."}
+          {
+            "Building fast, scalable, and intuitive solutions—whether it's web development, backend APIs, WordPress, or debugging, I ensure performance and innovation in every project."
+          }
         </Paragraph>
       </DecoratorUI>
 
@@ -114,18 +117,17 @@ export default function Services() {
         <Show
           when={!data.error && data()?.length}
           fallback={
-            <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
-              <div class="-mx-3 bg-secondary p-6 text-center text-muted-foreground">
-                <p>{data.error ? "Failed to load services." : "No services available."}</p>
-              </div>
-            </DecoratorUI>
+            <EmptyState
+              isError={!!data.error}
+              message={
+                data.error
+                  ? "Failed to load services."
+                  : "No services available."
+              }
+            />
           }
         >
-          <div
-            ref={splideEl}
-            class="splide -mt-3"
-            aria-label="Services"
-          >
+          <div ref={splideEl} class="splide -mt-3" aria-label="Services">
             <DecoratorUI class="py-px before:bg-[repeating-linear-gradient(315deg,var(--border)_0,var(--border)_1px,transparent_0,transparent_50%)] before:bg-size-[10px_10px] before:bg-fixed">
               <div class="-mx-3 bg-secondary p-3">
                 <div class="splide__track">
