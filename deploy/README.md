@@ -3,7 +3,7 @@
 | Context | Tooling |
 |---------|---------|
 | Local development | pnpm |
-| Server / CI | **npm** + **systemd (user units)** |
+| Server / CI | **pnpm** or **npm** + **systemd (user units)** |
 | Edge | CloudPanel reverse proxy → `aminbabu.com` / `api.aminbabu.com` |
 
 ## Quick start
@@ -12,6 +12,8 @@
 bash deploy/check-ports.sh
 bash deploy/install-interactive.sh   # first time
 DEPLOY_BRANCH=main bash deploy/deploy.sh
+# Or override package manager for a deploy:
+PKG_MANAGER=pnpm DEPLOY_BRANCH=main bash deploy/deploy.sh
 ```
 
 See [CLOUDPANEL.md](./CLOUDPANEL.md).

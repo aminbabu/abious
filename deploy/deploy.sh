@@ -25,6 +25,7 @@ if [ "${SKIP_GIT_SYNC:-0}" != "1" ] && [ -d ".git" ]; then
   echo "--> Re-executing deploy.sh from updated commit $(git rev-parse --short HEAD)"
   export SKIP_GIT_SYNC=1
   export DEPLOY_BRANCH
+  export PKG_MANAGER="${PKG_MANAGER:-}"
   export RUN_MIGRATE="${RUN_MIGRATE:-false}"
   export RUN_SEED="${RUN_SEED:-false}"
   exec bash "$APP_ROOT/deploy/deploy.sh"
@@ -82,9 +83,9 @@ echo "--> Stopping systemd services before rebuild..."
 stop_systemd_services
 sleep 1
 
-# 3. Install + build per app (never npm workspaces on server)
-npm_install_apps
-npm_build_apps
+# 3. Install + build
+pkg_install_apps
+pkg_build_apps
 verify_web_build_assets
 
 # 4. Optional migrate / seed
@@ -95,7 +96,7 @@ fi
 
 if [ "${RUN_SEED:-false}" = "true" ]; then
   echo "--> Seeding database..."
-  (cd "$APP_DIR/apps/api" && npm run db:seed)
+  pkg_run_api db:seed
 fi
 
 # 5. Install/update user systemd units and restart services

@@ -33,6 +33,10 @@ pnpm-debug.log*
 *.db-wal
 *.db-shm
 
+# deploy runtime state
+deploy/.pkg-manager
+deploy/cloudpanel-*.txt
+
 # macOS-specific files
 .DS_Store
 

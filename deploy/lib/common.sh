@@ -203,6 +203,27 @@ read_env_value() {
   echo "${line#*=}" | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//"
 }
 
+resolve_pkg_manager() {
+  if [ -z "${PKG_MANAGER:-}" ] && [ -f "$APP_DIR/deploy/.pkg-manager" ]; then
+    PKG_MANAGER="$(tr -d '[:space:]' < "$APP_DIR/deploy/.pkg-manager")"
+  fi
+  if [ -z "${PKG_MANAGER:-}" ]; then
+    if command -v pnpm >/dev/null 2>&1 && [ -f "$APP_DIR/pnpm-lock.yaml" ]; then
+      PKG_MANAGER="pnpm"
+    else
+      PKG_MANAGER="npm"
+    fi
+  fi
+  case "$PKG_MANAGER" in
+    pnpm|npm) ;;
+    *)
+      echo "ERROR: Invalid PKG_MANAGER='$PKG_MANAGER' (expected 'pnpm' or 'npm')."
+      exit 1
+      ;;
+  esac
+  export PKG_MANAGER
+}
+
 ensure_runtime() {
   load_node_env
   ensure_systemd_user_env
@@ -215,13 +236,26 @@ ensure_runtime() {
     echo "or: bash -lc 'command -v node && node -v'"
     exit 1
   fi
+
+  resolve_pkg_manager
+  if [ "$PKG_MANAGER" = "pnpm" ] && ! command -v pnpm >/dev/null 2>&1; then
+    echo "--> Installing pnpm@10..."
+    npm install -g pnpm@10
+    export PATH="$(npm prefix -g)/bin:$PATH"
+    load_node_env
+  fi
+  if [ "$PKG_MANAGER" = "pnpm" ] && ! command -v pnpm >/dev/null 2>&1; then
+    echo "ERROR: pnpm is required when PKG_MANAGER=pnpm. Run: npm install -g pnpm@10"
+    exit 1
+  fi
 }
 
 print_runtime() {
+  resolve_pkg_manager
   echo " User: $(whoami)"
   echo " App:  $APP_DIR"
   echo " Node: $(command -v node) ($(node -v 2>/dev/null || true))"
-  echo " npm:  $(command -v npm) ($(npm -v 2>/dev/null || true))"
+  echo " Pkg:  $PKG_MANAGER ($(command -v "$PKG_MANAGER" 2>/dev/null || true))"
 }
 
 health_check() {
@@ -240,9 +274,20 @@ health_check() {
   return 1
 }
 
-# Install each app separately.
-# Avoids npm workspaces arborist bug: "Cannot read properties of null (reading 'edgesOut')"
-npm_install_apps() {
+pkg_install_apps() {
+  resolve_pkg_manager
+
+  if [ "$PKG_MANAGER" = "pnpm" ]; then
+    echo "--> Installing workspace dependencies with pnpm..."
+    (
+      cd "$APP_DIR"
+      pnpm install --frozen-lockfile || pnpm install
+    )
+    return 0
+  fi
+
+  # Install each app separately when using npm.
+  # Avoids npm workspaces arborist bug: "Cannot read properties of null (reading 'edgesOut')"
   echo "--> Cleaning previous node_modules / lockfiles..."
   rm -rf "$APP_DIR/node_modules" \
     "$APP_DIR/apps/api/node_modules" \
@@ -266,14 +311,16 @@ npm_install_apps() {
   )
 }
 
-npm_build_apps() {
-  echo "--> Building apps/api (NestJS)..."
+pkg_build_apps() {
+  resolve_pkg_manager
+
+  echo "--> Building apps/api (NestJS) with ${PKG_MANAGER}..."
   (
     cd "$APP_DIR/apps/api"
-    npm run build
+    "$PKG_MANAGER" run build
   )
 
-  echo "--> Building apps/web (SolidStart / Nitro)..."
+  echo "--> Building apps/web (SolidStart / Nitro) with ${PKG_MANAGER}..."
   (
     cd "$APP_DIR/apps/web"
     # Bake public API URL into the client bundle at build time
@@ -287,9 +334,21 @@ npm_build_apps() {
     unset NODE_ENV || true
     export VITE_API_URL="${VITE_API_URL:-https://api.aminbabu.com}"
     echo "    VITE_API_URL=${VITE_API_URL}"
-    npm run build
+    "$PKG_MANAGER" run build
   )
 }
+
+pkg_run_api() {
+  resolve_pkg_manager
+  (
+    cd "$APP_DIR/apps/api"
+    "$PKG_MANAGER" run "$@"
+  )
+}
+
+# Backwards-compatible aliases
+npm_install_apps() { pkg_install_apps; }
+npm_build_apps() { pkg_build_apps; }
 
 # Ensure client CSS/JS were emitted (prevents unstyled HTML after deploy)
 verify_web_build_assets() {

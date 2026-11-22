@@ -204,9 +204,24 @@ echo -e "${GREEN}✓ Wrote apps/web/.env.production${NC}"
 echo -e "${GREEN}✓ Wrote ${NOTES}${NC}"
 
 # ------------------------------------------------------------------------------
-# 5) Migrate, build, start
+# 5) Package manager, migrate, build, start
 # ------------------------------------------------------------------------------
-echo -e "\n${BOLD}${BLUE}[5/5] Migrate, build, start...${NC}"
+echo -e "\n${BOLD}${BLUE}[5/5] Package manager, migrate, build, start...${NC}"
+
+DEFAULT_PKG="pnpm"
+if ! command -v pnpm >/dev/null 2>&1 && [ ! -f "$APP_DIR/pnpm-lock.yaml" ]; then
+  DEFAULT_PKG="npm"
+fi
+read -rp "$(echo -e "${CYAN}Package manager (pnpm/npm) [${DEFAULT_PKG}]: ${NC}")" PKG_MANAGER
+PKG_MANAGER=${PKG_MANAGER:-$DEFAULT_PKG}
+while [ "$PKG_MANAGER" != "pnpm" ] && [ "$PKG_MANAGER" != "npm" ]; do
+  echo -e "${RED}Please enter 'pnpm' or 'npm'.${NC}"
+  read -rp "$(echo -e "${CYAN}Package manager (pnpm/npm) [${DEFAULT_PKG}]: ${NC}")" PKG_MANAGER
+  PKG_MANAGER=${PKG_MANAGER:-$DEFAULT_PKG}
+done
+export PKG_MANAGER
+printf '%s\n' "$PKG_MANAGER" > "$APP_DIR/deploy/.pkg-manager"
+ensure_runtime
 
 read -rp "$(echo -e "${CYAN}Apply SQL migrations now? (Y/n): ${NC}")" DO_MIGRATE
 DO_MIGRATE=${DO_MIGRATE:-Y}
@@ -214,14 +229,14 @@ if [[ "$DO_MIGRATE" =~ ^[Yy]$ ]]; then
   bash "$APP_DIR/deploy/apply-migrations.sh" || echo -e "${YELLOW}Migration failed — fix DB then re-run apply-migrations.sh${NC}"
 fi
 
-npm_install_apps
+pkg_install_apps
 export VITE_API_URL="${BETTER_AUTH_URL}"
-npm_build_apps
+pkg_build_apps
 
 read -rp "$(echo -e "${CYAN}Run DB seed now? (Y/n): ${NC}")" DO_SEED
 DO_SEED=${DO_SEED:-Y}
 if [[ "$DO_SEED" =~ ^[Yy]$ ]]; then
-  (cd "$APP_DIR/apps/api" && npm run db:seed) || echo -e "${YELLOW}Seed failed — ensure migrations succeeded first.${NC}"
+  pkg_run_api db:seed || echo -e "${YELLOW}Seed failed — ensure migrations succeeded first.${NC}"
 fi
 
 start_systemd_services
