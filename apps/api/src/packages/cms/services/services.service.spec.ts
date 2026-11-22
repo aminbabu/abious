@@ -17,11 +17,10 @@ describe('ServicesService', () => {
     service = new ServicesService(repo);
   });
 
-  it('should return default services when database is empty', async () => {
+  it('should return empty array when database is empty', async () => {
     vi.spyOn(repo, 'findAllActive').mockResolvedValue([]);
     const items = await service.getActiveServices();
-    expect(items.length).toBe(4);
-    expect(items[0].title).toBe('Web Development');
+    expect(items).toEqual([]);
   });
 
   it('should return database services when available', async () => {

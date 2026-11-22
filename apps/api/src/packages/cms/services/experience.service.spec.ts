@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ExperienceService } from './experience.service.js';
-import { ExperienceRepository, type FullExperience } from '../repositories/experience.repository.js';
+import {
+  ExperienceRepository,
+  type FullExperience,
+} from '../repositories/experience.repository.js';
 
 describe('ExperienceService', () => {
   let service: ExperienceService;
@@ -17,11 +20,10 @@ describe('ExperienceService', () => {
     service = new ExperienceService(repo);
   });
 
-  it('should return fallback experiences when database returns empty array', async () => {
+  it('should return empty array when database is empty', async () => {
     vi.spyOn(repo, 'findAll').mockResolvedValue([]);
     const items = await service.getAllExperience();
-    expect(items.length).toBeGreaterThan(0);
-    expect(items[0].company).toBe('JB Connect Ltd');
+    expect(items).toEqual([]);
   });
 
   it('should return database experience items when available', async () => {
