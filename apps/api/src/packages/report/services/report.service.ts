@@ -1,18 +1,25 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { sql } from 'drizzle-orm';
 import { DRIZZLE_DB, type DrizzleDb } from '../../../db/index.js';
-import type { PlatformOverviewReport, ReportFilterDto } from '../dtos/report.dto.js';
+import type {
+  PlatformOverviewReport,
+  ReportFilterDto,
+} from '../dtos/report.dto.js';
 
 @Injectable()
 export class ReportService {
   constructor(@Inject(DRIZZLE_DB) private readonly db: DrizzleDb) {}
 
-  async getOverview(_filter?: ReportFilterDto): Promise<PlatformOverviewReport> {
+  async getOverview(
+    _filter?: ReportFilterDto,
+  ): Promise<PlatformOverviewReport> {
     try {
       // Query table counts with safe fallbacks if some tables haven't been migrated yet
       const safeCount = async (tableName: string): Promise<number> => {
         try {
-          const res = this.db.get<{ count: number }>(sql.raw(`SELECT count(*) as count FROM "${tableName}"`));
+          const res = this.db.get<{ count: number }>(
+            sql.raw(`SELECT count(*) as count FROM "${tableName}"`),
+          );
           return Number(res?.count ?? 0);
         } catch {
           return 0;
@@ -22,7 +29,9 @@ export class ReportService {
       const safeCountUnread = async (): Promise<number> => {
         try {
           const res = this.db.get<{ count: number }>(
-            sql.raw(`SELECT count(*) as count FROM "contact_inquiries" WHERE is_read = 0`),
+            sql.raw(
+              `SELECT count(*) as count FROM "contact_inquiries" WHERE is_read = 0`,
+            ),
           );
           return Number(res?.count ?? 0);
         } catch {
@@ -30,17 +39,25 @@ export class ReportService {
         }
       };
 
-      const [inquiriesTotal, inquiriesUnread, usersTotal, caseStudiesTotal, servicesTotal, testimonialsTotal, experiencesTotal, postsTotal] =
-        await Promise.all([
-          safeCount('contact_inquiries'),
-          safeCountUnread(),
-          safeCount('user'),
-          safeCount('case_studies'),
-          safeCount('services'),
-          safeCount('testimonials'),
-          safeCount('experiences'),
-          safeCount('blog_posts'),
-        ]);
+      const [
+        inquiriesTotal,
+        inquiriesUnread,
+        usersTotal,
+        caseStudiesTotal,
+        servicesTotal,
+        testimonialsTotal,
+        experiencesTotal,
+        postsTotal,
+      ] = await Promise.all([
+        safeCount('contact_inquiries'),
+        safeCountUnread(),
+        safeCount('user'),
+        safeCount('case_studies'),
+        safeCount('services'),
+        safeCount('testimonials'),
+        safeCount('experiences'),
+        safeCount('blog_posts'),
+      ]);
 
       return {
         timestamp: new Date().toISOString(),
@@ -63,7 +80,13 @@ export class ReportService {
       return {
         timestamp: new Date().toISOString(),
         inquiries: { total: 0, unread: 0 },
-        content: { caseStudies: 0, services: 0, testimonials: 0, experiences: 0, posts: 0 },
+        content: {
+          caseStudies: 0,
+          services: 0,
+          testimonials: 0,
+          experiences: 0,
+          posts: 0,
+        },
         users: { total: 0 },
       };
     }

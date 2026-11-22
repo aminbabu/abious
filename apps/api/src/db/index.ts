@@ -18,13 +18,16 @@ function resolveSqlitePath(rawUrl?: string): string {
   if (value === ':memory:' || value === 'file::memory:') {
     return ':memory:';
   }
-  const filePath = value.startsWith('file:') ? value.slice('file:'.length) : value;
+  const filePath = value.startsWith('file:')
+    ? value.slice('file:'.length)
+    : value;
   const resolvedPath = resolve(process.cwd(), filePath);
   mkdirSync(dirname(resolvedPath), { recursive: true });
   return resolvedPath;
 }
 
-export const connectionString = process.env.DATABASE_URL || 'file:./data/abious.db';
+export const connectionString =
+  process.env.DATABASE_URL || 'file:./data/abious.db';
 export const sqlitePath = resolveSqlitePath(connectionString);
 
 export const sqlite = new Database(sqlitePath);

@@ -3,11 +3,17 @@ import { eq } from 'drizzle-orm';
 import { auth } from '../auth.js';
 import { users } from '../packages/auth/entities/auth.entity.js';
 import { services } from '../packages/cms/entities/service.entity.js';
-import { experiences, experiencePositions } from '../packages/cms/entities/experience.entity.js';
+import {
+  experiences,
+  experiencePositions,
+} from '../packages/cms/entities/experience.entity.js';
 import { testimonials } from '../packages/cms/entities/testimonial.entity.js';
 import { caseStudies } from '../packages/case-studies/entities/case-study.entity.js';
 import { siteSettings } from '../packages/settings/entities/settings.entity.js';
-import { categories, blogPosts } from '../packages/blogs/entities/blog.entity.js';
+import {
+  categories,
+  blogPosts,
+} from '../packages/blogs/entities/blog.entity.js';
 import matter from 'gray-matter';
 import { readFile, readdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
@@ -21,7 +27,11 @@ export async function seedAdminUser() {
   const password = process.env.ADMIN_PASSWORD?.trim();
   const name = (process.env.ADMIN_NAME || 'Amin Babu').trim();
 
-  const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const existing = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
   if (existing.length > 0) {
     if (existing[0].role !== 'admin' || !existing[0].emailVerified) {
       await db
@@ -345,7 +355,14 @@ export async function seedDatabase() {
       banner: '/images/case-studies/axentec.png',
       type: 'Cloud SaaS',
       liveUrl: 'https://axentec.com',
-      stack: ['SolidJS', 'NestJS', 'PostgreSQL', 'TailwindCSS', 'Redis', 'Docker'],
+      stack: [
+        'SolidJS',
+        'NestJS',
+        'PostgreSQL',
+        'TailwindCSS',
+        'Redis',
+        'Docker',
+      ],
       body: `## Architectural Overview\n\nAxentec required a high-density control center allowing multi-tenant administrators to inspect compute usage, manage user privileges, and trigger audit reports in real time.\n\n### Core Engineering Highlights\n- **Sub-50ms query responses** through PostgreSQL partition keys and Drizzle ORM query optimizations.\n- **Fine-grained RBAC** with session-level cryptographic audit trails.\n- **Reactive charts & metrics** rendered with zero layout thrashing.\n\n### Outcome\nScaled to over 100 enterprise accounts with 99.99% uptime and zero critical vulnerability findings during SOC2 Type II audit.`,
       isPublished: true,
       sortOrder: 4,
@@ -358,7 +375,14 @@ export async function seedDatabase() {
       banner: '/images/case-studies/beacon.png',
       type: 'Healthcare Web App',
       liveUrl: 'https://beaconhealth.io',
-      stack: ['TypeScript', 'NextJS', 'NestJS', 'PostgreSQL', 'WebSockets', 'TailwindCSS'],
+      stack: [
+        'TypeScript',
+        'NextJS',
+        'NestJS',
+        'PostgreSQL',
+        'WebSockets',
+        'TailwindCSS',
+      ],
       body: `## Mission & Challenges\n\nBeacon required an end-to-end overhaul of patient intake and real-time triage status updates across 14 hospital branches.\n\n### Solutions Implemented\n- **End-to-End Type Safety**: Shared schema contracts between frontend router and backend microservices.\n- **Real-Time Synchronisation**: WebSocket push channels streaming patient priority changes without polling.\n- **High-contrast UI Design**: Fully accessible design conforming to WCAG 2.1 AA standards for clinical tablets.`,
       isPublished: true,
       sortOrder: 5,
@@ -371,7 +395,14 @@ export async function seedDatabase() {
       banner: '/images/case-studies/peninsula.png',
       type: 'E-Commerce & Hospitality',
       liveUrl: 'https://peninsula.com',
-      stack: ['SolidStart', 'NestJS', 'Stripe', 'TailwindCSS', 'PostgreSQL', 'SplideJS'],
+      stack: [
+        'SolidStart',
+        'NestJS',
+        'Stripe',
+        'TailwindCSS',
+        'PostgreSQL',
+        'SplideJS',
+      ],
       body: `## Project Vision\n\nDesigned to elevate guest engagement for luxury accommodations, this engine combines dynamic package pricing, personalized itineraries, and instant payments.\n\n### Technical Milestones\n- **Sub-second SSR Hydration**: Achieved 98+ Lighthouse mobile performance scores.\n- **Idempotent Stripe Webhooks**: Zero dropped transactions during peak seasonal booking waves.\n- **Multi-lingual localized experience**: Full i18n support for international clientele.`,
       isPublished: true,
       sortOrder: 6,
@@ -384,7 +415,14 @@ export async function seedDatabase() {
       banner: '/images/case-studies/notionhive-marketplace.png',
       type: 'Creator Marketplace',
       liveUrl: 'https://notionhive.com',
-      stack: ['React', 'NextJS', 'Node.js', 'PostgreSQL', 'TailwindCSS', 'AWS S3'],
+      stack: [
+        'React',
+        'NextJS',
+        'Node.js',
+        'PostgreSQL',
+        'TailwindCSS',
+        'AWS S3',
+      ],
       body: `## Platform Architecture\n\nA modern multi-vendor marketplace featuring instant preview rendering, automated zip packaging, and seller revenue distribution.\n\n### Key Deliverables\n- **S3 Presigned Asset Pipelines**: Fast, secure digital file delivery.\n- **Comprehensive Creator Dashboard**: Real-time sales analytics and payout history.\n- **Optimized Algolia Search**: Millisecond search and tag facet filtering.`,
       isPublished: true,
       sortOrder: 7,
@@ -427,7 +465,13 @@ export async function seedDatabase() {
           metaTitle: 'Amin Babu — Software Architect & Full-Stack Engineer',
           metaDescription:
             'Personal portfolio, engineering insights, and production case studies by Amin Babu.',
-          keywords: ['Full-Stack', 'NestJS', 'SolidJS', 'TypeScript', 'Software Architect'],
+          keywords: [
+            'Full-Stack',
+            'NestJS',
+            'SolidJS',
+            'TypeScript',
+            'Software Architect',
+          ],
         },
       },
       {
@@ -443,28 +487,32 @@ export async function seedDatabase() {
 
   // 6. Seed Categories & Diverse Blog Posts for Pagination & Filtering Testing
   console.log('Seeding rich blog categories and articles...');
-  
+
   // Create or retrieve categories
   const categoriesList = [
     {
       slug: 'engineering',
       name: 'Engineering & Architecture',
-      description: 'Systems architecture, performance engineering, and full-stack platforms.',
+      description:
+        'Systems architecture, performance engineering, and full-stack platforms.',
     },
     {
       slug: 'frontend',
       name: 'Frontend & UI',
-      description: 'Reactive frameworks, modern CSS, animations, and Core Web Vitals.',
+      description:
+        'Reactive frameworks, modern CSS, animations, and Core Web Vitals.',
     },
     {
       slug: 'backend',
       name: 'Backend & Databases',
-      description: 'Scalable APIs, distributed systems, Drizzle ORM, and PostgreSQL tuning.',
+      description:
+        'Scalable APIs, distributed systems, Drizzle ORM, and PostgreSQL tuning.',
     },
     {
       slug: 'devops',
       name: 'DevOps & Tooling',
-      description: 'Docker workflows, CI/CD automation, monorepos, and local environments.',
+      description:
+        'Docker workflows, CI/CD automation, monorepos, and local environments.',
     },
   ];
 
@@ -568,7 +616,8 @@ Combine this with connection multiplexers like PgBouncer for production stabilit
     },
     {
       slug: 'mastering-ddev-docker-local-development',
-      title: 'Mastering DDEV & Docker for Instant Local Full-Stack Environments',
+      title:
+        'Mastering DDEV & Docker for Instant Local Full-Stack Environments',
       summary:
         'Eliminating "it works on my machine" issues by standardizing local databases, NodeJS runtimes, and HTTPS certificates with DDEV.',
       content: `## The Modern Local Development Environment
@@ -633,7 +682,8 @@ If your form only uses strings and emails, your production bundle only ships tho
     },
     {
       slug: 'design-systems-with-tailwind-css-tokens',
-      title: 'Architecting Accessible Design Systems with CSS Variables and Tailwind',
+      title:
+        'Architecting Accessible Design Systems with CSS Variables and Tailwind',
       summary:
         'Constructing scalable semantic color palettes, dashed borders, dark modes, and fluid typography tokens without arbitrary class bloat.',
       content: `## Designing for Longevity

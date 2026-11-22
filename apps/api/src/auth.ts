@@ -98,9 +98,8 @@ export const auth = betterAuth({
           ? `"Amin Babu" <${smtpUser}>`
           : '"Abious Admin" <no-reply@abious.ddev.site>');
 
-      const { renderPasswordResetEmail } = await import(
-        './common/templates/email-templates.js'
-      );
+      const { renderPasswordResetEmail } =
+        await import('./common/templates/email-templates.js');
       const emailContent = renderPasswordResetEmail({ url, email: user.email });
 
       await transporter.sendMail({

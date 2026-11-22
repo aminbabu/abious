@@ -35,10 +35,15 @@ export const blogPosts = sqliteTable(
     categoryId: text('category_id').references(() => categories.id, {
       onDelete: 'set null',
     }),
-    tags: text('tags', { mode: 'json' }).$type<string[]>().default([]).notNull(),
+    tags: text('tags', { mode: 'json' })
+      .$type<string[]>()
+      .default([])
+      .notNull(),
     readTimeMinutes: integer('read_time_minutes').default(3).notNull(),
     isDraft: integer('is_draft', { mode: 'boolean' }).default(false).notNull(),
-    publishedAt: integer('published_at', { mode: 'timestamp_ms' }).$defaultFn(() => new Date()),
+    publishedAt: integer('published_at', { mode: 'timestamp_ms' }).$defaultFn(
+      () => new Date(),
+    ),
     authorId: text('author_id'),
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .$defaultFn(() => new Date())

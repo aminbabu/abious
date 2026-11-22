@@ -53,20 +53,30 @@ export async function manageAdmin() {
       return;
     }
     console.error('❌ Error: --email=<email> is required.');
-    console.log('Usage: node dist/scripts/manage-admin.js --email=admin@example.com --password=Secret123! [--reset-users]');
+    console.log(
+      'Usage: node dist/scripts/manage-admin.js --email=admin@example.com --password=Secret123! [--reset-users]',
+    );
     process.exit(1);
   }
 
   if (!options.password) {
     console.error('❌ Error: --password=<password> is required.');
-    console.log('Usage: node dist/scripts/manage-admin.js --email=admin@example.com --password=Secret123! [--reset-users]');
+    console.log(
+      'Usage: node dist/scripts/manage-admin.js --email=admin@example.com --password=Secret123! [--reset-users]',
+    );
     process.exit(1);
   }
 
   // If user already exists, remove that user so we can cleanly register fresh credentials with Better Auth
-  const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, options.email)).limit(1);
+  const existing = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, options.email))
+    .limit(1);
   if (existing.length > 0) {
-    console.log(`ℹ️  User '${options.email}' already exists. Deleting prior record to recreate cleanly...`);
+    console.log(
+      `ℹ️  User '${options.email}' already exists. Deleting prior record to recreate cleanly...`,
+    );
     await db.delete(users).where(eq(users.email, options.email));
   }
 

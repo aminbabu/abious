@@ -4,7 +4,9 @@ export const users = sqliteTable('user', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
-  emailVerified: integer('emailVerified', { mode: 'boolean' }).notNull().default(false),
+  emailVerified: integer('emailVerified', { mode: 'boolean' })
+    .notNull()
+    .default(false),
   image: text('image'),
   role: text('role').notNull().default('user'),
   createdAt: integer('createdAt', { mode: 'timestamp_ms' })
@@ -41,8 +43,12 @@ export const accounts = sqliteTable('account', {
   providerId: text('providerId').notNull(),
   accessToken: text('accessToken'),
   refreshToken: text('refreshToken'),
-  accessTokenExpiresAt: integer('accessTokenExpiresAt', { mode: 'timestamp_ms' }),
-  refreshTokenExpiresAt: integer('refreshTokenExpiresAt', { mode: 'timestamp_ms' }),
+  accessTokenExpiresAt: integer('accessTokenExpiresAt', {
+    mode: 'timestamp_ms',
+  }),
+  refreshTokenExpiresAt: integer('refreshTokenExpiresAt', {
+    mode: 'timestamp_ms',
+  }),
   scope: text('scope'),
   idToken: text('idToken'),
   password: text('password'),
@@ -59,6 +65,10 @@ export const verifications = sqliteTable('verification', {
   identifier: text('identifier').notNull(),
   value: text('value').notNull(),
   expiresAt: integer('expiresAt', { mode: 'timestamp_ms' }).notNull(),
-  createdAt: integer('createdAt', { mode: 'timestamp_ms' }).$defaultFn(() => new Date()),
-  updatedAt: integer('updatedAt', { mode: 'timestamp_ms' }).$defaultFn(() => new Date()),
+  createdAt: integer('createdAt', { mode: 'timestamp_ms' }).$defaultFn(
+    () => new Date(),
+  ),
+  updatedAt: integer('updatedAt', { mode: 'timestamp_ms' }).$defaultFn(
+    () => new Date(),
+  ),
 });

@@ -11,7 +11,13 @@ import {
   RiUserFacesAdminLine,
 } from "solid-icons/ri";
 import AuthLayout from "~/components/auth/auth-layout";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { authClient } from "~/lib/auth-client";
 
@@ -19,12 +25,12 @@ const LoginSchema = v.object({
   email: v.pipe(
     v.string("Email address is required"),
     v.nonEmpty("Please enter your email"),
-    v.email("Please provide a valid email address")
+    v.email("Please provide a valid email address"),
   ),
   password: v.pipe(
     v.string("Password is required"),
     v.nonEmpty("Please enter your password"),
-    v.minLength(8, "Password must have at least 8 characters")
+    v.minLength(8, "Password must have at least 8 characters"),
   ),
 });
 
@@ -60,10 +66,18 @@ export default function LoginPage() {
     }
   };
 
+  return (
+    <AuthLayout
+      title="Admin Authentication"
+      subtitle="Sign in to access your administrative dashboard"
+      icon={RiUserFacesAdminLine}
+    >
       <Card class="border-dashed bg-card/60 backdrop-blur-md">
         <CardHeader class="pb-4">
           <CardTitle class="text-lg">Welcome back</CardTitle>
-          <CardDescription>Enter your admin credentials to sign in.</CardDescription>
+          <CardDescription>
+            Enter your admin credentials to sign in.
+          </CardDescription>
         </CardHeader>
         <CardContent class="space-y-4">
           <Show when={errorMessage()}>
@@ -77,7 +91,10 @@ export default function LoginPage() {
             <Field of={form} path={["email"]}>
               {(field) => (
                 <div class="space-y-1.5">
-                  <label for="email" class="text-xs font-medium text-foreground">
+                  <label
+                    for="email"
+                    class="text-xs font-medium text-foreground"
+                  >
                     Email address
                   </label>
                   <div class="relative flex items-center">
@@ -92,7 +109,9 @@ export default function LoginPage() {
                     />
                   </div>
                   {field.errors && (
-                    <p class="text-[11px] text-destructive">{field.errors[0]}</p>
+                    <p class="text-[11px] text-destructive">
+                      {field.errors[0]}
+                    </p>
                   )}
                 </div>
               )}
@@ -102,7 +121,10 @@ export default function LoginPage() {
               {(field) => (
                 <div class="space-y-1.5">
                   <div class="flex items-center justify-between">
-                    <label for="password" class="text-xs font-medium text-foreground">
+                    <label
+                      for="password"
+                      class="text-xs font-medium text-foreground"
+                    >
                       Password
                     </label>
                     <A
@@ -125,7 +147,9 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword())}
-                      aria-label={showPassword() ? "Hide password" : "Show password"}
+                      aria-label={
+                        showPassword() ? "Hide password" : "Show password"
+                      }
                       class="absolute right-2.5 p-0.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                     >
                       {showPassword() ? (
@@ -136,7 +160,9 @@ export default function LoginPage() {
                     </button>
                   </div>
                   {field.errors && (
-                    <p class="text-[11px] text-destructive">{field.errors[0]}</p>
+                    <p class="text-[11px] text-destructive">
+                      {field.errors[0]}
+                    </p>
                   )}
                 </div>
               )}
@@ -147,7 +173,11 @@ export default function LoginPage() {
               disabled={loading() || form.isSubmitting}
               class="w-full mt-2 cursor-pointer flex items-center justify-center gap-2"
             >
-              <span>{loading() || form.isSubmitting ? "Authenticating..." : "Sign in"}</span>
+              <span>
+                {loading() || form.isSubmitting
+                  ? "Authenticating..."
+                  : "Sign in"}
+              </span>
               <RiArrowsArrowRightLine class="size-4" />
             </Button>
           </Form>
