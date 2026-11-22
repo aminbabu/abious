@@ -1,4 +1,7 @@
 import { sqlite, db } from './index.js';
+import { eq } from 'drizzle-orm';
+import { auth } from '../auth.js';
+import { users } from '../packages/auth/entities/auth.entity.js';
 import { services } from '../packages/cms/entities/service.entity.js';
 import { experiences, experiencePositions } from '../packages/cms/entities/experience.entity.js';
 import { testimonials } from '../packages/cms/entities/testimonial.entity.js';
@@ -13,8 +16,46 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+export async function seedAdminUser() {
+  const email = (process.env.ADMIN_EMAIL || 'amin.babu.bd@gmail.com').trim();
+  const password = process.env.ADMIN_PASSWORD?.trim();
+  const name = (process.env.ADMIN_NAME || 'Amin Babu').trim();
+
+  const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  if (existing.length > 0) {
+    if (existing[0].role !== 'admin' || !existing[0].emailVerified) {
+      await db
+        .update(users)
+        .set({ role: 'admin', emailVerified: true, updatedAt: new Date() })
+        .where(eq(users.id, existing[0].id));
+    }
+    console.log(`ℹ️  Admin user already exists (${email}).`);
+    return;
+  }
+
+  if (!password) {
+    console.log('ℹ️  ADMIN_PASSWORD not set — skipping admin user creation.');
+    return;
+  }
+
+  const res = await auth.api.signUpEmail({
+    body: { email, password, name },
+  });
+
+  if (res?.user?.id) {
+    await db
+      .update(users)
+      .set({ role: 'admin', emailVerified: true, updatedAt: new Date() })
+      .where(eq(users.id, res.user.id));
+    console.log(`✅ Admin user seeded (${email}).`);
+  }
+}
+
 export async function seedDatabase() {
   console.log('🌱 Starting database seed...');
+
+  // 0. Seed Admin User (when ADMIN_PASSWORD is provided)
+  await seedAdminUser();
 
   // 1. Seed Services
   const defaultServices = [

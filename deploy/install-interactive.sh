@@ -113,11 +113,19 @@ DEFAULT_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString
 read -rp "$(echo -e "${CYAN}Better Auth Secret [auto-generate]: ${NC}")" BETTER_AUTH_SECRET
 BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-$DEFAULT_SECRET}
 
-echo -e "\n${YELLOW}OAuth (optional — Enter to skip)${NC}"
-read -rp "$(echo -e "${CYAN}Google Client ID: ${NC}")" GOOGLE_CLIENT_ID
-read -rp "$(echo -e "${CYAN}Google Client Secret: ${NC}")" GOOGLE_CLIENT_SECRET
-read -rp "$(echo -e "${CYAN}GitHub Client ID: ${NC}")" GITHUB_CLIENT_ID
-read -rp "$(echo -e "${CYAN}GitHub Client Secret: ${NC}")" GITHUB_CLIENT_SECRET
+echo -e "\n${YELLOW}Admin account (seeded into database)${NC}"
+read -rp "$(echo -e "${CYAN}Admin Name [Amin Babu]: ${NC}")" ADMIN_NAME
+ADMIN_NAME=${ADMIN_NAME:-Amin Babu}
+read -rp "$(echo -e "${CYAN}Admin Email [amin.babu.bd@gmail.com]: ${NC}")" ADMIN_EMAIL
+ADMIN_EMAIL=${ADMIN_EMAIL:-amin.babu.bd@gmail.com}
+DEFAULT_ADMIN_PASS=$(node -e "console.log(require('crypto').randomBytes(16).toString('base64url'))")
+read -rsp "$(echo -e "${CYAN}Admin Password [auto-generate]: ${NC}")" ADMIN_PASSWORD
+echo ""
+ADMIN_PASSWORD_GENERATED=0
+if [ -z "$ADMIN_PASSWORD" ]; then
+  ADMIN_PASSWORD="$DEFAULT_ADMIN_PASS"
+  ADMIN_PASSWORD_GENERATED=1
+fi
 
 echo -e "\n${YELLOW}SMTP (contact / password reset)${NC}"
 read -rp "$(echo -e "${CYAN}SMTP Host [smtp.gmail.com]: ${NC}")" SMTP_HOST
@@ -149,11 +157,6 @@ DATABASE_URL=${DATABASE_URL}
 BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
 BETTER_AUTH_URL=${BETTER_AUTH_URL}
 CLIENT_URL=${CLIENT_URL}
-
-GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
-GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
 
 SMTP_HOST=${SMTP_HOST}
 SMTP_PORT=${SMTP_PORT}
@@ -233,10 +236,11 @@ pkg_install_apps
 export VITE_API_URL="${BETTER_AUTH_URL}"
 pkg_build_apps
 
-read -rp "$(echo -e "${CYAN}Run DB seed now? (Y/n): ${NC}")" DO_SEED
+read -rp "$(echo -e "${CYAN}Run DB seed now (includes admin user)? (Y/n): ${NC}")" DO_SEED
 DO_SEED=${DO_SEED:-Y}
 if [[ "$DO_SEED" =~ ^[Yy]$ ]]; then
-  pkg_run_api db:seed || echo -e "${YELLOW}Seed failed — ensure migrations succeeded first.${NC}"
+  ADMIN_NAME="$ADMIN_NAME" ADMIN_EMAIL="$ADMIN_EMAIL" ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+    pkg_run_api db:seed || echo -e "${YELLOW}Seed failed — ensure migrations succeeded first.${NC}"
 fi
 
 start_systemd_services
@@ -258,6 +262,14 @@ echo -e "  aminbabu.com     -> http://127.0.0.1:${WEB_PORT}"
 echo -e "  api.aminbabu.com -> http://127.0.0.1:${API_PORT}"
 echo -e ""
 echo -e "Notes: ${NOTES}"
+if [[ "$DO_SEED" =~ ^[Yy]$ ]]; then
+  echo -e ""
+  echo -e "Admin login (${CLIENT_URL}/auth/login):"
+  echo -e "  Email:    ${ADMIN_EMAIL}"
+  if [ "${ADMIN_PASSWORD_GENERATED:-0}" = "1" ]; then
+    echo -e "  Password: ${ADMIN_PASSWORD}  (save this now!)"
+  fi
+fi
 echo -e "Updates: DEPLOY_BRANCH=main bash deploy/deploy.sh"
 echo -e "Ports:   bash deploy/check-ports.sh"
 echo -e "============================================================\n"

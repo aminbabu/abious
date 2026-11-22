@@ -3,8 +3,6 @@ import { A } from "@solidjs/router";
 import * as v from "valibot";
 import { createForm, Form, Field } from "@formisch/solid";
 import {
-  RiLogosGithubFill,
-  RiLogosGoogleFill,
   RiBusinessMailLine,
   RiSystemLockLine,
   RiSystemEyeLine,
@@ -33,7 +31,6 @@ const LoginSchema = v.object({
 export default function LoginPage() {
   const [showPassword, setShowPassword] = createSignal(false);
   const [loading, setLoading] = createSignal(false);
-  const [oauthLoading, setOauthLoading] = createSignal<string | null>(null);
   const [errorMessage, setErrorMessage] = createSignal<string | null>(null);
 
   const form = createForm({
@@ -63,38 +60,10 @@ export default function LoginPage() {
     }
   };
 
-  const handleSocialSignIn = async (provider: "github" | "google") => {
-    setErrorMessage(null);
-    setOauthLoading(provider);
-
-    try {
-      const res = await authClient.signIn.social({
-        provider,
-        callbackURL: `${window.location.origin}/dashboard/overview`,
-      });
-
-      if (res?.error) {
-        setErrorMessage(res.error.message || `Failed to authenticate with ${provider}.`);
-        setOauthLoading(null);
-      } else if (res?.data?.url) {
-        window.location.href = res.data.url;
-      }
-    } catch (err: any) {
-      setErrorMessage(err.message || `Failed to sign in with ${provider}.`);
-      setOauthLoading(null);
-    }
-  };
-
-  return (
-    <AuthLayout
-      title="Admin Authentication"
-      subtitle="Sign in to access your administrative dashboard"
-      icon={RiUserFacesAdminLine}
-    >
       <Card class="border-dashed bg-card/60 backdrop-blur-md">
         <CardHeader class="pb-4">
           <CardTitle class="text-lg">Welcome back</CardTitle>
-          <CardDescription>Enter your credentials or use social single sign-on.</CardDescription>
+          <CardDescription>Enter your admin credentials to sign in.</CardDescription>
         </CardHeader>
         <CardContent class="space-y-4">
           <Show when={errorMessage()}>
@@ -102,37 +71,6 @@ export default function LoginPage() {
               {errorMessage()}
             </div>
           </Show>
-
-          {/* Social Logins */}
-          <div class="grid grid-cols-2 gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={loading() || !!oauthLoading()}
-              onClick={() => handleSocialSignIn("github")}
-              class="w-full flex items-center justify-center gap-2 cursor-pointer font-medium"
-            >
-              <RiLogosGithubFill class="size-4.5" />
-              <span>{oauthLoading() === "github" ? "Connecting..." : "GitHub"}</span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={loading() || !!oauthLoading()}
-              onClick={() => handleSocialSignIn("google")}
-              class="w-full flex items-center justify-center gap-2 cursor-pointer font-medium"
-            >
-              <RiLogosGoogleFill class="size-4.5" />
-              <span>{oauthLoading() === "google" ? "Connecting..." : "Google"}</span>
-            </Button>
-          </div>
-
-          <div class="relative flex items-center justify-center py-2">
-            <div class="w-full border-t border-dashed border-border" />
-            <span class="absolute bg-card px-2 text-[11px] uppercase text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
 
           {/* Credentials Form with Formisch */}
           <Form of={form} onSubmit={handleSubmit} class="space-y-4">
@@ -206,7 +144,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              disabled={loading() || !!oauthLoading() || form.isSubmitting}
+              disabled={loading() || form.isSubmitting}
               class="w-full mt-2 cursor-pointer flex items-center justify-center gap-2"
             >
               <span>{loading() || form.isSubmitting ? "Authenticating..." : "Sign in"}</span>
