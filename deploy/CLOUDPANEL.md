@@ -83,9 +83,9 @@ RUN_SEED=true bash deploy/deploy.sh
 | `deploy/reallocate-ports.sh` | Reallocate or change production ports |
 
 ```bash
-pm2 list
-pm2 logs abious-api
-pm2 logs abious-web
+systemctl --user status abious-api abious-web
+journalctl --user -u abious-api -f
+journalctl --user -u abious-web -f
 ```
 
 ## Unstyled page / `/_build` 500

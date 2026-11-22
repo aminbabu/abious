@@ -3,7 +3,7 @@
 | Context | Tooling |
 |---------|---------|
 | Local development | pnpm |
-| Server / CI | **npm** + **PM2** |
+| Server / CI | **npm** + **systemd (user units)** |
 | Edge | CloudPanel reverse proxy → `aminbabu.com` / `api.aminbabu.com` |
 
 ## Quick start

@@ -64,12 +64,12 @@ echo "--> Locked ports from .env.production (do not change without updating Clou
 echo "    API  127.0.0.1:${API_PORT}  -> https://api.aminbabu.com"
 echo "    WEB  127.0.0.1:${WEB_PORT}  -> https://aminbabu.com"
 
-if ! port_usable_by_pm2_app "$API_PORT" "abious-api"; then
+if ! port_usable_by_systemd_service "$API_PORT" "abious-api"; then
   echo "ERROR: API port ${API_PORT} is in use by another process."
   echo "Run: bash deploy/check-ports.sh"
   exit 1
 fi
-if ! port_usable_by_pm2_app "$WEB_PORT" "abious-web"; then
+if ! port_usable_by_systemd_service "$WEB_PORT" "abious-web"; then
   echo "ERROR: WEB port ${WEB_PORT} is in use by another process."
   echo "Run: bash deploy/check-ports.sh"
   exit 1
@@ -78,9 +78,8 @@ fi
 mkdir -p "$APP_DIR/apps/api/uploads" "$APP_DIR/apps/api/data"
 
 # 2. Stop web before rebuilding .output (avoids 500 on /_build assets mid-deploy)
-echo "--> Stopping PM2 apps before rebuild..."
-pm2 delete abious-web >/dev/null 2>&1 || true
-pm2 delete abious-api >/dev/null 2>&1 || true
+echo "--> Stopping systemd services before rebuild..."
+stop_systemd_services
 sleep 1
 
 # 3. Install + build per app (never npm workspaces on server)
@@ -99,10 +98,9 @@ if [ "${RUN_SEED:-false}" = "true" ]; then
   (cd "$APP_DIR/apps/api" && npm run db:seed)
 fi
 
-# 5. Fresh PM2 start (do not reload over a half-written .output)
-echo "--> Starting PM2 apps..."
-pm2 start "$APP_DIR/deploy/ecosystem.config.cjs"
-pm2 save
+# 5. Install/update user systemd units and restart services
+echo "--> Starting systemd services..."
+start_systemd_services
 
 # 6. Health checks (HTML + a real CSS asset)
 echo "--> Health checks..."
@@ -118,13 +116,13 @@ if [ -n "${WEB_ASSET_SAMPLE_PATH:-}" ]; then
 fi
 set -e
 
-pm2 list
+status_systemd_services
 
 echo "================================================="
 if [ "$API_OK" -eq 0 ] && [ "$WEB_OK" -eq 0 ] && [ "$ASSET_OK" -eq 0 ]; then
   echo " Deployment successful."
 else
-  echo " Deployment finished with health warnings — check: pm2 logs abious-web"
+  echo " Deployment finished with health warnings — check: journalctl --user -u abious-web -n 50"
 fi
 echo " CloudPanel reverse proxy targets (unchanged):"
 echo "   aminbabu.com      -> http://127.0.0.1:${WEB_PORT}"

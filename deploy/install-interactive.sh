@@ -224,10 +224,7 @@ if [[ "$DO_SEED" =~ ^[Yy]$ ]]; then
   (cd "$APP_DIR/apps/api" && npm run db:seed) || echo -e "${YELLOW}Seed failed — ensure migrations succeeded first.${NC}"
 fi
 
-pm2 delete abious-api >/dev/null 2>&1 || true
-pm2 delete abious-web >/dev/null 2>&1 || true
-pm2 start "$APP_DIR/deploy/ecosystem.config.cjs"
-pm2 save
+start_systemd_services
 
 sleep 2
 set +e

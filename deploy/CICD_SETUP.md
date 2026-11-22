@@ -4,7 +4,7 @@ Workflow: `.github/workflows/deploy.yml`
 Trigger: push to **`main`** or manual `workflow_dispatch`.
 
 Remote: SSH → `DEPLOY_BRANCH=main bash deploy/deploy.sh`  
-(npm install/build + PM2 reload + local health checks)
+(npm install/build + systemd restart + local health checks)
 
 ---
 

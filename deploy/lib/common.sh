@@ -125,25 +125,68 @@ find_next_available_port() {
   return 1
 }
 
-# True if port is free OR already owned by a named PM2 process.
-port_usable_by_pm2_app() {
+# Ensure XDG_RUNTIME_DIR / DBUS_SESSION_BUS_ADDRESS are set for systemctl --user
+# in non-interactive SSH sessions (e.g. GitHub Actions).
+ensure_systemd_user_env() {
+  local uid
+  uid="$(id -u)"
+  export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/${uid}}"
+  if [ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -S "${XDG_RUNTIME_DIR}/bus" ]; then
+    export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
+  fi
+}
+
+# True if port is free OR already owned by a running user systemd service.
+port_usable_by_systemd_service() {
   local port="$1"
-  local pm2_name="$2"
+  local service_name="$2"
 
   if ! is_port_in_use "$port"; then
     return 0
   fi
 
-  if ! command -v pm2 >/dev/null 2>&1; then
-    return 1
+  ensure_systemd_user_env
+  if systemctl --user is-active --quiet "$service_name" >/dev/null 2>&1; then
+    return 0
   fi
 
-  if ! pm2 describe "$pm2_name" >/dev/null 2>&1; then
-    return 1
-  fi
+  return 1
+}
 
-  # Port is in use and our PM2 app exists — treat as OK for redeploy/reload.
-  return 0
+install_systemd_units() {
+  ensure_systemd_user_env
+  local unit_dir="${HOME}/.config/systemd/user"
+  local node_bin
+  node_bin="$(command -v node)"
+  mkdir -p "$unit_dir"
+
+  local unit
+  for unit in abious-api.service abious-web.service; do
+    sed -e "s|{{APP_DIR}}|${APP_DIR}|g" -e "s|{{NODE_BIN}}|${node_bin}|g" \
+      "$APP_DIR/deploy/systemd/${unit}" > "${unit_dir}/${unit}"
+  done
+
+  systemctl --user daemon-reload
+  systemctl --user enable abious-api abious-web >/dev/null 2>&1 || true
+
+  if command -v loginctl >/dev/null 2>&1; then
+    loginctl enable-linger "$(whoami)" >/dev/null 2>&1 || true
+  fi
+}
+
+stop_systemd_services() {
+  ensure_systemd_user_env
+  systemctl --user stop abious-web abious-api >/dev/null 2>&1 || true
+}
+
+start_systemd_services() {
+  install_systemd_units
+  systemctl --user restart abious-api abious-web
+}
+
+status_systemd_services() {
+  ensure_systemd_user_env
+  systemctl --user --no-pager --lines=0 status abious-api abious-web || true
 }
 
 read_env_value() {
@@ -162,6 +205,7 @@ read_env_value() {
 
 ensure_runtime() {
   load_node_env
+  ensure_systemd_user_env
 
   if ! command -v node >/dev/null 2>&1 || ! command -v npm >/dev/null 2>&1; then
     echo "ERROR: node/npm not found in PATH for non-interactive SSH."
@@ -171,18 +215,6 @@ ensure_runtime() {
     echo "or: bash -lc 'command -v node && node -v'"
     exit 1
   fi
-
-  if ! command -v pm2 >/dev/null 2>&1; then
-    echo "--> Installing pm2 for current user..."
-    npm install -g pm2
-    export PATH="$(npm prefix -g)/bin:$PATH"
-    load_node_env
-  fi
-
-  if ! command -v pm2 >/dev/null 2>&1; then
-    echo "ERROR: pm2 is required. Run: npm install -g pm2"
-    exit 1
-  fi
 }
 
 print_runtime() {
@@ -190,7 +222,6 @@ print_runtime() {
   echo " App:  $APP_DIR"
   echo " Node: $(command -v node) ($(node -v 2>/dev/null || true))"
   echo " npm:  $(command -v npm) ($(npm -v 2>/dev/null || true))"
-  echo " pm2:  $(command -v pm2) ($(pm2 -v 2>/dev/null || true))"
 }
 
 health_check() {
@@ -205,7 +236,7 @@ health_check() {
     fi
     sleep 1
   done
-  echo "[WARN] $name did not respond at $url (check: pm2 logs $name)"
+  echo "[WARN] $name did not respond at $url (check: journalctl --user -u $name -n 50)"
   return 1
 }
 

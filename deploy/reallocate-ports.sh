@@ -37,18 +37,17 @@ ensure_runtime
 OLD_API="$(read_env_value "$API_ENV" PORT || true)"
 OLD_WEB="$(read_env_value "$WEB_ENV" PORT || true)"
 
-echo "--> Stopping existing PM2 apps (frees ${OLD_API:-?} / ${OLD_WEB:-?})..."
-pm2 delete abious-api >/dev/null 2>&1 || true
-pm2 delete abious-web >/dev/null 2>&1 || true
+echo "--> Stopping existing systemd services (frees ${OLD_API:-?} / ${OLD_WEB:-?})..."
+stop_systemd_services
 sleep 1
 
 if is_port_in_use "$API_PORT"; then
-  echo "ERROR: API port ${API_PORT} is still in use after stopping PM2."
+  echo "ERROR: API port ${API_PORT} is still in use after stopping systemd services."
   bash "$APP_DIR/deploy/check-ports.sh" 8000 20 || true
   exit 1
 fi
 if is_port_in_use "$WEB_PORT"; then
-  echo "ERROR: WEB port ${WEB_PORT} is still in use after stopping PM2."
+  echo "ERROR: WEB port ${WEB_PORT} is still in use after stopping systemd services."
   bash "$APP_DIR/deploy/check-ports.sh" 8000 20 || true
   exit 1
 fi
@@ -92,9 +91,8 @@ if ! grep -q '^HOST=' "$WEB_ENV"; then
   echo "HOST=127.0.0.1" >>"$WEB_ENV"
 fi
 
-echo "--> Starting PM2 on ${API_PORT} / ${WEB_PORT}..."
-pm2 start "$APP_DIR/deploy/ecosystem.config.cjs"
-pm2 save
+echo "--> Starting systemd services on ${API_PORT} / ${WEB_PORT}..."
+start_systemd_services
 
 sleep 2
 set +e
