@@ -137,10 +137,16 @@ SMTP_SECURE=${SMTP_SECURE:-true}
 read -rp "$(echo -e "${CYAN}SMTP User: ${NC}")" SMTP_USER
 read -rsp "$(echo -e "${CYAN}SMTP Pass: ${NC}")" SMTP_PASS
 echo ""
-read -rp "$(echo -e "${CYAN}SMTP From [\"Amin Babu\" <${SMTP_USER:-noreply@${CLEAN_WEB_DOMAIN}}>]: ${NC}")" SMTP_FROM
-SMTP_FROM=${SMTP_FROM:-"\"Amin Babu\" <${SMTP_USER:-noreply@${CLEAN_WEB_DOMAIN}}>"}
-read -rp "$(echo -e "${CYAN}Contact receiver [${SMTP_USER:-hello@${CLEAN_WEB_DOMAIN}}]: ${NC}")" CONTACT_RECEIVER_EMAIL
-CONTACT_RECEIVER_EMAIL=${CONTACT_RECEIVER_EMAIL:-${SMTP_USER:-hello@${CLEAN_WEB_DOMAIN}}}
+DEFAULT_SMTP_FROM_EMAIL="noreply@${CLEAN_WEB_DOMAIN}"
+if [[ "$SMTP_USER" == *@* ]]; then
+  DEFAULT_SMTP_FROM_EMAIL="$SMTP_USER"
+fi
+DEFAULT_SMTP_FROM="\"${ADMIN_NAME}\" <${DEFAULT_SMTP_FROM_EMAIL}>"
+read -rp "$(echo -e "${CYAN}SMTP From [${DEFAULT_SMTP_FROM}]: ${NC}")" SMTP_FROM
+SMTP_FROM=${SMTP_FROM:-$DEFAULT_SMTP_FROM}
+DEFAULT_CONTACT_EMAIL="${ADMIN_EMAIL:-hello@${CLEAN_WEB_DOMAIN}}"
+read -rp "$(echo -e "${CYAN}Contact receiver [${DEFAULT_CONTACT_EMAIL}]: ${NC}")" CONTACT_RECEIVER_EMAIL
+CONTACT_RECEIVER_EMAIL=${CONTACT_RECEIVER_EMAIL:-$DEFAULT_CONTACT_EMAIL}
 
 # ------------------------------------------------------------------------------
 # 4) Write env + CloudPanel notes
