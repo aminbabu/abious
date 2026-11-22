@@ -1,8 +1,8 @@
 # Production deploy — aminbabu.com (CloudPanel)
 
-One monorepo clone. Two CloudPanel **Reverse Proxy** sites. PostgreSQL. npm + PM2 on the server.
+One monorepo clone. Two CloudPanel **Reverse Proxy** sites. SQLite. pnpm or npm + user systemd on the server.
 
-| Public URL | PM2 app | Local target |
+| Public URL | systemd unit | Local target |
 |------------|---------|--------------|
 | `https://aminbabu.com` | `abious-web` | `http://127.0.0.1:<WEB_PORT>` |
 | `https://api.aminbabu.com` | `abious-api` | `http://127.0.0.1:<API_PORT>` |

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Production deploy for aminbabu.com (npm + PM2 + CloudPanel reverse proxy)
+# Production deploy for aminbabu.com (pnpm/npm + systemd + CloudPanel reverse proxy)
 # Usage:
 #   DEPLOY_BRANCH=main bash deploy/deploy.sh
 # Optional:

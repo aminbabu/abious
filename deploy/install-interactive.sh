@@ -2,7 +2,7 @@
 # ==============================================================================
 # First-time production setup for aminbabu.com (CloudPanel reverse proxy)
 # - Auto-selects free local ports (locked into .env.production)
-# - npm + PM2 (pnpm is for local development only)
+# - pnpm or npm + user systemd units
 # ==============================================================================
 
 set -euo pipefail
@@ -26,7 +26,7 @@ cat << "EOF"
   / /| | / __  |/ // / / / / / /\__ \
  / ___ |/ /_/ // // /_/ / /_/ /___/ /
 /_/  |_/_____/___/\____/\____//____/
-   Production setup — aminbabu.com (npm + PM2)
+   Production setup — aminbabu.com (pnpm/npm + systemd)
 EOF
 echo -e "${NC}"
 
@@ -81,7 +81,7 @@ echo -e "${YELLOW}Configured for CloudPanel: api.aminbabu.com -> :${API_PORT}, a
 
 if is_port_in_use "$API_PORT" || is_port_in_use "$WEB_PORT"; then
   echo -e "${YELLOW}Warning: ${API_PORT} and/or ${WEB_PORT} currently in use.${NC}"
-  echo -e "${YELLOW}Stop conflicting PM2 apps first, or run: bash deploy/reallocate-ports.sh <api-port> <web-port>${NC}"
+  echo -e "${YELLOW}Stop conflicting services first, or run: bash deploy/reallocate-ports.sh <api-port> <web-port>${NC}"
 fi
 
 # ------------------------------------------------------------------------------

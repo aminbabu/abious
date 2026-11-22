@@ -239,9 +239,10 @@ ensure_runtime() {
 
   resolve_pkg_manager
   if [ "$PKG_MANAGER" = "pnpm" ] && ! command -v pnpm >/dev/null 2>&1; then
-    echo "--> Installing pnpm@10..."
-    npm install -g pnpm@10
-    export PATH="$(npm prefix -g)/bin:$PATH"
+    echo "--> Installing pnpm@10 into ~/.local..."
+    mkdir -p "${HOME}/.local/bin"
+    NPM_CONFIG_PREFIX="${HOME}/.local" npm install -g pnpm@10
+    export PATH="${HOME}/.local/bin:$PATH"
     load_node_env
   fi
   if [ "$PKG_MANAGER" = "pnpm" ] && ! command -v pnpm >/dev/null 2>&1; then

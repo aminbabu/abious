@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Update production ports and recreate PM2 apps.
+# Update production ports and restart user systemd services.
 #
 # Usage:
 #   bash deploy/reallocate-ports.sh
